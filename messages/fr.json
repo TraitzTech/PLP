@@ -1,0 +1,133 @@
+@@ .. @@
+     "pricing": "Tarifs",
+     "signIn": "Se Connecter",
+     "signUp": "S'Inscrire",
+-    "dashboard": "Tableau de Bord"
++    "dashboard": "Tableau de Bord",
++    "customer": "Client",
++    "propertyAgent": "Agent Immobilier"
+   },
+   "hero": {
+     "title": "Votre Propriété de Rêve",
+@@ .. @@
+     "cities": "Villes"
+   },
+   "search": {
++    "locationPlaceholder": "Où allez-vous?",
++    "checkin": "Arrivée",
++    "checkout": "Départ", 
++    "searchButton": "Rechercher",
++    "propertyType": "Type de Propriété",
++    "guests": "Invités",
++    "types": {
++      "hotels": "Hôtels",
++      "houses": "Maisons",
++      "land": "Terrain", 
++      "apartments": "Appartements"
++    },
++    "guestOptions": {
++      "1": "1 Invité",
++      "2": "2 Invités", 
++      "3": "3 Invités",
++      "4": "4 Invités",
++      "5plus": "5+ Invités"
++    }
++  },
++  "categories": {
++    "title": "Explorer les Types de Propriétés",
++    "subtitle": "Que vous recherchiez un hôtel de luxe, une maison de rêve ou un terrain d'investissement, nous avons la propriété parfaite qui vous attend.",
++    "exploreButton": "Explorer",
++    "hotels": {
++      "name": "Hôtels",
++      "description": "Hôtels de luxe et centres de villégiature pour votre escapade parfaite",
++      "count": "2 500+ propriétés"
++    },
++    "houses": {
++      "name": "Maisons",
++      "description": "Belles maisons à louer ou à acheter", 
++      "count": "18 000+ propriétés"
++    },
++    "land": {
++      "name": "Terrain",
++      "description": "Terrain de premier choix pour l'investissement et le développement",
++      "count": "5 200+ parcelles"
++    }
++  },
++  "featured": {
++    "title": "Propriétés en Vedette",
++    "subtitle": "Découvrez notre sélection triée sur le volet de propriétés premium qui offrent des expériences exceptionnelles et une valeur inégalée.",
++    "viewAll": "Voir Toutes les Propriétés"
++  },
++  "stats": {
++    "title": "Approuvé par des Milliers",
++    "subtitle": "Rejoignez notre communauté grandissante de propriétaires et de voyageurs qui nous font confiance pour leurs besoins d'hébergement.",
++    "properties": {
++      "label": "Propriétés Listées",
++      "description": "Propriétés vérifiées dans toutes les catégories"
++    },
++    "customers": {
++      "label": "Clients Satisfaits",
++      "description": "Clients satisfaits dans le monde entier"
++    },
++    "cities": {
++      "label": "Villes",
++      "description": "Grandes villes et destinations"
++    },
++    "rating": {
++      "label": "Note Moyenne", 
++      "description": "D'après les avis clients vérifiés"
++    }
++  },
++  "newsletter": {
++    "title": "Restez Informé des Meilleures Offres",
++    "subtitle": "Obtenez un accès exclusif aux nouvelles propriétés, offres spéciales et conseils de voyage livrés directement dans votre boîte de réception.",
++    "emailPlaceholder": "Entrez votre adresse email",
++    "subscribeButton": "S'abonner",
++    "privacyNote": "Nous respectons votre vie privée. Désabonnez-vous à tout moment.",
++    "emailRequired": "Veuillez entrer votre adresse email",
++    "subscribeSuccess": "Merci de vous être abonné!",
++    "successMessage": "Abonnement réussi!",
++    "thankYouMessage": "Merci! Vous recevrez bientôt nos dernières mises à jour."
++  },
++  "footer": {
++    "description": "Le pont de confiance pour une inscription, réservation et découverte de propriétés sans faille. Connecter les propriétaires avec les voyageurs du monde entier.",
++    "sections": {
++      "company": "Entreprise",
++      "support": "Support",
++      "discover": "Découvrir", 
++      "hosting": "Hébergement"
++    },
++    "company": {
++      "about": "À Propos",
++      "careers": "Carrières",
++      "press": "Presse",
++      "blog": "Blog"
++    },
++    "support": {
++      "help": "Centre d'Aide",
++      "contact": "Nous Contacter",
++      "safety": "Sécurité",
++      "terms": "Conditions d'Utilisation"
++    },
++    "discover": {
++      "hotels": "Hôtels",
++      "houses": "Maisons",
++      "land": "Terrain",
++      "featured": "Propriétés en Vedette"
++    },
++    "host": {
++      "list": "Lister Votre Propriété",
++      "resources": "Ressources Hôte",
++      "community": "Communauté Hôte", 
++      "pricing": "Outils de Tarification"
++    },
++    "legal": {
++      "privacy": "Politique de Confidentialité",
++      "cookies": "Politique des Cookies",
++      "accessibility": "Accessibilité"
++    },
++    "copyright": "© {year} Property Listing Portal. Tous droits réservés."
++  },
+   "pricing": {
+     "title": "Plans d'Abonnement",
+     "subtitle": "pour Agents",
