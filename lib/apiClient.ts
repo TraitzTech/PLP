@@ -1,20 +1,21 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+import { getToken, clearToken } from "@/lib/authToken";
 
 const apiClient = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
     headers: {
         "Content-Type": "application/json",
+        Accept: "application/json",
     },
-    withCredentials: true, // optional: only if you need cookies/sessions
+    withCredentials: true,
+    withXSRFToken: true
 });
 
-// Example request/response interceptors
 apiClient.interceptors.request.use(
     (config) => {
-        // attach auth token
-        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        const token = getToken();
         if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+            (config.headers = config.headers || {}).Authorization = `Bearer ${token}`;
         }
         return config;
     },
@@ -23,10 +24,29 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
     (response) => response,
-    (error) => {
-        console.error("API Error:", error.response?.data || error.message);
-        return Promise.reject(error);
+    (error: AxiosError<any>) => {
+        const status = error.response?.status;
+        if (status === 401) {
+            // Token invalid/expired
+            clearToken();
+        }
+        const message = (error.response?.data as any)?.message || error.message || "Unknown error";
+        return Promise.reject({
+            status,
+            message,
+            data: error.response?.data,
+        });
     }
 );
 
 export default apiClient;
+
+// Separate client for non-API routes (like Sanctum CSRF)
+export const sanctumClient = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_API_URL?.replace('/api', ''), // Remove /api from base URL
+    headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+    },
+    withCredentials: true,
+});

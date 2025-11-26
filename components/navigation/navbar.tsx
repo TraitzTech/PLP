@@ -16,6 +16,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {authService} from "@/services/authService";
+import {toast} from "sonner";
 
 const navigationItems = [
   { name: 'Hotels', href: '/search?type=hotels', icon: Building2 },
@@ -38,9 +40,20 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isAuthenticated = false; // Replace with actual auth state
+  const isAuthenticated = authService.isAuthenticated();
 
-  return (
+  const handleLogout = async () => {
+        try {
+            await authService.logout();
+
+            toast.success("Logged out successfully.");
+            window.location.href = "/";
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
+    };
+
+    return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       isScrolled 
         ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100' 
@@ -109,11 +122,15 @@ export function Navbar() {
                       <Settings className="w-4 h-4 mr-2" />
                       Settings
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-600">
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Sign Out
-                    </DropdownMenuItem>
+                      <button
+                          onClick={handleLogout}
+                          className="w-full text-left text-red-600 flex items-center"
+                      >
+                          <LogOut className="w-4 h-4 mr-2" />
+                          Sign Out
+                      </button>
+
+
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>

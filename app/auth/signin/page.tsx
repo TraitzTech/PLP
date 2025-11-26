@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft, User, Building2, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
+import apiClient from "@/lib/apiClient";
+import {authService} from "@/services/authService";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -28,23 +30,29 @@ export default function SignInPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success('Welcome back!');
-      
-      // Redirect based on user type
-      switch (userType) {
-        case 'agent':
-          router.push('/dashboard/agent');
-          break;
-        case 'admin':
-          router.push('/admin');
-          break;
-        default:
-          router.push('/dashboard');
-      }
-    }, 1500);
+    try {
+        await authService.login(formData);
+
+        setIsLoading(false);
+        toast.success('Welcome back!');
+
+        // Redirect based on user type
+        switch (userType) {
+            case 'agent':
+                router.push('/dashboard/agent');
+                break;
+            case 'admin':
+                router.push('/admin');
+                break;
+            default:
+                router.push('/dashboard');
+        }
+    } catch (e) {
+        console.error(e);
+        toast.error(e.message);
+    } finally {
+        setIsLoading(false)
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
