@@ -29,9 +29,12 @@ export const authService = {
     },
 
     async isAuthenticated(): Promise<boolean> {
-        const token = localStorage.getItem("token");
-        return !!token;
-    },
+        if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+            const token = localStorage.getItem("token");
+            return !!token;
+        }
+        return false;
+    }
 
     async logout(): Promise<{ message: "Logged out successfully" }> {
         const { data } = await apiClient.post<{ message: "Logged out successfully" }>("/logout");
