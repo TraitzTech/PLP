@@ -34,7 +34,7 @@ export const authService = {
             return !!token;
         }
         return false;
-    }
+    },
 
     async logout(): Promise<{ message: "Logged out successfully" }> {
         const { data } = await apiClient.post<{ message: "Logged out successfully" }>("/logout");
