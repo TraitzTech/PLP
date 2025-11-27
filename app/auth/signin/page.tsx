@@ -41,6 +41,10 @@ export default function SignInPage() {
             case 'agent':
                 router.push('/dashboard/agent');
                 break;
+
+            case 'owner':
+                router.push('/dashboard/agent');
+                break;
             case 'admin':
                 router.push('/admin');
                 break;
