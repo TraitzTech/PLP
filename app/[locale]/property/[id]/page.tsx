@@ -54,7 +54,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                 setHasError(null);
 
                 const response = await publicPropertyService.getProperty(params.id);
-                const prop: AdminProperty = (response as any).data || (response as any);
+                const prop: AdminProperty = (response as any) || (response as any);
                 
                 console.log("Property response:", prop);
                 console.log("Property title:", prop?.title);
