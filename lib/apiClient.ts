@@ -7,8 +7,9 @@ const apiClient = axios.create({
         "Content-Type": "application/json",
         Accept: "application/json",
     },
-    withCredentials: true,
-    withXSRFToken: true
+    // Use pure Bearer token auth for API calls; do NOT send cookies or XSRF tokens
+    withCredentials: false,
+    withXSRFToken: false
 });
 
 apiClient.interceptors.request.use(

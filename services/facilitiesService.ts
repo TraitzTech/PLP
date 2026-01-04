@@ -8,29 +8,74 @@ import type {
   FacilityNotFoundResponse,
 } from "./types";
 
+const BASE_URL = "/facilities";
+
 export const facilitiesService = {
-  async index(): Promise<any> {
-    const { data } = await apiClient.get("/facilities");
-    return data;
+  /**
+   * Get all facilities with optional filters
+   */
+  async getAllFacilities(params?: {
+    per_page?: number;
+    page?: number;
+    search?: string;
+    status?: string;
+  }): Promise<Facility[]> {
+    const response = await apiClient.get<Facility[]>(
+      BASE_URL,
+      { params }
+    );
+    // The API returns the array directly, not wrapped in { data: [] }
+    return response.data;
   },
 
-  async create(payload: FacilityCreateRequest): Promise<FacilityCreateResponse> {
-    const { data } = await apiClient.post<FacilityCreateResponse>("/facilities", payload);
-    return data;
+  /**
+   * Get a single facility by ID
+   */
+  async getFacility(
+    id: string | number
+  ): Promise<{ status: string; data: Facility }> {
+    const response = await apiClient.get<{ status: string; data: Facility }>(
+      `${BASE_URL}/${id}`
+    );
+    return response.data;
   },
 
-  async show(id: string | number): Promise<{ status: "success"; data: any } | FacilityNotFoundResponse> {
-    const { data } = await apiClient.get(`/facilities/${id}`);
-    return data;
+  /**
+   * Create a new facility
+   */
+  async createFacility(
+    payload: FacilityCreateRequest
+  ): Promise<FacilityCreateResponse> {
+    const response = await apiClient.post<FacilityCreateResponse>(
+      BASE_URL,
+      payload
+    );
+    return response.data;
   },
 
-  async update(id: string | number, payload: Partial<Facility>): Promise<FacilityUpdateResponse | FacilityNotFoundResponse> {
-    const { data } = await apiClient.put(`/facilities/${id}`, payload);
-    return data;
+  /**
+   * Update a facility
+   */
+  async updateFacility(
+    id: string | number,
+    payload: Partial<Facility>
+  ): Promise<FacilityUpdateResponse> {
+    const response = await apiClient.put<FacilityUpdateResponse>(
+      `${BASE_URL}/${id}`,
+      payload
+    );
+    return response.data;
   },
 
-  async destroy(id: string | number): Promise<FacilityDeleteResponse | FacilityNotFoundResponse> {
-    const { data } = await apiClient.delete(`/facilities/${id}`);
-    return data;
+  /**
+   * Delete a facility
+   */
+  async deleteFacility(
+    id: string | number
+  ): Promise<FacilityDeleteResponse> {
+    const response = await apiClient.delete<FacilityDeleteResponse>(
+      `${BASE_URL}/${id}`
+    );
+    return response.data;
   },
 };

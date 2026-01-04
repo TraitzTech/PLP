@@ -15,6 +15,7 @@ import {
   MapPin,
   ArrowRight 
 } from 'lucide-react';
+import { useTranslations } from '@/components/translation-provider';
 
 const socialLinks = [
   { name: 'Facebook', href: '#', icon: Facebook },
@@ -25,31 +26,32 @@ const socialLinks = [
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const t = useTranslations();
 
   const footerLinks = {
     company: [
-      { name: 'About Us', href: '/about' },
-      { name: 'Careers', href: '/careers' },
-      { name: 'Press', href: '/press' },
-      { name: 'Blog', href: '/blog' },
+      { name: t('footer.company.about','About Us'), href: '/about' },
+      { name: t('footer.company.careers','Careers'), href: '/careers' },
+      { name: t('footer.company.press','Press'), href: '/press' },
+      { name: t('footer.company.blog','Blog'), href: '/blog' },
     ],
     support: [
-      { name: 'Help Center', href: '/help' },
-      { name: 'Contact Us', href: '/contact' },
-      { name: 'Safety', href: '/safety' },
-      { name: 'Terms of Service', href: '/terms' },
+      { name: t('footer.support.help','Help Center'), href: '/help' },
+      { name: t('footer.support.contact','Contact Us'), href: '/contact' },
+      { name: t('footer.support.safety','Safety'), href: '/safety' },
+      { name: t('footer.support.terms','Terms of Service'), href: '/terms' },
     ],
     discover: [
-      { name: 'Hotels', href: '/search?type=hotels' },
-      { name: 'Houses', href: '/search?type=houses' },
-      { name: 'Land', href: '/search?type=land' },
-      { name: 'Featured Properties', href: '/featured' },
+      { name: t('footer.discover.hotels','Hotels'), href: '/search?type=hotels' },
+      { name: t('footer.discover.houses','Houses'), href: '/search?type=houses' },
+      { name: t('footer.discover.land','Land'), href: '/search?type=land' },
+      { name: t('footer.discover.featured','Featured Properties'), href: '/featured' },
     ],
     host: [
-      { name: 'List Your Property', href: '/host' },
-      { name: 'Host Resources', href: '/host/resources' },
-      { name: 'Host Community', href: '/host/community' },
-      { name: 'Pricing Tools', href: '/host/pricing' },
+      { name: t('footer.host.list','List Your Property'), href: '/host' },
+      { name: t('footer.host.resources','Host Resources'), href: '/host/resources' },
+      { name: t('footer.host.community','Host Community'), href: '/host/community' },
+      { name: t('footer.host.pricing','Pricing Tools'), href: '/host/pricing' },
     ],
   };
 
@@ -62,7 +64,7 @@ export function Footer() {
           <div className="lg:col-span-4 space-y-6">
             <Logo showText variant="horizontal" className="text-white" />
             <p className="text-gray-400 leading-relaxed">
-              The trusted bridge for seamless property listing, booking, and discovery. Connecting property owners with travelers worldwide.
+              {t('footer.description','The trusted bridge for seamless property listing, booking, and discovery. Connecting property owners with travelers worldwide.')}
             </p>
             
             {/* Contact Info */}
@@ -102,7 +104,7 @@ export function Footer() {
           <div className="lg:col-span-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               <div>
-                <h3 className="font-semibold text-white mb-4">Company</h3>
+                <h3 className="font-semibold text-white mb-4">{t('footer.sections.company','Company')}</h3>
                 <ul className="space-y-2">
                   {footerLinks.company.map((link) => (
                     <li key={link.name}>
@@ -118,7 +120,7 @@ export function Footer() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-white mb-4">Support</h3>
+                <h3 className="font-semibold text-white mb-4">{t('footer.sections.support','Support')}</h3>
                 <ul className="space-y-2">
                   {footerLinks.support.map((link) => (
                     <li key={link.name}>
@@ -134,7 +136,7 @@ export function Footer() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-white mb-4">Discover</h3>
+                <h3 className="font-semibold text-white mb-4">{t('footer.sections.discover','Discover')}</h3>
                 <ul className="space-y-2">
                   {footerLinks.discover.map((link) => (
                     <li key={link.name}>
@@ -150,7 +152,7 @@ export function Footer() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-white mb-4">Hosting</h3>
+                <h3 className="font-semibold text-white mb-4">{t('footer.sections.hosting','Hosting')}</h3>
                 <ul className="space-y-2">
                   {footerLinks.host.map((link) => (
                     <li key={link.name}>
@@ -174,13 +176,13 @@ export function Footer() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-gray-400">
-              © {currentYear} Property Listing Portal. All rights reserved.
+              {t('footer.copyright','© {year} Property Listing Portal. All rights reserved.').replace('{year}', String(currentYear))}
             </div>
             
             <div className="flex items-center space-x-6 text-sm">
-              <Link href="/privacy" className="hover:text-plp-yellow transition-colors">Privacy Policy</Link>
-              <Link href="/cookies" className="hover:text-plp-yellow transition-colors">Cookie Policy</Link>
-              <Link href="/accessibility" className="hover:text-plp-yellow transition-colors">Accessibility</Link>
+              <Link href="/privacy" className="hover:text-plp-yellow transition-colors">{t('footer.legal.privacy','Privacy Policy')}</Link>
+              <Link href="/cookies" className="hover:text-plp-yellow transition-colors">{t('footer.legal.cookies','Cookie Policy')}</Link>
+              <Link href="/accessibility" className="hover:text-plp-yellow transition-colors">{t('footer.legal.accessibility','Accessibility')}</Link>
             </div>
           </div>
         </div>

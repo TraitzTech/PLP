@@ -1,8 +1,6 @@
-import './globals.css';
 import type { Metadata } from 'next';
 import { Urbanist } from 'next/font/google';
-import { ThemeProvider } from '@/components/theme-provider';
-import { Toaster } from '@/components/ui/sonner';
+import ClientRedirectToDefaultLocale from '@/components/client-redirect-to-default-locale';
 
 const urbanist = Urbanist({
   subsets: ['latin'],
@@ -11,36 +9,17 @@ const urbanist = Urbanist({
 });
 
 export const metadata: Metadata = {
-  title: 'Property Listing Portal - Your Dream Property Awaits',
-  description: 'Discover, book, and manage properties with ease. The trusted bridge for seamless property listing, booking, and discovery.',
-  keywords: 'property, real estate, booking, hotels, houses, land, rental',
-  authors: [{ name: 'Property Listing Portal' }],
-  openGraph: {
-    title: 'Property Listing Portal',
-    description: 'Your Dream Property Awaits',
-    siteName: 'Property Listing Portal',
-    locale: 'en_US',
-    type: 'website',
-  },
+  title: 'Property Listing Portal',
+  description: 'Your Dream Property Awaits',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${urbanist.variable} font-urbanist antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        {/* Redirect any non-localized path to default locale. Middleware also handles this. */}
+        <ClientRedirectToDefaultLocale />
+        {children}
       </body>
     </html>
   );

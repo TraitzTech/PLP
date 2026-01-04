@@ -1,133 +1,149 @@
-@@ .. @@
-     "pricing": "Pricing",
-     "signIn": "Sign In",
-     "signUp": "Sign Up",
--    "dashboard": "Dashboard"
-+    "dashboard": "Dashboard",
-+    "customer": "Customer",
-+    "propertyAgent": "Property Agent"
-   },
-   "hero": {
-     "title": "Your Dream Property",
-@@ .. @@
-     "cities": "Cities"
-   },
-   "search": {
-+    "locationPlaceholder": "Where are you going?",
-+    "checkin": "Check-in",
-+    "checkout": "Check-out",
-+    "searchButton": "Search",
-+    "propertyType": "Property Type",
-+    "guests": "Guests",
-+    "types": {
-+      "hotels": "Hotels",
-+      "houses": "Houses", 
-+      "land": "Land",
-+      "apartments": "Apartments"
-+    },
-+    "guestOptions": {
-+      "1": "1 Guest",
-+      "2": "2 Guests",
-+      "3": "3 Guests", 
-+      "4": "4 Guests",
-+      "5plus": "5+ Guests"
-+    }
-+  },
-+  "categories": {
-+    "title": "Explore Property Types",
-+    "subtitle": "Whether you're looking for a luxury hotel, dream home, or investment land, we have the perfect property waiting for you.",
-+    "exploreButton": "Explore",
-+    "hotels": {
-+      "name": "Hotels",
-+      "description": "Luxury hotels and resorts for your perfect getaway",
-+      "count": "2,500+ properties"
-+    },
-+    "houses": {
-+      "name": "Houses", 
-+      "description": "Beautiful homes for rent or purchase",
-+      "count": "18,000+ properties"
-+    },
-+    "land": {
-+      "name": "Land",
-+      "description": "Prime land for investment and development", 
-+      "count": "5,200+ plots"
-+    }
-+  },
-+  "featured": {
-+    "title": "Featured Properties",
-+    "subtitle": "Discover our handpicked selection of premium properties that offer exceptional experiences and unmatched value.",
-+    "viewAll": "View All Properties"
-+  },
-+  "stats": {
-+    "title": "Trusted by Thousands",
-+    "subtitle": "Join our growing community of property owners and travelers who trust us for their accommodation needs.",
-+    "properties": {
-+      "label": "Properties Listed",
-+      "description": "Verified properties across all categories"
-+    },
-+    "customers": {
-+      "label": "Happy Customers",
-+      "description": "Satisfied customers worldwide"
-+    },
-+    "cities": {
-+      "label": "Cities", 
-+      "description": "Major cities and destinations"
-+    },
-+    "rating": {
-+      "label": "Average Rating",
-+      "description": "From verified customer reviews"
-+    }
-+  },
-+  "newsletter": {
-+    "title": "Stay Updated with the Best Deals",
-+    "subtitle": "Get exclusive access to new properties, special offers, and travel tips delivered straight to your inbox.",
-+    "emailPlaceholder": "Enter your email address",
-+    "subscribeButton": "Subscribe",
-+    "privacyNote": "We respect your privacy. Unsubscribe at any time.",
-+    "emailRequired": "Please enter your email address",
-+    "subscribeSuccess": "Thank you for subscribing!",
-+    "successMessage": "Successfully subscribed!",
-+    "thankYouMessage": "Thank you! You'll receive our latest updates soon."
-+  },
-+  "footer": {
-+    "description": "The trusted bridge for seamless property listing, booking, and discovery. Connecting property owners with travelers worldwide.",
-+    "sections": {
-+      "company": "Company",
-+      "support": "Support", 
-+      "discover": "Discover",
-+      "hosting": "Hosting"
-+    },
-+    "company": {
-+      "about": "About Us",
-+      "careers": "Careers",
-+      "press": "Press",
-+      "blog": "Blog"
-+    },
-+    "support": {
-+      "help": "Help Center",
-+      "contact": "Contact Us", 
-+      "safety": "Safety",
-+      "terms": "Terms of Service"
-+    },
-+    "discover": {
-+      "hotels": "Hotels",
-+      "houses": "Houses",
-+      "land": "Land", 
-+      "featured": "Featured Properties"
-+    },
-+    "host": {
-+      "list": "List Your Property",
-+      "resources": "Host Resources",
-+      "community": "Host Community",
-+      "pricing": "Pricing Tools"
-+    },
-+    "legal": {
-+      "privacy": "Privacy Policy",
-+      "cookies": "Cookie Policy",
-+      "accessibility": "Accessibility"
-+    },
-+    "copyright": "© {year} Property Listing Portal. All rights reserved."
-+  },
-   "pricing": {
-     "title": "Subscription Plans",
-     "subtitle": "for Agents",
+{
+  "nav": {
+    "home": "Home",
+    "myAccount": "My Account",
+    "profile": "Profile",
+    "saved": "Saved Properties",
+    "messages": "Messages",
+    "settings": "Settings",
+    "customer": "Customer",
+    "propertyAgent": "Property Agent",
+    "dashboard": "Dashboard",
+    "selectLanguage": "Select Language",
+    "about": "About",
+    "contact": "Contact",
+    "propertyTypes": "Property Types"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signInAs": "Sign In As",
+    "signOut": "Sign Out",
+    "loggedOut": "Logged out successfully."
+  },
+  "hero": {
+    "title": "Your Dream Property",
+    "subtitle": "Awaits",
+    "description": "The trusted bridge for seamless property listing, booking, and discovery. Find your perfect stay from luxury hotels to dream homes."
+  },
+  "search": {
+    "locationPlaceholder": "Where are you going?",
+    "checkin": "Check-in",
+    "checkout": "Check-out",
+    "searchButton": "Search",
+    "propertyType": "Property Type",
+    "guests": "Guests",
+    "types": {
+      "hotels": "Hotels",
+      "houses": "Houses",
+      "land": "Land",
+      "apartments": "Apartments"
+    },
+    "guestOptions": {
+      "1": "1 Guest",
+      "2": "2 Guests",
+      "3": "3 Guests",
+      "4": "4 Guests",
+      "5plus": "5+ Guests"
+    }
+  },
+  "categories": {
+    "title": "Explore Property Types",
+    "subtitle": "Whether you're looking for a luxury hotel, dream home, or investment land, we have the perfect property waiting for you.",
+    "exploreButton": "Explore",
+    "hotels": {
+      "name": "Hotels",
+      "description": "Luxury hotels and resorts for your perfect getaway",
+      "count": "2,500+ properties"
+    },
+    "houses": {
+      "name": "Houses",
+      "description": "Beautiful homes for rent or purchase",
+      "count": "18,000+ properties"
+    },
+    "land": {
+      "name": "Land",
+      "description": "Prime land for investment and development",
+      "count": "5,200+ plots"
+    }
+  },
+  "featured": {
+    "title": "Featured Properties",
+    "subtitle": "Discover our handpicked selection of premium properties that offer exceptional experiences and unmatched value.",
+    "viewAll": "View All Properties"
+  },
+  "stats": {
+    "title": "Trusted by Thousands",
+    "subtitle": "Join our growing community of property owners and travelers who trust us for their accommodation needs.",
+    "properties": {
+      "label": "Properties Listed",
+      "description": "Verified properties across all categories"
+    },
+    "customers": {
+      "label": "Happy Customers",
+      "description": "Satisfied customers worldwide"
+    },
+    "cities": {
+      "label": "Cities",
+      "description": "Major cities and destinations"
+    },
+    "rating": {
+      "label": "Average Rating",
+      "description": "From verified customer reviews"
+    }
+  },
+  "newsletter": {
+    "title": "Stay Updated with the Best Deals",
+    "subtitle": "Get exclusive access to new properties, special offers, and travel tips delivered straight to your inbox.",
+    "emailPlaceholder": "Enter your email address",
+    "subscribeButton": "Subscribe",
+    "privacyNote": "We respect your privacy. Unsubscribe at any time.",
+    "emailRequired": "Please enter your email address",
+    "subscribeSuccess": "Thank you for subscribing!",
+    "successMessage": "Successfully subscribed!",
+    "thankYouMessage": "Thank you! You'll receive our latest updates soon."
+  },
+  "footer": {
+    "description": "The trusted bridge for seamless property listing, booking, and discovery. Connecting property owners with travelers worldwide.",
+    "sections": {
+      "company": "Company",
+      "support": "Support",
+      "discover": "Discover",
+      "hosting": "Hosting"
+    },
+    "company": {
+      "about": "About Us",
+      "careers": "Careers",
+      "press": "Press",
+      "blog": "Blog"
+    },
+    "support": {
+      "help": "Help Center",
+      "contact": "Contact Us",
+      "safety": "Safety",
+      "terms": "Terms of Service"
+    },
+    "discover": {
+      "hotels": "Hotels",
+      "houses": "Houses",
+      "land": "Land",
+      "featured": "Featured Properties"
+    },
+    "host": {
+      "list": "List Your Property",
+      "resources": "Host Resources",
+      "community": "Host Community",
+      "pricing": "Pricing Tools"
+    },
+    "legal": {
+      "privacy": "Privacy Policy",
+      "cookies": "Cookie Policy",
+      "accessibility": "Accessibility"
+    },
+    "copyright": "© {year} Property Listing Portal. All rights reserved."
+  },
+  "pricing": {
+    "title": "Subscription Plans",
+    "subtitle": "for Agents"
+  }
+}

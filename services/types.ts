@@ -22,9 +22,165 @@ export type RegisterRequest = {
   phone: string;
   password: string;
   password_confirmation: string;
-  user_type?: "admin" | "owner" | null;
+  user_type?: "admin" | "agent" | "customer" | null;
 };
 export type RegisterResponse = { user: string; token: string; token_type: "Bearer" };
+
+// User Management
+export type UserGender = "male" | "female" | "other";
+export type UserType = "customer" | "agent" | "admin";
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  gender: UserGender;
+  user_type: UserType;
+  email_verified_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaginatedUsers {
+  current_page: number;
+  data: User[];
+  first_page_url: string;
+  from: number;
+  last_page: number;
+  last_page_url: string;
+  links: Array<{ url: string | null; label: string; active: boolean }>;
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number;
+  total: number;
+}
+
+export type UserListResponse = { status: "success"; data: PaginatedUsers };
+
+export type UserCreateRequest = {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  gender: UserGender;
+  user_type: UserType;
+  email_verified_at?: boolean | null;
+};
+
+export type UserCreateResponse = { status: "success"; message: "User created successfully"; data: User };
+
+export type UserShowResponse = { status: "success"; data: User };
+
+export type UserUpdateRequest = {
+  name?: string;
+  email?: string;
+  password?: string;
+  phone?: string;
+  gender?: UserGender;
+  user_type?: UserType;
+  email_verified_at?: boolean;
+};
+
+export type UserUpdateResponse = { status: "success"; message: "User updated successfully"; data: User };
+
+export type UserDeleteResponse = { status: "success"; message: "User deleted successfully" };
+
+// Activity Logging
+export type ActivityAction = "login" | "logout" | "create" | "update" | "delete" | "view";
+
+export interface Activity {
+  id: number;
+  user_id: number;
+  action: ActivityAction;
+  description: string;
+  model_type: string | null;
+  model_id: number | null;
+  changes: Record<string, any> | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    user_type: UserType;
+  };
+}
+
+export interface PaginatedActivities {
+  current_page: number;
+  data: Activity[];
+  first_page_url: string;
+  from: number;
+  last_page: number;
+  last_page_url: string;
+  links: Array<{ url: string | null; label: string; active: boolean }>;
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number;
+  total: number;
+}
+
+export type ActivityListResponse = { status: "success"; data: PaginatedActivities };
+export type ActivityShowResponse = { status: "success"; data: Activity };
+
+export interface ActivityStatistics {
+  total_activities: number;
+  by_action: Record<string, number>;
+  by_date: Record<string, number>;
+  recent_actions: string[];
+}
+
+export type ActivityStatisticsResponse = { status: "success"; data: ActivityStatistics };
+
+export type ActivityTimelineResponse = { status: "success"; data: Record<string, Activity[]> };
+
+// Dashboard Statistics
+export interface DashboardStats {
+  totalUsers: number;
+  totalProperties: number;
+  totalAgents?: number;
+  totalCustomers?: number;
+  monthlyRevenue: number;
+  pendingApprovals: number;
+  activeBookings: number;
+  averageRating: number;
+  platformGrowth: number;
+  supportTickets?: number;
+  myProperties?: number;
+  myBookings?: number;
+  myRevenue?: number;
+  savedProperties?: number;
+  unreadMessages?: number;
+}
+
+export type DashboardStatsResponse = { status: "success"; data: DashboardStats };
+
+export interface TopProperty {
+  id: number;
+  name: string;
+  owner: string;
+  location: string;
+  bookings: number;
+  revenue: number;
+  rating: number;
+}
+
+export interface PendingApproval {
+  id: number;
+  type: string;
+  title: string;
+  owner: string;
+  location: string;
+  submitted: string;
+  status: string;
+}
 
 export type ForgotPasswordRequest = { email: string };
 export type ForgotPasswordResponse = ApiStatusResponse;
@@ -82,19 +238,26 @@ export type PropertyTypeUpdateResponse = { status: "success"; message: "Property
 export type PropertyTypeDeleteResponse204 = void; // No content
 export type PropertyTypeNotFoundResponse = { status: "error"; message: "Property type not found" };
 
-// Listings
+// Listings (aligned with OpenAPI)
 export interface Listing {
   id: number;
-  owner_id: number;
+  agent_id: number;
+  property_type_id: number;
   title: string;
   slug: string;
   description: string;
   region: string;
   city: string;
-  address: string | null;
-  is_featured: number;
-  is_approved: number;
-  status: number;
+  location: string;
+  price: string;
+  discount_price: string | null;
+  discount_percentage: string | null;
+  number_available: number;
+  is_available: boolean;
+  is_negotiable: boolean;
+  is_featured: boolean;
+  is_approved: boolean;
+  status: string;
   deleted_at: string | null;
   created_at: string | null;
   updated_at: string | null;
@@ -102,15 +265,24 @@ export interface Listing {
 export type ListingCreateRequest = {
   title: string;
   description: string;
+  property_type_id: number;
   price: number;
   region: string;
   city: string;
-  address?: string | null;
-  seo_title?: string | null;
-  seo_description?: string | null;
+  location: string;
+  discount_price?: number | null;
+  discount_percentage?: number | null;
+  number_available: number;
+  is_available: boolean;
+  is_negotiable?: boolean | null;
+  is_featured?: boolean | null;
+  is_approved?: boolean | null;
   status: boolean;
+  facilities_id: string[];
+  /** additional field sometimes present in schema */
+  ['facilities_id*']?: string;
 };
-export type ListingCreateResponse = { status: "success"; message: "Listing created successfully"; data: Listing };
+export type ListingCreateResponse = { status: "success"; message: "Listing created successfully"; data: any };
 export type ListingDeleteResponse = { status: "success"; message: "Listing deleted successfully" };
 
 // Listing Schedules
@@ -142,3 +314,300 @@ export type ListingScheduleUpdateResponse = {
 };
 export type ListingScheduleNotFoundResponse = { status: "error"; message: "Listing schedule not found" };
 export type ListingScheduleDeleteResponse204 = void; // No content
+
+// Admin Properties Management
+export type PropertyStatus = "available" | "unavailable" | "pending" | "sold";
+
+export interface AdminProperty {
+  facilities: Facility[];
+  images: ListingImage[];
+  id: number;
+  agent_id: number;
+  property_type_id: number;
+  title: string;
+  slug: string;
+  description: string;
+  region: string;
+  city: string;
+  location: string;
+  price: string | number;
+  discount_price: string | number | null;
+  discount_percentage: string | number | null;
+  number_available: number;
+  is_available: boolean;
+  is_negotiable: boolean;
+  is_featured: boolean;
+  is_approved: boolean;
+  status: PropertyStatus;
+  deleted_at: string | null;
+  created_at: string;
+  updated_at: string;
+  agent?: {
+    user: any;
+    id: number;
+    name: string;
+    email: string;
+  };
+  property_type?: PropertyType;
+}
+
+export interface PaginatedProperties {
+  current_page: number;
+  data: AdminProperty[];
+  first_page_url: string;
+  from: number;
+  last_page: number;
+  last_page_url: string;
+  links: Array<{ url: string | null; label: string; active: boolean }>;
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number;
+  total: number;
+}
+
+export type AdminPropertiesListResponse = { status: "success"; data: PaginatedProperties };
+
+export type AdminPropertyCreateRequest = {
+  agent_id: number;
+  title: string;
+  description: string;
+  region: string;
+  city: string;
+  location: string;
+  price: number;
+  property_type_id: number;
+  discount_price?: number | null;
+  discount_percentage?: number | null;
+  number_available: number;
+  is_available?: boolean;
+  is_negotiable?: boolean;
+  is_featured?: boolean;
+  is_approved?: boolean;
+  status: PropertyStatus;
+  facilities_id: number[];
+};
+
+export type AdminPropertyCreateResponse = { status: "success"; message: "Property created successfully"; data: AdminProperty };
+
+export type AdminPropertyShowResponse = { status: "success"; data: AdminProperty };
+
+export type AdminPropertyUpdateRequest = {
+  status?: PropertyStatus;
+  is_approved?: boolean;
+  is_featured?: boolean;
+  is_available?: boolean;
+  title?: string;
+  description?: string;
+  price?: number;
+  discount_price?: number | null;
+  discount_percentage?: number | null;
+  number_available?: number;
+};
+
+export type AdminPropertyUpdateResponse = { status: "success"; message: "Property updated successfully"; data: AdminProperty };
+
+export type AdminPropertyDeleteResponse = { status: "success"; message: "Property deleted successfully" };
+
+export type AdminPropertyApprovalRequest = {
+  is_approved: boolean;
+  reason?: string;
+};
+
+export type AdminPropertyApprovalResponse = { status: "success"; message: string; data: AdminProperty };
+
+export type AdminPropertyFeaturedResponse = { status: "success"; message: string; data: AdminProperty };
+
+export interface PropertyStatistics {
+  total: number;
+  available: number;
+  unavailable: number;
+  pending_approval: number;
+  approved: number;
+  featured: number;
+  by_property_type: Record<string, number>;
+  by_city: Record<string, number>;
+}
+
+export type PropertyStatisticsResponse = { status: "success"; data: PropertyStatistics };
+
+// Listing Images
+export interface ListingImage {
+  id: number;
+  listing_id: number;
+  image_path?: string;
+  image_url?: string;
+  url?: string;
+  alt_text: string | null;
+  is_featured?: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ListingImagesResponse = { status: "success"; data: ListingImage[] };
+
+export type ListingImageCreateResponse = {
+  status: "success";
+  message: "Images stored successfully";
+  count: number;
+  images: ListingImage[];
+};
+
+export type ListingImageDeleteResponse = { status: "success"; message: "Image deleted successfully" };
+
+// Listing Videos
+export interface ListingVideo {
+  id: number;
+  listing_id: number;
+  video_url?: string;
+  url?: string;
+  description?: string | null;
+  thumbnail?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ListingVideosResponse = { status: "success"; data: ListingVideo[] };
+
+export type ListingVideoCreateResponse = {
+  status: "success";
+  message: "Videos stored successfully";
+  count: number;
+  videos: ListingVideo[];
+};
+
+export type ListingVideoDeleteResponse = { status: "success"; message: "Video deleted successfully" };
+// Agent Management
+export type AgentStatus = "pending" | "approved" | "rejected";
+
+export interface Agent {
+  id: number;
+  user_id: number;
+  profile_photo: string | null;
+  bio: string | null;
+  id_card_num: string;
+  country: string;
+  region: string;
+  city: string;
+  address: string;
+  id_image_front: string;
+  id_image_back: string;
+  status: AgentStatus;
+  created_at: string;
+  updated_at: string;
+  user?: User;
+}
+
+export interface PaginatedAgents {
+  current_page: number;
+  data: Agent[];
+  first_page_url: string;
+  from: number;
+  last_page: number;
+  last_page_url: string;
+  links: Array<{ url: string | null; label: string; active: boolean }>;
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number;
+  total: number;
+}
+
+export type AgentRegistrationRequest = {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  phone: string;
+  gender: UserGender;
+  user_type: "agent";
+  profile_photo?: File | null;
+  bio?: string | null;
+  id_card_num: string;
+  country: string;
+  region: string;
+  city: string;
+  address: string;
+  id_image_front: File;
+  id_image_back: File;
+};
+
+export type AgentRegistrationResponse = {
+  status: "success";
+  message: "Agent registration successful. Your account is pending approval.";
+  data: {
+    user: User;
+    agent: Agent;
+    token: string;
+    token_type: "Bearer";
+  };
+};
+
+export type AgentCreateRequest = {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  phone: string;
+  gender: UserGender;
+  user_type?: "agent";
+  profile_photo?: File | null;
+  bio?: string | null;
+  id_card_num: string;
+  country: string;
+  region: string;
+  city: string;
+  address: string;
+  id_image_front: File;
+  id_image_back: File;
+  status?: AgentStatus;
+};
+
+export type AgentCreateResponse = {
+  status: "success";
+  message: "Agent created successfully";
+  data: Agent;
+};
+
+export type AgentListResponse = { status: "success"; data: PaginatedAgents };
+export type PendingAgentListResponse = { status: "success"; count: number; data: Agent[] };
+
+export type AgentShowResponse = { status: "success"; data: Agent };
+export type PendingAgentShowResponse = { status: "success"; data: Agent };
+
+export type AgentUpdateRequest = {
+  name?: string;
+  email?: string;
+  phone?: string;
+  gender?: UserGender;
+  profile_photo?: File | null;
+  bio?: string | null;
+  id_card_num?: string;
+  country?: string;
+  region?: string;
+  city?: string;
+  address?: string;
+  id_image_front?: File;
+  id_image_back?: File;
+  status?: AgentStatus;
+};
+
+export type AgentUpdateResponse = {
+  status: "success";
+  message: "Agent updated successfully";
+  data: Agent;
+};
+
+export type AgentDeleteResponse = { status: "success"; message: "Agent deleted successfully" };
+
+export type AgentStatusUpdateRequest = {
+  status: AgentStatus;
+};
+
+export type AgentStatusUpdateResponse = {
+  status: "success";
+  message: "Agent status updated successfully";
+  data: Agent;
+};

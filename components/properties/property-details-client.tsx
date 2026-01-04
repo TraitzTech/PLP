@@ -7,8 +7,8 @@ import { PropertyReviews } from '@/components/reviews/property-reviews';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
   Star, 
@@ -37,15 +37,23 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
   const [guests, setGuests] = useState(2);
   const [isFavorite, setIsFavorite] = useState(false);
 
+  const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect fill='%23f3f4f6' width='800' height='600'/%3E%3Ctext x='50%25' y='50%25' font-size='24' text-anchor='middle' dy='.3em' fill='%23999'%3EImage coming soon%3C/text%3E%3C/svg%3E";
+  const images = property?.images?.length ? property.images : [placeholderImage];
+  // Use facilities objects if available, otherwise fallback to amenities strings
+  const facilities = property?.facilities && Array.isArray(property.facilities) && property.facilities.length > 0
+    ? property.facilities
+    : (property?.amenities || []).map((name: string) => ({ name }));
+  const agent = property?.agent;
+
   const nextImage = () => {
     setCurrentImageIndex((prev) => 
-      prev === property.images.length - 1 ? 0 : prev + 1
+      prev === images.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
     setCurrentImageIndex((prev) => 
-      prev === 0 ? property.images.length - 1 : prev - 1
+      prev === 0 ? images.length - 1 : prev - 1
     );
   };
 
@@ -64,6 +72,20 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               {property.title}
             </h1>
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              {property.isApproved && (
+                <Badge className="bg-green-100 text-green-800">✓ Approved</Badge>
+              )}
+              {property.isFeatured && (
+                <Badge className="bg-blue-100 text-blue-800">⭐ Featured</Badge>
+              )}
+              {property.numberAvailable > 0 && (
+                <Badge className="bg-emerald-100 text-emerald-800">Available</Badge>
+              )}
+              {property.isNegotiable && (
+                <Badge className="bg-amber-100 text-amber-800">Negotiable</Badge>
+              )}
+            </div>
             <div className="flex items-center gap-4 text-gray-600">
               <div className="flex items-center">
                 <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
@@ -95,13 +117,13 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
       <div className="mb-8">
         <div className="relative h-96 lg:h-[500px] rounded-2xl overflow-hidden">
           <Image
-            src={property.images[currentImageIndex]}
+            src={images[currentImageIndex]}
             alt={property.title}
             fill
             className="object-cover"
           />
           
-          {property.images.length > 1 && (
+          {images.length > 1 && (
             <>
               <Button
                 variant="ghost"
@@ -121,7 +143,7 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
               </Button>
               
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                {property.images.map((_, index) => (
+                {images.map((_image: string, index: number) => (
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
@@ -145,19 +167,19 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
               <Badge variant="secondary" className="bg-plp-purple/10 text-plp-purple">
                 {property.type}
               </Badge>
-              {property.bedrooms && (
+                {property.bedrooms && (
                 <div className="flex items-center text-gray-600">
                   <Bed className="w-4 h-4 mr-1" />
                   {property.bedrooms} bedrooms
                 </div>
               )}
-              {property.bathrooms && (
+                {property.bathrooms && (
                 <div className="flex items-center text-gray-600">
                   <Bath className="w-4 h-4 mr-1" />
                   {property.bathrooms} bathrooms
                 </div>
               )}
-              {property.area && (
+                {property.area && (
                 <div className="flex items-center text-gray-600">
                   <Square className="w-4 h-4 mr-1" />
                   {property.area} sq ft
@@ -172,15 +194,51 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
 
           {/* Amenities */}
           <div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Amenities</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Facilities & Amenities ({facilities?.length || 0})</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {property.amenities.map((amenity: string) => (
-                <div key={amenity} className="flex items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-gray-700">{amenity}</span>
+              {facilities && facilities.length > 0 ? facilities.map((facility: any, idx: number) => (
+                <div key={facility?.id || `facility-${idx}`} className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="text-gray-700 text-sm">{facility?.name || facility || 'Facility'}</span>
                 </div>
-              ))}
+              )) : (
+                <p className="text-gray-600 col-span-2 md:col-span-3">No amenities listed yet.</p>
+              )}
             </div>
           </div>
+
+          {agent && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Agent Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={agent?.user?.avatar} alt={agent?.user?.name} />
+                    <AvatarFallback>
+                      {(agent?.user?.name || "A").slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-1">
+                    <p className="font-semibold text-gray-900">{agent?.user?.name || 'Agent'}</p>
+                    <p className="text-gray-600 text-sm">Agent Name</p>
+                  </div>
+                </div>
+                {agent?.user?.email && (
+                  <div className="border-t pt-3">
+                    <p className="text-gray-600 text-sm">Agent Email</p>
+                    <p className="font-medium text-gray-900">{agent.user.email}</p>
+                  </div>
+                )}
+                {agent?.user?.phone && (
+                  <div className="border-t pt-3">
+                    <p className="text-gray-600 text-sm">Agent Phone</p>
+                    <p className="font-medium text-gray-900">{agent.user.phone}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Tabs */}
           <Tabs defaultValue="overview" className="w-full">
@@ -193,14 +251,76 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
             <TabsContent value="overview" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>House Rules</CardTitle>
+                  <CardTitle>Property Details</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {property.rules.map((rule: string, index: number) => (
-                      <li key={index} className="text-gray-700">{rule}</li>
-                    ))}
-                  </ul>
+                <CardContent className="space-y-4">
+                  {property.price !== undefined && property.price !== null ? (
+                    <div className="border-b pb-3">
+                      <p className="text-gray-600 text-sm">Price</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {new Intl.NumberFormat('fr-CM', {
+                          style: 'currency',
+                          currency: 'XAF',
+                          minimumFractionDigits: 0,
+                        }).format(property.price || 0)} 
+                        {property.priceUnit === 'night' ? ' per night' : property.priceUnit === 'total' ? ' (total)' : ''}
+                      </p>
+                    </div>
+                  ) : null}
+                  {property.discountPrice && (
+                    <div className="border-b pb-3">
+                      <p className="text-gray-600 text-sm">Discount Price</p>
+                      <p className="text-lg font-semibold text-red-600">
+                        {new Intl.NumberFormat('fr-CM', {
+                          style: 'currency',
+                          currency: 'XAF',
+                          minimumFractionDigits: 0,
+                        }).format(property.discountPrice)}
+                      </p>
+                    </div>
+                  )}
+                  {property.numberAvailable && (
+                    <div className="border-b pb-3">
+                      <p className="text-gray-600 text-sm">Units Available</p>
+                      <p className="text-lg font-semibold text-gray-900">{property.numberAvailable}</p>
+                    </div>
+                  )}
+                  {property.address && (
+                    <div className="border-b pb-3">
+                      <p className="text-gray-600 text-sm">Address</p>
+                      <p className="text-gray-900">{property.address}</p>
+                    </div>
+                  )}
+                  {property.city && (
+                    <div className="border-b pb-3">
+                      <p className="text-gray-600 text-sm">City</p>
+                      <p className="text-gray-900">{property.city}</p>
+                    </div>
+                  )}
+                  {property.region && (
+                    <div className="border-b pb-3">
+                      <p className="text-gray-600 text-sm">Region</p>
+                      <p className="text-gray-900">{property.region}</p>
+                    </div>
+                  )}
+                  {property.createdAt && (
+                    <div className="border-b pb-3">
+                      <p className="text-gray-600 text-sm">Listed On</p>
+                      <p className="text-gray-900">{new Date(property.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {property.updatedAt && (
+                    <div className="border-b pb-3">
+                      <p className="text-gray-600 text-sm">Last Updated</p>
+                      <p className="text-gray-900">{new Date(property.updatedAt).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {property.id && (
+                    <div>
+                      <p className="text-gray-600 text-sm">Property ID</p>
+                      <p className="font-medium text-gray-900">#{property.id || 'N/A'}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -208,13 +328,50 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
             <TabsContent value="location">
               <Card>
                 <CardHeader>
-                  <CardTitle>Location</CardTitle>
+                  <CardTitle>Location Details</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="bg-gray-100 h-64 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <p className="text-gray-600">Interactive map coming soon</p>
+                <CardContent className="space-y-6">
+                  {/* Location Details Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {property.address && (
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <p className="text-gray-600 text-sm font-medium mb-1">Address</p>
+                        <p className="text-gray-900 font-semibold">{property.address}</p>
+                      </div>
+                    )}
+                    {property.city && (
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <p className="text-gray-600 text-sm font-medium mb-1">City</p>
+                        <p className="text-gray-900 font-semibold">{property.city}</p>
+                      </div>
+                    )}
+                    {property.region && (
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <p className="text-gray-600 text-sm font-medium mb-1">Region</p>
+                        <p className="text-gray-900 font-semibold">{property.region}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Google Map */}
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-gray-900">View on Map</h4>
+                    <div className="rounded-lg overflow-hidden border border-gray-200 h-96">
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0 }}
+                        loading="lazy"
+                        allowFullScreen
+                        referrerPolicy="no-referrer-when-downgrade"
+                        src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(
+                          property.address || `${property.city}, ${property.region}`
+                        )}`}
+                      />
                     </div>
+                    <p className="text-sm text-gray-600">
+                      📍 {property.address || property.location}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -238,8 +395,8 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
                   helpful: Math.floor(Math.random() * 20),
                 }))}
                 language={language}
-                propertyRating={property.rating}
-                totalReviews={property.reviews}
+                propertyRating={property.rating || 0}
+                totalReviews={property.reviews || 0}
               />
             </TabsContent>
           </Tabs>
@@ -252,8 +409,20 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-2xl font-bold text-plp-purple">
-                    ${property.price}
-                    <span className="text-base text-gray-600 font-normal">/{property.priceUnit}</span>
+                    {property.price !== undefined && property.price !== null ? (
+                      <>
+                        {new Intl.NumberFormat('fr-CM', {
+                          style: 'currency',
+                          currency: 'XAF',
+                          minimumFractionDigits: 0,
+                        }).format(property.price || 0)}
+                        <span className="text-base text-gray-600 font-normal">
+                          {property.priceUnit === 'night' ? '/night' : property.priceUnit === 'total' ? '' : ''}
+                        </span>
+                      </>
+                    ) : (
+                      <span>Price N/A</span>
+                    )}
                   </div>
                 </div>
               </div>

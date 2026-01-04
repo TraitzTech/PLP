@@ -42,11 +42,14 @@ export const authService = {
         return data;
     },
 
-    async register(payload: RegisterRequest): Promise<RegisterResponse> {
+    async register(payload: RegisterRequest | FormData): Promise<RegisterResponse> {
         // Get CSRF cookie first
         await getCsrfCookie();
 
-        const { data } = await apiClient.post<RegisterResponse>("/register", payload);
+        const isFormData = typeof FormData !== 'undefined' && payload instanceof FormData;
+        const { data } = await apiClient.post<RegisterResponse>("/register", payload, {
+            headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : undefined,
+        } as any);
         if (data?.token) setToken(data.token);
         return data;
     },

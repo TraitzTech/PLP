@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Globe, Check } from 'lucide-react';
+import { useTranslations } from '@/components/translation-provider';
 
 type Language = {
   code: string;
@@ -24,86 +26,23 @@ const languages: Language[] = [
 ];
 
 export function LanguageSwitcher() {
-  const [currentLang, setCurrentLang] = useState(languages[0]);
+  const t = useTranslations();
+  const pathname = usePathname() || '/';
+  const router = useRouter();
 
-  useEffect(() => {
-    // Load saved language preference
-    const savedLang = localStorage.getItem('language');
-    if (savedLang) {
-      const lang = languages.find(l => l.code === savedLang);
-      if (lang) {
-        setCurrentLang(lang);
-        updateContent(lang.code);
-      }
-    }
-  }, []);
+  // determine current code from path
+  const parts = pathname.split('/').filter(Boolean);
+  const currentCode = parts.length > 0 && ['en', 'fr'].includes(parts[0]) ? parts[0] : 'en';
 
-  const updateContent = (langCode: string) => {
-    // Update hero section
-    const heroTitle = document.querySelector('[data-hero-title]');
-    const heroSubtitle = document.querySelector('[data-hero-subtitle]');
-    const heroDescription = document.querySelector('[data-hero-description]');
-    
-    if (heroTitle && heroSubtitle && heroDescription) {
-      if (langCode === 'fr') {
-        heroTitle.textContent = 'Votre Propriété de Rêve';
-        heroSubtitle.textContent = 'Vous Attend';
-        heroDescription.textContent = 'Le pont de confiance pour une inscription, réservation et découverte de propriétés sans faille. Trouvez votre séjour parfait des hôtels de luxe aux maisons de rêve.';
-      } else {
-        heroTitle.textContent = 'Your Dream Property';
-        heroSubtitle.textContent = 'Awaits';
-        heroDescription.textContent = 'The trusted bridge for seamless property listing, booking, and discovery. Find your perfect stay from luxury hotels to dream homes.';
-      }
-    }
-
-    // Update search form
-    const searchInput = document.querySelector('[data-search-location]') as HTMLInputElement;
-    const searchButton = document.querySelector('[data-search-button]');
-    
-    if (searchInput && searchButton) {
-      if (langCode === 'fr') {
-        searchInput.placeholder = 'Où allez-vous?';
-        searchButton.textContent = 'Rechercher';
-      } else {
-        searchInput.placeholder = 'Where are you going?';
-        searchButton.textContent = 'Search';
-      }
-    }
-
-    // Update stats
-    const statsLabels = document.querySelectorAll('[data-stats-label]');
-    if (statsLabels.length > 0) {
-      const labels = langCode === 'fr' 
-        ? ['Propriétés', 'Clients', 'Villes']
-        : ['Properties', 'Customers', 'Cities'];
-      
-      statsLabels.forEach((label, index) => {
-        if (labels[index]) {
-          label.textContent = labels[index];
-        }
-      });
-    }
-
-    // Update categories
-    const categoryTitles = document.querySelectorAll('[data-category-title]');
-    if (categoryTitles.length > 0) {
-      const titles = langCode === 'fr'
-        ? ['Hôtels', 'Maisons', 'Terrain']
-        : ['Hotels', 'Houses', 'Land'];
-      
-      categoryTitles.forEach((title, index) => {
-        if (titles[index]) {
-          title.textContent = titles[index];
-        }
-      });
-    }
+  const handleLanguageChange = (lang: Language) => {
+    // preserve current path and query but prefix with selected locale
+    const rest = parts.length > 0 && ['en', 'fr'].includes(parts[0]) ? parts.slice(1) : parts;
+    const newPath = `/${lang.code}/${rest.join('/')}`.replace(/\/\/$/, '/');
+    // navigate
+    router.push(newPath === '/' ? `/${lang.code}` : newPath);
   };
 
-  const handleLanguageChange = (language: typeof languages[0]) => {
-    setCurrentLang(language);
-    localStorage.setItem('language', language.code);
-    updateContent(language.code);
-  };
+  const currentLang = languages.find((l) => l.code === currentCode) ?? languages[0];
 
   return (
     <DropdownMenu>
@@ -114,7 +53,7 @@ export function LanguageSwitcher() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel>Select Language</DropdownMenuLabel>
+        <DropdownMenuLabel>{t('nav.selectLanguage','Select Language')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {languages.map((language) => (
           <DropdownMenuItem

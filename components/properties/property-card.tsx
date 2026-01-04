@@ -72,6 +72,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
       <CardContent className="p-5 space-y-4">
         <div>
+            <Link href={`/property/${property.id}`}></Link>
           <Link href={`/property/${property.id}`}>
             <h3 className="font-semibold text-lg text-gray-900 group-hover:text-plp-purple transition-colors line-clamp-1">
               {property.title}

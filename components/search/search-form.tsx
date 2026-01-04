@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MapPin, Calendar as CalendarIcon, Users, Search } from 'lucide-react';
 import { format } from 'date-fns';
+import { useTranslations } from '@/components/translation-provider';
 
 export function SearchForm() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export function SearchForm() {
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState('1');
   const [propertyType, setPropertyType] = useState('');
+  const t = useTranslations();
 
   const handleSearch = () => {
     const searchParams = new URLSearchParams();
@@ -38,7 +40,7 @@ export function SearchForm() {
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
-              placeholder="Where are you going?"
+              placeholder={t('search.locationPlaceholder','Where are you going?')}
               data-search-location
               value={location}
               onChange={(e) => setLocation(e.target.value)}
@@ -56,7 +58,7 @@ export function SearchForm() {
                 className="w-full h-12 justify-start text-left font-normal bg-white border-gray-300 hover:bg-gray-50"
               >
                 <CalendarIcon className="mr-2 h-4 w-4 text-gray-400" />
-                {checkIn ? format(checkIn, 'MMM dd') : 'Check-in'}
+                {checkIn ? format(checkIn, 'MMM dd') : t('search.checkin','Check-in')}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
@@ -79,7 +81,7 @@ export function SearchForm() {
                 className="w-full h-12 justify-start text-left font-normal bg-white border-gray-300 hover:bg-gray-50"
               >
                 <CalendarIcon className="mr-2 h-4 w-4 text-gray-400" />
-                {checkOut ? format(checkOut, 'MMM dd') : 'Check-out'}
+                {checkOut ? format(checkOut, 'MMM dd') : t('search.checkout','Check-out')}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
@@ -97,7 +99,7 @@ export function SearchForm() {
         <div>
           <Button onClick={handleSearch} className="w-full h-12 btn-accent font-semibold" data-search-button>
             <Search className="mr-2 h-4 w-4" />
-            Search
+            {t('search.searchButton','Search')}
           </Button>
         </div>
       </div>
@@ -106,27 +108,27 @@ export function SearchForm() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <Select value={propertyType} onValueChange={setPropertyType}>
           <SelectTrigger className="bg-white border-gray-300">
-            <SelectValue placeholder="Property Type" />
+            <SelectValue placeholder={t('search.propertyType','Property Type')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="hotels">Hotels</SelectItem>
-            <SelectItem value="houses">Houses</SelectItem>
-            <SelectItem value="land">Land</SelectItem>
-            <SelectItem value="apartments">Apartments</SelectItem>
+            <SelectItem value="hotels">{t('search.types.hotels','Hotels')}</SelectItem>
+            <SelectItem value="houses">{t('search.types.houses','Houses')}</SelectItem>
+            <SelectItem value="land">{t('search.types.land','Land')}</SelectItem>
+            <SelectItem value="apartments">{t('search.types.apartments','Apartments')}</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={guests} onValueChange={setGuests}>
           <SelectTrigger className="bg-white border-gray-300">
             <Users className="mr-2 h-4 w-4 text-gray-400" />
-            <SelectValue placeholder="Guests" />
+            <SelectValue placeholder={t('search.guests','Guests')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="1">1 Guest</SelectItem>
-            <SelectItem value="2">2 Guests</SelectItem>
-            <SelectItem value="3">3 Guests</SelectItem>
-            <SelectItem value="4">4 Guests</SelectItem>
-            <SelectItem value="5+">5+ Guests</SelectItem>
+            <SelectItem value="1">{t('search.guestOptions.1','1 Guest')}</SelectItem>
+            <SelectItem value="2">{t('search.guestOptions.2','2 Guests')}</SelectItem>
+            <SelectItem value="3">{t('search.guestOptions.3','3 Guests')}</SelectItem>
+            <SelectItem value="4">{t('search.guestOptions.4','4 Guests')}</SelectItem>
+            <SelectItem value="5+">{t('search.guestOptions.5plus','5+ Guests')}</SelectItem>
           </SelectContent>
         </Select>
       </div>

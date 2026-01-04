@@ -1,76 +1,86 @@
 'use client'
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PropertyCard } from './property-card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { propertyManagementService } from '@/services/propertyManagementService';
+import { listingImageService } from '@/services/listingImageService';
+import type { AdminProperty } from '@/services/types';
 
-// Mock property data
-const featuredProperties = [
-  {
-    id: '1',
-    title: 'Luxury Ocean View Villa',
-    location: 'Malibu, California',
-    price: 720000, // XAF per night
-    priceUnit: 'night',
-    rating: 4.9,
-    reviews: 127,
-    images: ['https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg'],
-    amenities: ['Ocean View', 'Private Pool', 'Spa', 'WiFi'],
-    type: 'villa',
-    bedrooms: 4,
-    bathrooms: 3,
-    area: 3200,
-  },
-  {
-    id: '2', 
-    title: 'Modern Downtown Apartment',
-    location: 'New York, NY',
-    price: 210000, // XAF per night
-    priceUnit: 'night',
-    rating: 4.7,
-    reviews: 89,
-    images: ['https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg'],
-    amenities: ['City View', 'Gym', 'Concierge', 'WiFi'],
-    type: 'apartment',
-    bedrooms: 2,
-    bathrooms: 2,
-    area: 1100,
-  },
-  {
-    id: '3',
-    title: 'Cozy Mountain Cabin',
-    location: 'Aspen, Colorado', 
-    price: 168000, // XAF per night
-    priceUnit: 'night',
-    rating: 4.8,
-    reviews: 156,
-    images: ['https://images.pexels.com/photos/1029599/pexels-photo-1029599.jpeg'],
-    amenities: ['Mountain View', 'Fireplace', 'Hot Tub', 'Hiking'],
-    type: 'cabin',
-    bedrooms: 3,
-    bathrooms: 2,
-    area: 1800,
-  },
-  {
-    id: '4',
-    title: 'Beachfront Resort Suite',
-    location: 'Miami Beach, FL',
-    price: 270000, // XAF per night
-    priceUnit: 'night', 
-    rating: 4.6,
-    reviews: 203,
-    images: ['https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg'],
-    amenities: ['Beach Access', 'Pool', 'Restaurant', 'Spa'],
-    type: 'resort',
-    bedrooms: 1,
-    bathrooms: 1,
-    area: 800,
-  },
-];
+// Helper function to get image URL from backend storage
+function getImageUrl(imagePath?: string): string {
+  if (!imagePath) {
+    return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" font-size="16" text-anchor="middle" dy=".3em" fill="%23999"%3ENo image%3C/text%3E%3C/svg%3E';
+  }
+  return `${process.env.NEXT_PUBLIC_API_URL}/../storage/listing_images/${imagePath}`;
+}
+
+// Skeleton loader for property cards
+function PropertyCardSkeleton() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="w-full h-48 rounded-lg" />
+      <Skeleton className="w-full h-4" />
+      <Skeleton className="w-3/4 h-4" />
+      <Skeleton className="w-1/2 h-4" />
+    </div>
+  );
+}
 
 export function FeaturedProperties() {
+  const [properties, setProperties] = useState<AdminProperty[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFeaturedProperties = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Fetch featured properties from admin endpoint
+        const response = await propertyManagementService.getAllProperties({
+          is_featured: true,
+          per_page: 8,
+        });
+
+        // Extract properties from response
+        const fetchedProperties = response.data?.data || [];
+        
+        // Fetch images for each property
+        const propertiesWithImages = await Promise.all(
+          fetchedProperties.slice(0, 8).map(async (property) => {
+            try {
+              const imagesResponse = await listingImageService.getImagesByListing(property.id);
+              return {
+                ...property,
+                images: (imagesResponse as any).data || [],
+              };
+            } catch (err) {
+              console.error(`Failed to fetch images for property ${property.id}:`, err);
+              return {
+                ...property,
+                images: [],
+              };
+            }
+          })
+        );
+
+        setProperties(propertiesWithImages);
+      } catch (err) {
+        console.error('Error fetching featured properties:', err);
+        setError('Failed to load featured properties');
+        setProperties([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFeaturedProperties();
+  }, []);
 
   return (
     <section className="py-20 bg-white">
@@ -93,11 +103,49 @@ export function FeaturedProperties() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {featuredProperties.map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[...Array(8)].map((_, i) => (
+              <PropertyCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-600 text-lg">{error}</p>
+          </div>
+        ) : properties.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">No featured properties available</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {properties.map((property) => {
+              // Transform AdminProperty to match PropertyCard expected format
+              const imageUrls = (property.images as any)?.map((img: any) => getImageUrl(img.image_path)) || [];
+              
+              return (
+                <PropertyCard
+                  key={property.id}
+                  property={{
+                    id: String(property.id),
+                    title: property.title,
+                    location: `${property.city}, ${property.region}`,
+                    price: Number(property.price),
+                    priceUnit: 'night',
+                    rating: 4.5, // Default rating
+                    reviews: 0, // Would need to fetch reviews
+                    images: imageUrls.length > 0 ? imageUrls : [getImageUrl()],
+                    amenities: [],
+                    type: property.property_type?.name?.toLowerCase() || 'property',
+                    bedrooms: 0,
+                    bathrooms: 0,
+                    area: 0,
+                  }}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

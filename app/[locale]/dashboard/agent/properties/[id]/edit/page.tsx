@@ -1,0 +1,761 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Save, Loader2, Upload, X, Trash2, Badge } from "lucide-react";
+import { toast } from "sonner";
+import { listingService } from "@/services/listingService";
+import { listingImageService } from "@/services/listingImageService";
+import { listingVideoService } from "@/services/listingVideoService";
+import { propertyTypeService } from "@/services/propertyTypeService";
+import { facilitiesService } from "@/services/facilitiesService";
+import type { Listing, PropertyType, Facility, ListingImage, ListingVideo } from "@/services/types";
+
+export default function EditPropertyPage() {
+  const params = useParams();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [property, setProperty] = useState<Listing | null>(null);
+  const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [existingImages, setExistingImages] = useState<ListingImage[]>([]);
+  const [existingVideos, setExistingVideos] = useState<ListingVideo[]>([]);
+  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
+  const [newVideoFiles, setNewVideoFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [deletingImageIds, setDeletingImageIds] = useState<number[]>([]);
+  const [deletingVideoIds, setDeletingVideoIds] = useState<number[]>([]);
+  const [formData, setFormData] = useState<any>({
+    title: "",
+    description: "",
+    property_type_id: 0,
+    price: 0,
+    region: "",
+    city: "",
+    location: "",
+    discount_price: null,
+    discount_percentage: null,
+    number_available: 1,
+    is_available: true,
+    is_negotiable: false,
+    is_featured: false,
+    status: true,
+    facilities_id: [],
+  });
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch property details
+      const propertyRes = await listingService.getListing(params.id as string);
+      const propertyData = propertyRes.data;
+      setProperty(propertyData);
+
+      // Fetch property types and facilities for dropdowns
+      const typesRes = await propertyTypeService.getAllPropertyTypes();
+      setPropertyTypes(Array.isArray(typesRes) ? typesRes : []);
+
+      const facilitiesRes = await facilitiesService.getAllFacilities();
+      setFacilities(Array.isArray(facilitiesRes) ? facilitiesRes : []);
+
+      // Fetch existing images
+      try {
+        const imagesRes = await listingImageService.getImagesByListing(params.id as string);
+        setExistingImages(imagesRes.data || []);
+      } catch (error) {
+        console.error("Error fetching images:", error);
+        setExistingImages([]);
+      }
+
+      // Fetch existing videos
+      try {
+        const videosRes = await listingVideoService.getVideosByListing(params.id as string);
+        setExistingVideos(videosRes.data || []);
+      } catch (error) {
+        console.error("Error fetching videos:", error);
+        setExistingVideos([]);
+      }
+
+      // Set form data
+      setFormData({
+        title: propertyData.title || "",
+        description: propertyData.description || "",
+        property_type_id: propertyData.property_type_id || 0,
+        price: propertyData.price || 0,
+        region: propertyData.region || "",
+        city: propertyData.city || "",
+        location: propertyData.location || "",
+        discount_price: propertyData.discount_price || null,
+        discount_percentage: propertyData.discount_percentage || null,
+        number_available: propertyData.number_available || 1,
+        is_available: propertyData.is_available !== false,
+        is_negotiable: propertyData.is_negotiable || false,
+        is_featured: propertyData.is_featured || false,
+        status: propertyData.status !== false,
+        facilities_id: propertyData.facilities_id || [],
+      });
+    } catch (error: any) {
+      console.error("Error fetching data:", error);
+      toast.error(error.response?.data?.message || "Failed to fetch property details");
+      router.back();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleFacilityToggle = (facilityId: string) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      facilities_id: prev.facilities_id.includes(parseInt(facilityId))
+        ? prev.facilities_id.filter((id: number) => id !== parseInt(facilityId))
+        : [...prev.facilities_id, parseInt(facilityId)],
+    }));
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setNewImageFiles((prev) => [...prev, ...files]);
+    
+    // Create previews
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviews((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setNewVideoFiles((prev) => [...prev, ...files]);
+  };
+
+  const removeNewImage = (index: number) => {
+    setNewImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeNewVideo = (index: number) => {
+    setNewVideoFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const deleteExistingImage = async (imageId: number) => {
+    try {
+      setDeletingImageIds((prev) => [...prev, imageId]);
+      await listingImageService.deleteImage(imageId);
+      setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+      toast.success("Image deleted successfully");
+    } catch (error: any) {
+      console.error("Error deleting image:", error);
+      toast.error("Failed to delete image");
+    } finally {
+      setDeletingImageIds((prev) => prev.filter((id) => id !== imageId));
+    }
+  };
+
+  const deleteExistingVideo = async (videoId: number) => {
+    try {
+      setDeletingVideoIds((prev) => [...prev, videoId]);
+      await listingVideoService.deleteVideo(videoId);
+      setExistingVideos((prev) => prev.filter((vid) => vid.id !== videoId));
+      toast.success("Video deleted successfully");
+    } catch (error: any) {
+      console.error("Error deleting video:", error);
+      toast.error("Failed to delete video");
+    } finally {
+      setDeletingVideoIds((prev) => prev.filter((id) => id !== videoId));
+    }
+  };
+
+  const getImageUrl = (image: ListingImage): string => {
+    if (image.image_path) {
+      return `${process.env.NEXT_PUBLIC_API_URL}/../storage/listing_images/${image.image_path}`;
+    }
+    return image.url || image.image_url || '';
+  };
+
+  const getVideoUrl = (video: ListingVideo): string => {
+    if (video.video_url && !video.video_url.startsWith('http')) {
+      return `${process.env.NEXT_PUBLIC_API_URL}/../storage/listing_videos/${video.video_url}`;
+    }
+    return video.url || video.video_url || '';
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!property) return;
+
+    // Validate required fields
+    if (!formData.title.trim()) {
+      toast.error("Title is required");
+      return;
+    }
+    if (formData.price <= 0) {
+      toast.error("Price must be greater than 0");
+      return;
+    }
+    if (formData.facilities_id.length === 0) {
+      toast.error("Please select at least one facility");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await listingService.updateListing(property.id, formData);
+      
+      // Upload new images if any
+      if (newImageFiles.length > 0) {
+        try {
+          await listingImageService.uploadImages(property.id, newImageFiles);
+          toast.success("Images uploaded successfully");
+        } catch (error) {
+          console.error("Error uploading images:", error);
+          toast.error("Property updated but failed to upload some images");
+        }
+      }
+
+      // Upload new videos if any
+      if (newVideoFiles.length > 0) {
+        try {
+          await listingVideoService.uploadVideos(property.id, newVideoFiles);
+          toast.success("Videos uploaded successfully");
+        } catch (error) {
+          console.error("Error uploading videos:", error);
+          toast.error("Property updated but failed to upload some videos");
+        }
+      }
+
+      toast.success("Property updated successfully");
+      router.push("/dashboard/agent/properties");
+    } catch (error: any) {
+      console.error("Error updating property:", error);
+      toast.error(error.response?.data?.message || "Failed to update property");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout userType="agent">
+        <div className="space-y-6">
+          {/* Header Skeleton */}
+          <div className="flex items-center gap-4 mb-8">
+            <Skeleton className="h-10 w-10" />
+            <div className="flex-1">
+              <Skeleton className="h-8 w-64 mb-2" />
+              <Skeleton className="h-4 w-96" />
+            </div>
+          </div>
+
+          {/* Form Skeleton */}
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!property) {
+    return (
+      <DashboardLayout userType="agent">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Property not found</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout userType="agent">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Edit Property</h1>
+            <p className="text-muted-foreground">Update your property details</p>
+          </div>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange("title", e.target.value)}
+                  placeholder="Property title"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="description">Description *</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  placeholder="Detailed description of your property"
+                  rows={4}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="propertyType">Property Type *</Label>
+                  <Select
+                    value={formData.property_type_id?.toString() || ""}
+                    onValueChange={(value) => handleInputChange("property_type_id", parseInt(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {propertyTypes.map((type) => (
+                        <SelectItem key={type.id} value={type.id.toString()}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="price">Price *</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => handleInputChange("price", parseFloat(e.target.value))}
+                    placeholder="Price"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pricing */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Pricing Options</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="discount_price">Discount Price</Label>
+                  <Input
+                    id="discount_price"
+                    type="number"
+                    value={formData.discount_price || ""}
+                    onChange={(e) => handleInputChange("discount_price", e.target.value ? parseFloat(e.target.value) : null)}
+                    placeholder="Discount price"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="discount_percentage">Discount Percentage</Label>
+                  <Input
+                    id="discount_percentage"
+                    type="number"
+                    value={formData.discount_percentage || ""}
+                    onChange={(e) => handleInputChange("discount_percentage", e.target.value ? parseInt(e.target.value) : null)}
+                    placeholder="Discount %"
+                    min="0"
+                    max="100"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Location */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Location</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="region">Region *</Label>
+                  <Input
+                    id="region"
+                    value={formData.region}
+                    onChange={(e) => handleInputChange("region", e.target.value)}
+                    placeholder="Region"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="city">City *</Label>
+                  <Input
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => handleInputChange("city", e.target.value)}
+                    placeholder="City"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="location">Location/Address *</Label>
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => handleInputChange("location", e.target.value)}
+                    placeholder="Street address"
+                    required
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Availability */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Availability & Status</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="number_available">Units Available</Label>
+                  <Input
+                    id="number_available"
+                    type="number"
+                    value={formData.number_available}
+                    onChange={(e) => handleInputChange("number_available", parseInt(e.target.value))}
+                    placeholder="Number of units"
+                    min="1"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="is_available"
+                    checked={formData.is_available}
+                    onCheckedChange={(checked) => handleInputChange("is_available", checked)}
+                  />
+                  <Label htmlFor="is_available" className="cursor-pointer">
+                    Available for booking
+                  </Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="is_negotiable"
+                    checked={formData.is_negotiable}
+                    onCheckedChange={(checked) => handleInputChange("is_negotiable", checked)}
+                  />
+                  <Label htmlFor="is_negotiable" className="cursor-pointer">
+                    Price negotiable
+                  </Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="status"
+                    checked={formData.status}
+                    onCheckedChange={(checked) => handleInputChange("status", checked)}
+                  />
+                  <Label htmlFor="status" className="cursor-pointer">
+                    Active
+                  </Label>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Facilities */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Facilities (Select at least one) *</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {facilities.map((facility) => (
+                  <div key={facility.id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`facility-${facility.id}`}
+                      checked={formData.facilities_id.includes(facility.id)}
+                      onCheckedChange={() => handleFacilityToggle(facility.id.toString())}
+                    />
+                    <Label htmlFor={`facility-${facility.id}`} className="cursor-pointer">
+                      {facility.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Existing Images */}
+          {existingImages.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Current Images ({existingImages.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {existingImages.map((image) => (
+                    <div key={image.id} className="relative group">
+                      <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
+                        <img
+                          src={getImageUrl(image)}
+                          alt="Property"
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => deleteExistingImage(image.id)}
+                        disabled={deletingImageIds.includes(image.id)}
+                      >
+                        {deletingImageIds.includes(image.id) ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Upload New Images */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Add New Images</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="newImages" className="cursor-pointer">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-plp-purple transition-colors">
+                    <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm text-gray-600">Click to upload images</p>
+                    <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB each</p>
+                  </div>
+                  <Input
+                    id="newImages"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                </Label>
+              </div>
+
+              {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative group">
+                      <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
+                        <img
+                          src={preview}
+                          alt={`New ${index + 1}`}
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeNewImage(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      <Badge className="absolute bottom-2 left-2 bg-green-600">New</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Existing Videos */}
+          {existingVideos.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Current Videos ({existingVideos.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {existingVideos.map((video) => (
+                    <div key={video.id} className="relative group">
+                      <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
+                        <video
+                          src={getVideoUrl(video)}
+                          controls
+                          className="w-full h-full object-cover"
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => deleteExistingVideo(video.id)}
+                        disabled={deletingVideoIds.includes(video.id)}
+                      >
+                        {deletingVideoIds.includes(video.id) ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Upload New Videos */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Add New Videos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="newVideos" className="cursor-pointer">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-plp-purple transition-colors">
+                    <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm text-gray-600">Click to upload videos</p>
+                    <p className="text-xs text-gray-400 mt-1">MP4, WebM up to 50MB each</p>
+                  </div>
+                  <Input
+                    id="newVideos"
+                    type="file"
+                    accept="video/*"
+                    multiple
+                    onChange={handleVideoSelect}
+                    className="hidden"
+                  />
+                </Label>
+              </div>
+
+              {newVideoFiles.length > 0 && (
+                <div className="space-y-2">
+                  {newVideoFiles.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-green-600">New</Badge>
+                        <span className="text-sm">{file.name}</span>
+                        <span className="text-xs text-gray-500">
+                          ({(file.size / (1024 * 1024)).toFixed(2)} MB)
+                        </span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeNewVideo(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isSaving}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSaving}
+              className="bg-plp-purple hover:bg-plp-purple/90"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </DashboardLayout>
+  );
+}

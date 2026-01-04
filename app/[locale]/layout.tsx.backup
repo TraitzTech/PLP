@@ -1,0 +1,29 @@
+import type { ReactNode } from 'react';
+import { Locale, getMessages } from '@/lib/i18n';
+import { TranslationProvider } from '@/components/translation-provider';
+
+export async function generateStaticParams() {
+  return [{ locale: 'en' }, { locale: 'fr' }];
+}
+
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: { locale: Locale };
+}) {
+  const locale = params.locale === 'fr' ? 'fr' : 'en';
+  const messages = await getMessages(locale);
+
+  const lang = locale === 'fr' ? 'fr' : 'en';
+
+  return (
+    <html lang={lang}>
+      <body>
+        <TranslationProvider messages={messages}>{children}</TranslationProvider>
+      </body>
+    </html>
+  );
+}
+
