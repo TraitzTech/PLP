@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { propertyManagementService } from '@/services/propertyManagementService';
+import { publicPropertyService } from '@/services/publicPropertyService';
 import { listingImageService } from '@/services/listingImageService';
 import type { AdminProperty } from '@/services/types';
 
@@ -41,14 +41,14 @@ export function FeaturedProperties() {
         setIsLoading(true);
         setError(null);
         
-        // Fetch featured properties from admin endpoint
-        const response = await propertyManagementService.getAllProperties({
+        // Fetch featured properties from public endpoint (no authentication required)
+        const response = await publicPropertyService.getAllProperties({
           is_featured: true,
           per_page: 8,
         });
 
         // Extract properties from response
-        const fetchedProperties = response.data?.data || [];
+        const fetchedProperties = Array.isArray(response.data) ? response.data : [];
         
         // Fetch images for each property
         const propertiesWithImages = await Promise.all(

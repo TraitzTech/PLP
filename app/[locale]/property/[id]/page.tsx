@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Navbar } from "@/components/navigation/navbar";
 import { Footer } from "@/components/navigation/footer";
 import { PropertyDetailsWrapper } from "@/components/properties/property-details-wrapper";
-import { propertyManagementService } from "@/services/propertyManagementService";
+import { publicPropertyService } from "@/services/publicPropertyService";
 import { listingImageService } from "@/services/listingImageService";
 import type { AdminProperty } from "@/services/types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -53,7 +53,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                 setIsLoading(true);
                 setHasError(null);
 
-                const response = await propertyManagementService.getProperty(params.id);
+                const response = await publicPropertyService.getProperty(params.id);
                 const prop: AdminProperty = (response as any).data || (response as any);
                 
                 console.log("Property response:", prop);
@@ -119,8 +119,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
 
                 // Fetch similar properties by type
                 try {
-                    const simRes = await propertyManagementService.getAllProperties({
-                        is_approved: true,
+                    const simRes = await publicPropertyService.getAllProperties({
                         per_page: 4,
                     });
                     const sims = (simRes as any).data?.data || [];

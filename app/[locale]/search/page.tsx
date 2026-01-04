@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Filter, Grid3x3 as Grid3X3, Map, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { propertyManagementService } from '@/services/propertyManagementService';
+import { publicPropertyService } from '@/services/publicPropertyService';
 import { listingImageService } from '@/services/listingImageService';
 import { propertyTypeService } from '@/services/propertyTypeService';
 import type { AdminProperty, PropertyType } from '@/services/types';
@@ -83,12 +83,11 @@ export default function SearchPage() {
     const fetchProperties = async () => {
       try {
         setIsLoading(true);
-        const response = await propertyManagementService.getAllProperties({
-          is_approved: true,
+        const response = await publicPropertyService.getAllProperties({
           per_page: 100,
         });
 
-        const properties = response.data?.data || [];
+        const properties = Array.isArray(response?.data) ? response.data : [];
         
         // Fetch images for each property
         const propertiesWithImages = await Promise.all(
