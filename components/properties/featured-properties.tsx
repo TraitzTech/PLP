@@ -48,22 +48,38 @@ export function FeaturedProperties() {
         });
 
         // Extract properties from response
-        const fetchedProperties = Array.isArray(response.data) ? response.data : [];
+        const allProperties = Array.isArray(response.data) ? response.data : [];
+        
+        // Filter to ensure only featured properties are shown
+        const fetchedProperties = allProperties.filter((property: any) => property.is_featured === true);
         
         // Fetch images for each property
         const propertiesWithImages = await Promise.all(
           fetchedProperties.slice(0, 8).map(async (property) => {
             try {
               const imagesResponse = await listingImageService.getImagesByListing(property.id);
+              const images = (imagesResponse as any).data || (imagesResponse as any) || [];
+              
+              // Ensure images have the correct structure
+              const formattedImages = Array.isArray(images) ? images.map((img: any) => ({
+                id: img.id,
+                image_path: img.image_path || img.image_url || img.url,
+                image_url: img.image_url || img.image_path || img.url,
+                url: img.url || img.image_path || img.image_url,
+              })) : [];
+              
+              // Merge with existing images if property already has them
+              const mergedImages = [...(property.images || []), ...formattedImages];
+              
               return {
                 ...property,
-                images: (imagesResponse as any).data || [],
+                images: mergedImages,
               };
             } catch (err) {
               console.error(`Failed to fetch images for property ${property.id}:`, err);
               return {
                 ...property,
-                images: [],
+                images: property.images || [],
               };
             }
           })
@@ -119,31 +135,12 @@ export function FeaturedProperties() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {properties.map((property) => {
-              // Transform AdminProperty to match PropertyCard expected format
-              const imageUrls = (property.images as any)?.map((img: any) => getImageUrl(img.image_path)) || [];
-              
-              return (
-                <PropertyCard
-                  key={property.id}
-                  property={{
-                    id: String(property.id),
-                    title: property.title,
-                    location: `${property.city}, ${property.region}`,
-                    price: Number(property.price),
-                    priceUnit: 'night',
-                    rating: 4.5, // Default rating
-                    reviews: 0, // Would need to fetch reviews
-                    images: imageUrls.length > 0 ? imageUrls : [getImageUrl()],
-                    amenities: [],
-                    type: property.property_type?.name?.toLowerCase() || 'property',
-                    bedrooms: 0,
-                    bathrooms: 0,
-                    area: 0,
-                  }}
-                />
-              );
-            })}
+            {properties.map((property) => (
+              <PropertyCard
+                key={property.id}
+                property={property}
+              />
+            ))}
           </div>
         )}
       </div>

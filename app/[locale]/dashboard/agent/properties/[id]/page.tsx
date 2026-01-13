@@ -12,6 +12,14 @@ import { toast } from "sonner";
 import { listingService } from "@/services/listingService";
 import type { Listing, Facility } from "@/services/types";
 import {
+  getPropertyPurposeBadges,
+  getPriceContext,
+  formatPrice,
+  isHouseProperty,
+  isLandProperty,
+  isHotelProperty,
+} from "@/lib/propertyHelpers";
+import {
   Carousel,
   CarouselContent,
   CarouselItem,
@@ -35,6 +43,14 @@ function getImageUrl(imagePath: string): string {
     return `${process.env.NEXT_PUBLIC_API_URL}/../storage/listing_images/${imagePath}`;
   }
   return imagePath || '';
+}
+
+// Normalize boolean values (handles 0, 1, true, false, string "1", "true")
+function normalizeBoolean(value: any): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") return value.toLowerCase() === "true" || value === "1";
+  return false;
 }
 
 export default function PropertyDetailsPage() {
@@ -251,14 +267,26 @@ export default function PropertyDetailsPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Price</p>
                 <p className="text-2xl font-bold text-plp-purple">
-                  {new Intl.NumberFormat('en-US').format(Number(property.price))} XAF
+                  {formatPrice(property.price)}
                 </p>
                 {property.discount_price && (
                   <p className="text-sm text-green-600">
-                    Discount: {new Intl.NumberFormat('en-US').format(Number(property.discount_price))} XAF 
+                    Discount: {formatPrice(property.discount_price)}
                     {property.discount_percentage && ` (${property.discount_percentage}% off)`}
                   </p>
                 )}
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Price Context</p>
+                <p className="text-sm font-medium">{getPriceContext(property).description}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Purpose</p>
+                <div className="flex gap-2 mt-1">
+                  {getPropertyPurposeBadges(property).map((badge, idx) => (
+                    <Badge key={idx} className="bg-plp-purple text-white">{badge}</Badge>
+                  ))}
+                </div>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Units Available</p>
@@ -300,12 +328,91 @@ export default function PropertyDetailsPage() {
                 <p className="text-sm font-medium">#{property.id}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Agent</p>
-                <p className="text-sm font-medium">{property.agent?.user?.name || "—"}</p>
+                <p className="text-sm text-muted-foreground">Status</p>
+                <p className="text-sm font-medium">{getStatusBadge()}</p>
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Comprehensive Property Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Complete Property Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Basic Details */}
+              {property.bedrooms && (
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-gray-600 text-xs font-semibold uppercase tracking-wide mb-2">Bedrooms</p>
+                  <p className="text-2xl font-bold text-gray-900">{property.bedrooms}</p>
+                </div>
+              )}
+
+              {property.bathrooms && (
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-gray-600 text-xs font-semibold uppercase tracking-wide mb-2">Bathrooms</p>
+                  <p className="text-2xl font-bold text-gray-900">{property.bathrooms}</p>
+                </div>
+              )}
+
+              {property.floor_area && (
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <p className="text-gray-600 text-xs font-semibold uppercase tracking-wide mb-2">Floor Area</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {property.floor_area} <span className="text-sm">{property.floor_area_unit || 'sqm'}</span>
+                  </p>
+                </div>
+              )}
+
+              {property.land_area && (
+                <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <p className="text-gray-600 text-xs font-semibold uppercase tracking-wide mb-2">Land Area</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {property.land_area} <span className="text-sm">{property.land_area_unit || 'sqm'}</span>
+                  </p>
+                </div>
+              )}
+
+              {property.year_built && (
+                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <p className="text-gray-600 text-xs font-semibold uppercase tracking-wide mb-2">Year Built</p>
+                  <p className="text-2xl font-bold text-gray-900">{property.year_built}</p>
+                </div>
+              )}
+
+              {property.rooms_count && (
+                <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
+                  <p className="text-gray-600 text-xs font-semibold uppercase tracking-wide mb-2">Total Rooms</p>
+                  <p className="text-2xl font-bold text-gray-900">{property.rooms_count}</p>
+                </div>
+              )}
+
+              {property.star_rating && (
+                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                  <p className="text-gray-600 text-xs font-semibold uppercase tracking-wide mb-2">Star Rating</p>
+                  <p className="text-2xl font-bold text-gray-900">{property.star_rating} ⭐</p>
+                </div>
+              )}
+
+              {/* Geographic Coordinates */}
+              {property.latitude && (
+                <div className="p-4 bg-teal-50 rounded-lg border border-teal-200">
+                  <p className="text-gray-600 text-xs font-semibold uppercase tracking-wide mb-2">Latitude</p>
+                  <p className="text-sm font-mono text-gray-900">{property.latitude}</p>
+                </div>
+              )}
+
+              {property.longitude && (
+                <div className="p-4 bg-teal-50 rounded-lg border border-teal-200">
+                  <p className="text-gray-600 text-xs font-semibold uppercase tracking-wide mb-2">Longitude</p>
+                  <p className="text-sm font-mono text-gray-900">{property.longitude}</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Description */}
         <Card>

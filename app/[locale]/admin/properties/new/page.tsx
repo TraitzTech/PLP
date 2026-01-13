@@ -44,6 +44,7 @@ export default function AdminCreatePropertyPage() {
     region: "",
     city: "",
     location: "",
+    address: "",
     discount_price: null,
     discount_percentage: null,
     number_available: 1,
@@ -51,8 +52,29 @@ export default function AdminCreatePropertyPage() {
     is_negotiable: false,
     is_featured: false,
     is_approved: true,
-    status: true,
+    status: "available",
     facilities_id: [],
+    for_rent: false,
+    for_purchase: false,
+    latitude: null,
+    longitude: null,
+    // Land fields
+    land_area: null,
+    land_area_unit: "sqm",
+    land_dimensions: "",
+    zoning: "",
+    // House fields
+    bedrooms: null,
+    bathrooms: null,
+    floor_area: null,
+    floor_area_unit: "sqm",
+    year_built: null,
+    house_type: "",
+    // Hotel fields
+    rooms_count: null,
+    star_rating: null,
+    has_restaurant: false,
+    has_pool: false,
   });
 
   useEffect(() => {
@@ -68,7 +90,9 @@ export default function AdminCreatePropertyPage() {
         propertyTypeService.getAllPropertyTypes(),
       ]);
 
-      setAgents(agentsData.data || []);
+      // Extract agents array from paginated response
+      const agentsArray = agentsData?.data?.data ? agentsData.data.data : (Array.isArray(agentsData?.data) ? agentsData.data : []);
+      setAgents(agentsArray);
       setFacilities(Array.isArray(facilitiesData) ? facilitiesData : []);
       setPropertyTypes(Array.isArray(propertyTypesData) ? propertyTypesData : []);
     } catch (error: any) {
@@ -83,7 +107,7 @@ export default function AdminCreatePropertyPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFacilityToggle = (facilityId: string) => {
+  const handleFacilityToggle = (facilityId: number) => {
     setFormData((prev) => ({
       ...prev,
       facilities_id: prev.facilities_id.includes(facilityId)
@@ -91,6 +115,15 @@ export default function AdminCreatePropertyPage() {
         : [...prev.facilities_id, facilityId],
     }));
   };
+
+  const getSelectedPropertyTypeName = (): string => {
+    const selectedType = propertyTypes.find(t => t.id === formData.property_type_id);
+    return selectedType?.name.toLowerCase() || "";
+  };
+
+  const isHouseProperty = (): boolean => getSelectedPropertyTypeName().includes('house');
+  const isHotelProperty = (): boolean => getSelectedPropertyTypeName().includes('hotel');
+  const isLandProperty = (): boolean => getSelectedPropertyTypeName().includes('land');
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -412,6 +445,33 @@ export default function AdminCreatePropertyPage() {
           </div>
 
           <div className="space-y-4">
+            <h3 className="font-semibold">Property Purpose</h3>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="for_rent"
+                  checked={formData.for_rent || false}
+                  onCheckedChange={(checked) => handleInputChange("for_rent", checked)}
+                />
+                <Label htmlFor="for_rent" className="font-normal cursor-pointer">
+                  Available for Rent/Booking
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="for_purchase"
+                  checked={formData.for_purchase || false}
+                  onCheckedChange={(checked) => handleInputChange("for_purchase", checked)}
+                />
+                <Label htmlFor="for_purchase" className="font-normal cursor-pointer">
+                  Available for Purchase/Sale
+                </Label>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
             <h3 className="font-semibold">Property Options</h3>
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
@@ -437,6 +497,264 @@ export default function AdminCreatePropertyPage() {
               </div>
             </div>
           </div>
+
+          <div className="space-y-4 border-t pt-6">
+            <h3 className="font-semibold">Address & Geolocation</h3>
+            <div>
+              <Label htmlFor="address">Full Address</Label>
+              <Input
+                id="address"
+                value={formData.address || ""}
+                onChange={(e) => handleInputChange("address", e.target.value)}
+                placeholder="e.g., 123 Main Street, LA"
+                className="mt-1"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="latitude">Latitude (Optional)</Label>
+                <Input
+                  id="latitude"
+                  type="number"
+                  step="0.000001"
+                  value={formData.latitude ?? ""}
+                  onChange={(e) => handleInputChange("latitude", e.target.value ? parseFloat(e.target.value) : null)}
+                  placeholder="e.g., 34.0522"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="longitude">Longitude (Optional)</Label>
+                <Input
+                  id="longitude"
+                  type="number"
+                  step="0.000001"
+                  value={formData.longitude ?? ""}
+                  onChange={(e) => handleInputChange("longitude", e.target.value ? parseFloat(e.target.value) : null)}
+                  placeholder="e.g., -118.2437"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Land-specific fields */}
+          {isLandProperty() && (
+            <div className="space-y-4 border-t pt-6 bg-yellow-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-yellow-900">Land Details</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="land_area">Land Area (Optional)</Label>
+                  <Input
+                    id="land_area"
+                    type="number"
+                    step="0.01"
+                    value={formData.land_area ?? ""}
+                    onChange={(e) => handleInputChange("land_area", e.target.value ? parseFloat(e.target.value) : null)}
+                    placeholder="e.g., 5000"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="land_area_unit">Area Unit (Optional)</Label>
+                  <Select
+                    value={formData.land_area_unit || "sqm"}
+                    onValueChange={(value) => handleInputChange("land_area_unit", value)}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sqm">Square Meters (sqm)</SelectItem>
+                      <SelectItem value="sqft">Square Feet (sqft)</SelectItem>
+                      <SelectItem value="acre">Acres</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="land_dimensions">Land Dimensions (Optional)</Label>
+                <Input
+                  id="land_dimensions"
+                  value={formData.land_dimensions || ""}
+                  onChange={(e) => handleInputChange("land_dimensions", e.target.value)}
+                  placeholder="e.g., 50m x 100m"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="zoning">Zoning (Optional)</Label>
+                <Input
+                  id="zoning"
+                  value={formData.zoning || ""}
+                  onChange={(e) => handleInputChange("zoning", e.target.value)}
+                  placeholder="e.g., Residential, Commercial"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* House-specific fields */}
+          {isHouseProperty() && (
+            <div className="space-y-4 border-t pt-6 bg-blue-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-blue-900">House Details</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="bedrooms">Bedrooms (Optional)</Label>
+                  <Input
+                    id="bedrooms"
+                    type="number"
+                    min="0"
+                    value={formData.bedrooms ?? ""}
+                    onChange={(e) => handleInputChange("bedrooms", e.target.value ? parseInt(e.target.value) : null)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="bathrooms">Bathrooms (Optional)</Label>
+                  <Input
+                    id="bathrooms"
+                    type="number"
+                    min="0"
+                    value={formData.bathrooms ?? ""}
+                    onChange={(e) => handleInputChange("bathrooms", e.target.value ? parseInt(e.target.value) : null)}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="floor_area">Floor Area (Optional)</Label>
+                  <Input
+                    id="floor_area"
+                    type="number"
+                    step="0.01"
+                    value={formData.floor_area ?? ""}
+                    onChange={(e) => handleInputChange("floor_area", e.target.value ? parseFloat(e.target.value) : null)}
+                    placeholder="e.g., 250"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="floor_area_unit">Floor Area Unit (Optional)</Label>
+                  <Select
+                    value={formData.floor_area_unit || "sqm"}
+                    onValueChange={(value) => handleInputChange("floor_area_unit", value)}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sqm">Square Meters (sqm)</SelectItem>
+                      <SelectItem value="sqft">Square Feet (sqft)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="year_built">Year Built (Optional)</Label>
+                  <Input
+                    id="year_built"
+                    type="number"
+                    min="1800"
+                    value={formData.year_built ?? ""}
+                    onChange={(e) => handleInputChange("year_built", e.target.value ? parseInt(e.target.value) : null)}
+                    placeholder="e.g., 2020"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="house_type">House Type (Optional)</Label>
+                  <Select
+                    value={formData.house_type || ""}
+                    onValueChange={(value) => handleInputChange("house_type", value)}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="detached">Detached</SelectItem>
+                      <SelectItem value="semi-detached">Semi-Detached</SelectItem>
+                      <SelectItem value="terraced">Terraced</SelectItem>
+                      <SelectItem value="bungalow">Bungalow</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Hotel-specific fields */}
+          {isHotelProperty() && (
+            <div className="space-y-4 border-t pt-6 bg-purple-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-purple-900">Hotel Details</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="rooms_count">Number of Rooms (Optional)</Label>
+                  <Input
+                    id="rooms_count"
+                    type="number"
+                    min="0"
+                    value={formData.rooms_count ?? ""}
+                    onChange={(e) => handleInputChange("rooms_count", e.target.value ? parseInt(e.target.value) : null)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="star_rating">Star Rating (Optional)</Label>
+                  <Select
+                    value={formData.star_rating?.toString() || ""}
+                    onValueChange={(value) => handleInputChange("star_rating", value ? parseInt(value) : null)}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select rating" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 Star</SelectItem>
+                      <SelectItem value="2">2 Stars</SelectItem>
+                      <SelectItem value="3">3 Stars</SelectItem>
+                      <SelectItem value="4">4 Stars</SelectItem>
+                      <SelectItem value="5">5 Stars</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="has_restaurant"
+                    checked={formData.has_restaurant || false}
+                    onCheckedChange={(checked) => handleInputChange("has_restaurant", checked)}
+                  />
+                  <Label htmlFor="has_restaurant" className="font-normal cursor-pointer">
+                    Has Restaurant/Bar
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="has_pool"
+                    checked={formData.has_pool || false}
+                    onCheckedChange={(checked) => handleInputChange("has_pool", checked)}
+                  />
+                  <Label htmlFor="has_pool" className="font-normal cursor-pointer">
+                    Has Swimming Pool
+                  </Label>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       ),
     },
@@ -459,8 +777,8 @@ export default function AdminCreatePropertyPage() {
               <div key={facility.id} className="flex items-start space-x-2 p-3 rounded-lg border hover:bg-gray-50 transition-colors">
                 <Checkbox
                   id={`facility-${facility.id}`}
-                  checked={formData.facilities_id.includes(facility.id.toString())}
-                  onCheckedChange={() => handleFacilityToggle(facility.id.toString())}
+                  checked={formData.facilities_id.includes(facility.id)}
+                  onCheckedChange={() => handleFacilityToggle(facility.id)}
                   className="mt-1"
                 />
                 <Label
@@ -702,8 +1020,24 @@ export default function AdminCreatePropertyPage() {
   if (isDataLoading) {
     return (
       <DashboardLayout userType="admin">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="space-y-6 max-w-4xl mx-auto">
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded bg-gray-200 animate-pulse" />
+            <div className="flex-1">
+              <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2" />
+              <div className="h-4 w-96 bg-gray-100 rounded animate-pulse" />
+            </div>
+          </div>
+
+          {/* Shimmer for form steps */}
+          <div className="space-y-4">
+            <div className="h-12 bg-gray-200 rounded animate-pulse" />
+            <div className="space-y-3">
+              <div className="h-10 bg-gray-100 rounded animate-pulse" />
+              <div className="h-10 bg-gray-100 rounded animate-pulse" />
+              <div className="h-24 bg-gray-100 rounded animate-pulse" />
+            </div>
+          </div>
         </div>
       </DashboardLayout>
     );

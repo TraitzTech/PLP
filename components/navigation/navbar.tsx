@@ -7,7 +7,7 @@ import { Logo } from '@/components/ui/logo';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
-import { Menu, X, User, Heart, MessageSquare, Settings, LogOut, Plus, Chrome as Home, Building2, MapPin, Star, ChevronDown, Loader2, Info, Mail } from 'lucide-react';
+import { Menu, X, User, Heart, MessageSquare, Settings, LogOut, Plus, Chrome as Home, Building2, MapPin, Star, ChevronDown, Loader2, Info, Mail, Search } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -30,6 +30,7 @@ interface StaticNavItem {
 
 const staticNavigationItems: StaticNavItem[] = [
     { nameKey: 'nav.home', href: '/', icon: Home },
+    {nameKey: 'nav.search', href: '/search', icon: Search},
     { nameKey: 'nav.about', href: '/about', icon: Info },
     { nameKey: 'nav.contact', href: '/contact', icon: Mail },
     { nameKey: 'pricing.title', href: '/pricing', icon: Star },

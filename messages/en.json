@@ -12,7 +12,8 @@
     "selectLanguage": "Select Language",
     "about": "About",
     "contact": "Contact",
-    "propertyTypes": "Property Types"
+    "propertyTypes": "Property Types",
+    "search": "Search"
   },
   "auth": {
     "signIn": "Sign In",
@@ -143,7 +144,7 @@
     "copyright": "© {year} Property Listing Portal. All rights reserved."
   },
   "pricing": {
-    "title": "Subscription Plans",
+    "title": "Plans",
     "subtitle": "for Agents"
   }
 }

@@ -12,7 +12,8 @@
     "selectLanguage": "Choisir la langue",
     "about": "À Propos",
     "contact": "Contact",
-    "propertyTypes": "Types de Propriétés"
+    "propertyTypes": "Tarifs",
+    "search": "Rechercher"
   },
   "auth": {
     "signIn": "Se Connecter",
@@ -143,7 +144,7 @@
     "copyright": "© {year} Property Listing Portal. Tous droits réservés."
   },
   "pricing": {
-    "title": "Plans d'Abonnement",
+    "title": "Tarifs",
     "subtitle": "pour Agents"
   }
 }

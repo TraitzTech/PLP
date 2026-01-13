@@ -11,13 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Save, Loader2, Upload, X, Trash2, Badge } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Upload, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { listingService } from "@/services/listingService";
 import { listingImageService } from "@/services/listingImageService";
 import { listingVideoService } from "@/services/listingVideoService";
 import { propertyTypeService } from "@/services/propertyTypeService";
 import { facilitiesService } from "@/services/facilitiesService";
+import { Badge } from "@/components/ui/badge";
 import type { Listing, PropertyType, Facility, ListingImage, ListingVideo } from "@/services/types";
 
 export default function EditPropertyPage() {
@@ -43,14 +44,33 @@ export default function EditPropertyPage() {
     region: "",
     city: "",
     location: "",
+    address: "",
+    latitude: "",
+    longitude: "",
     discount_price: null,
     discount_percentage: null,
     number_available: 1,
     is_available: true,
     is_negotiable: false,
     is_featured: false,
-    status: true,
+    status: "available",
     facilities_id: [],
+    // Property details
+    bedrooms: 0,
+    bathrooms: 0,
+    floor_area: 0,
+    floor_area_unit: "sqm",
+    land_area: 0,
+    land_area_unit: "sqm",
+    year_built: new Date().getFullYear(),
+    rooms_count: 0,
+    star_rating: 0,
+    // Property purpose
+    for_rent: false,
+    for_purchase: false,
+    // Hotel-specific
+    has_restaurant: false,
+    has_pool: false,
   });
 
   useEffect(() => {
@@ -91,23 +111,49 @@ export default function EditPropertyPage() {
         setExistingVideos([]);
       }
 
+      // Helper to normalize boolean values
+      const normalizeBoolean = (value: any): boolean => {
+        if (typeof value === "boolean") return value;
+        if (typeof value === "number") return value !== 0;
+        if (typeof value === "string") return value.toLowerCase() === "true" || value === "1";
+        return false;
+      };
+
+      const prop = propertyData as any;
+
       // Set form data
       setFormData({
-        title: propertyData.title || "",
-        description: propertyData.description || "",
-        property_type_id: propertyData.property_type_id || 0,
-        price: propertyData.price || 0,
-        region: propertyData.region || "",
-        city: propertyData.city || "",
-        location: propertyData.location || "",
-        discount_price: propertyData.discount_price || null,
-        discount_percentage: propertyData.discount_percentage || null,
-        number_available: propertyData.number_available || 1,
-        is_available: propertyData.is_available !== false,
-        is_negotiable: propertyData.is_negotiable || false,
-        is_featured: propertyData.is_featured || false,
-        status: propertyData.status !== false,
-        facilities_id: propertyData.facilities_id || [],
+        title: prop.title || "",
+        description: prop.description || "",
+        property_type_id: prop.property_type_id || 0,
+        price: prop.price || 0,
+        region: prop.region || "",
+        city: prop.city || "",
+        location: prop.location || "",
+        address: prop.address || "",
+        latitude: prop.latitude || "",
+        longitude: prop.longitude || "",
+        discount_price: prop.discount_price || null,
+        discount_percentage: prop.discount_percentage || null,
+        number_available: prop.number_available || 1,
+        is_available: prop.is_available !== false,
+        is_negotiable: prop.is_negotiable || false,
+        is_featured: prop.is_featured || false,
+        status: prop.status || "available",
+        facilities_id: prop.facilities?.map((f: any) => f.id) || [],
+        bedrooms: prop.bedrooms || 0,
+        bathrooms: prop.bathrooms || 0,
+        floor_area: prop.floor_area || 0,
+        floor_area_unit: prop.floor_area_unit || "sqm",
+        land_area: prop.land_area || 0,
+        land_area_unit: prop.land_area_unit || "sqm",
+        year_built: prop.year_built || new Date().getFullYear(),
+        rooms_count: prop.rooms_count || 0,
+        star_rating: prop.star_rating || 0,
+        for_rent: normalizeBoolean(prop.for_rent),
+        for_purchase: normalizeBoolean(prop.for_purchase),
+        has_restaurant: prop.has_restaurant || false,
+        has_pool: prop.has_pool || false,
       });
     } catch (error: any) {
       console.error("Error fetching data:", error);
@@ -463,6 +509,233 @@ export default function EditPropertyPage() {
                   />
                 </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="address">Address (Full)</Label>
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange("address", e.target.value)}
+                    placeholder="Complete address"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="latitude">Latitude</Label>
+                  <Input
+                    id="latitude"
+                    type="number"
+                    value={formData.latitude}
+                    onChange={(e) => handleInputChange("latitude", e.target.value)}
+                    placeholder="e.g., 3.8667"
+                    step="0.0001"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="longitude">Longitude</Label>
+                  <Input
+                    id="longitude"
+                    type="number"
+                    value={formData.longitude}
+                    onChange={(e) => handleInputChange("longitude", e.target.value)}
+                    placeholder="e.g., 11.5167"
+                    step="0.0001"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Property Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Property Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <Label htmlFor="bedrooms">Bedrooms</Label>
+                  <Input
+                    id="bedrooms"
+                    type="number"
+                    value={formData.bedrooms}
+                    onChange={(e) => handleInputChange("bedrooms", parseInt(e.target.value) || 0)}
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="bathrooms">Bathrooms</Label>
+                  <Input
+                    id="bathrooms"
+                    type="number"
+                    value={formData.bathrooms}
+                    onChange={(e) => handleInputChange("bathrooms", parseInt(e.target.value) || 0)}
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="year_built">Year Built</Label>
+                  <Input
+                    id="year_built"
+                    type="number"
+                    value={formData.year_built}
+                    onChange={(e) => handleInputChange("year_built", parseInt(e.target.value) || new Date().getFullYear())}
+                    placeholder={new Date().getFullYear().toString()}
+                    min="1900"
+                    max={new Date().getFullYear()}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="star_rating">Star Rating</Label>
+                  <Input
+                    id="star_rating"
+                    type="number"
+                    value={formData.star_rating}
+                    onChange={(e) => handleInputChange("star_rating", parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                    min="0"
+                    max="5"
+                    step="0.5"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="floor_area">Floor Area</Label>
+                    <Input
+                      id="floor_area"
+                      type="number"
+                      value={formData.floor_area}
+                      onChange={(e) => handleInputChange("floor_area", parseFloat(e.target.value) || 0)}
+                      placeholder="0"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="floor_area_unit">Unit</Label>
+                    <Select value={formData.floor_area_unit} onValueChange={(value) => handleInputChange("floor_area_unit", value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sqm">Square Meters</SelectItem>
+                        <SelectItem value="sqft">Square Feet</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="land_area">Land Area</Label>
+                    <Input
+                      id="land_area"
+                      type="number"
+                      value={formData.land_area}
+                      onChange={(e) => handleInputChange("land_area", parseFloat(e.target.value) || 0)}
+                      placeholder="0"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="land_area_unit">Unit</Label>
+                    <Select value={formData.land_area_unit} onValueChange={(value) => handleInputChange("land_area_unit", value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sqm">Square Meters</SelectItem>
+                        <SelectItem value="sqft">Square Feet</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="rooms_count">Total Rooms (Hotel)</Label>
+                  <Input
+                    id="rooms_count"
+                    type="number"
+                    value={formData.rooms_count}
+                    onChange={(e) => handleInputChange("rooms_count", parseInt(e.target.value) || 0)}
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+
+                <div className="flex items-end">
+                  <div className="space-y-2 flex-1">
+                    <Label>Hotel Amenities</Label>
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id="has_restaurant"
+                          checked={formData.has_restaurant}
+                          onCheckedChange={(checked) => handleInputChange("has_restaurant", checked)}
+                        />
+                        <Label htmlFor="has_restaurant" className="cursor-pointer text-sm">
+                          Restaurant
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id="has_pool"
+                          checked={formData.has_pool}
+                          onCheckedChange={(checked) => handleInputChange("has_pool", checked)}
+                        />
+                        <Label htmlFor="has_pool" className="cursor-pointer text-sm">
+                          Swimming Pool
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Property Purpose */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Property Purpose</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="for_rent"
+                  checked={formData.for_rent}
+                  onCheckedChange={(checked) => handleInputChange("for_rent", checked)}
+                />
+                <Label htmlFor="for_rent" className="cursor-pointer">
+                  Available for Rent
+                </Label>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="for_purchase"
+                  checked={formData.for_purchase}
+                  onCheckedChange={(checked) => handleInputChange("for_purchase", checked)}
+                />
+                <Label htmlFor="for_purchase" className="cursor-pointer">
+                  Available for Purchase
+                </Label>
+              </div>
             </CardContent>
           </Card>
 
@@ -509,15 +782,22 @@ export default function EditPropertyPage() {
                   </Label>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="status"
-                    checked={formData.status}
-                    onCheckedChange={(checked) => handleInputChange("status", checked)}
-                  />
-                  <Label htmlFor="status" className="cursor-pointer">
-                    Active
-                  </Label>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formData.status || "available"}
+                    onValueChange={(value) => handleInputChange("status", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="available">Available</SelectItem>
+                      <SelectItem value="unavailable">Unavailable</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="sold">Sold</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardContent>

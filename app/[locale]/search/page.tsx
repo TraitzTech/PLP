@@ -57,6 +57,18 @@ export default function SearchPage() {
     facilities: [] as string[],
     region: '',
     city: '',
+    purpose: searchParams?.get('purpose') || '', // 'rent', 'purchase', or ''
+    // House filters
+    bedroomsMin: '',
+    bathroomsMin: '',
+    floorAreaMin: '',
+    floorAreaMax: '',
+    // Land filters
+    landAreaMin: '',
+    landAreaMax: '',
+    // Hotel filters
+    roomsCountMin: '',
+    starRating: '',
   });
 
   const itemsPerPage = 12;
@@ -133,6 +145,13 @@ export default function SearchPage() {
       );
     }
 
+    // Filter by purpose (rent/purchase)
+    if (filters.purpose === 'rent') {
+      filtered = filtered.filter(property => property.for_rent);
+    } else if (filters.purpose === 'purchase') {
+      filtered = filtered.filter(property => property.for_purchase);
+    }
+
     // Filter by region/location
     if (filters.region) {
       filtered = filtered.filter(property =>
@@ -154,6 +173,60 @@ export default function SearchPage() {
       const price = Number(property.price);
       return price >= minPrice && price <= maxPrice;
     });
+
+    // House-specific filters
+    if (filters.bedroomsMin) {
+      const minBedrooms = parseInt(filters.bedroomsMin);
+      filtered = filtered.filter(property => 
+        property.bedrooms && property.bedrooms >= minBedrooms
+      );
+    }
+    if (filters.bathroomsMin) {
+      const minBathrooms = parseInt(filters.bathroomsMin);
+      filtered = filtered.filter(property => 
+        property.bathrooms && property.bathrooms >= minBathrooms
+      );
+    }
+    if (filters.floorAreaMin) {
+      const minArea = parseFloat(filters.floorAreaMin);
+      filtered = filtered.filter(property => 
+        property.floor_area && property.floor_area >= minArea
+      );
+    }
+    if (filters.floorAreaMax) {
+      const maxArea = parseFloat(filters.floorAreaMax);
+      filtered = filtered.filter(property => 
+        property.floor_area && property.floor_area <= maxArea
+      );
+    }
+
+    // Land-specific filters
+    if (filters.landAreaMin) {
+      const minArea = parseFloat(filters.landAreaMin);
+      filtered = filtered.filter(property => 
+        property.land_area && property.land_area >= minArea
+      );
+    }
+    if (filters.landAreaMax) {
+      const maxArea = parseFloat(filters.landAreaMax);
+      filtered = filtered.filter(property => 
+        property.land_area && property.land_area <= maxArea
+      );
+    }
+
+    // Hotel-specific filters
+    if (filters.roomsCountMin) {
+      const minRooms = parseInt(filters.roomsCountMin);
+      filtered = filtered.filter(property => 
+        property.rooms_count && property.rooms_count >= minRooms
+      );
+    }
+    if (filters.starRating) {
+      const rating = parseInt(filters.starRating);
+      filtered = filtered.filter(property => 
+        property.star_rating && property.star_rating >= rating
+      );
+    }
 
     // Filter by number available (minimum 1)
     filtered = filtered.filter(property => property.number_available >= 1 && property.is_available);
@@ -193,6 +266,15 @@ export default function SearchPage() {
       facilities: [],
       region: '',
       city: '',
+      purpose: '',
+      bedroomsMin: '',
+      bathroomsMin: '',
+      floorAreaMin: '',
+      floorAreaMax: '',
+      landAreaMin: '',
+      landAreaMax: '',
+      roomsCountMin: '',
+      starRating: '',
     });
     setSortBy('relevance');
   };
@@ -310,96 +392,13 @@ export default function SearchPage() {
         <div className="flex gap-8">
           {/* Filters Sidebar */}
           {showFilters && (
-            <div className="w-80 flex-shrink-0 bg-white p-6 rounded-lg border h-fit">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="font-bold text-lg mb-3 text-gray-900">Property Type</h3>
-                  <Select value={filters.type} onValueChange={(value) => setFilters({...filters, type: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select property type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      {propertyTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.name.toLowerCase()}>
-                          {type.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-lg mb-3 text-gray-900">Region</h3>
-                  <Select value={filters.region} onValueChange={(value) => setFilters({...filters, region: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select region" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Regions</SelectItem>
-                      {uniqueRegions.map((region) => (
-                        <SelectItem key={region} value={region}>
-                          {region}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-lg mb-3 text-gray-900">City</h3>
-                  <Select value={filters.city} onValueChange={(value) => setFilters({...filters, city: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select city" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Cities</SelectItem>
-                      {uniqueCities.map((city) => (
-                        <SelectItem key={city} value={city}>
-                          {city}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-lg mb-3 text-gray-900">Price Range</h3>
-                  <div className="space-y-2">
-                    <div>
-                      <label className="text-sm text-gray-600">Min Price</label>
-                      <input
-                        type="number"
-                        value={filters.priceRangeMin}
-                        onChange={(e) => setFilters({...filters, priceRangeMin: e.target.value})}
-                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-plp-purple"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-600">Max Price</label>
-                      <input
-                        type="number"
-                        value={filters.priceRangeMax}
-                        onChange={(e) => setFilters({...filters, priceRangeMax: e.target.value})}
-                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-plp-purple"
-                        placeholder="10000000"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-lg mb-3 text-gray-900">Availability</h3>
-                  <div className="text-sm text-gray-600">
-                    <p className="mb-2">Showing only available properties with inventory</p>
-                  </div>
-                </div>
-
-                <Button variant="outline" onClick={clearFilters} className="w-full">
-                  Reset Filters
-                </Button>
-              </div>
+            <div className="w-80 flex-shrink-0">
+              <SearchFilters
+                filters={filters}
+                propertyTypes={propertyTypes}
+                onFiltersChange={handleFilterChange}
+                onClose={() => setShowFilters(false)}
+              />
             </div>
           )}
 
@@ -424,30 +423,12 @@ export default function SearchPage() {
               <>
                 {/* Properties Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-                  {currentProperties.map((property) => {
-                    const imageUrls = (property.images as any)?.map((img: any) => getImageUrl(img.image_path)) || [];
-                    
-                    return (
-                      <PropertyCard
-                        key={property.id}
-                        property={{
-                          id: String(property.id),
-                          title: property.title,
-                          location: `${property.city}, ${property.region}`,
-                          price: Number(property.price),
-                          priceUnit: 'unit',
-                          rating: 4.5,
-                          reviews: 0,
-                          images: imageUrls.length > 0 ? imageUrls : [getImageUrl()],
-                          amenities: [],
-                          type: property.property_type?.name?.toLowerCase() || 'property',
-                          bedrooms: 0,
-                          bathrooms: 0,
-                          area: 0,
-                        }}
-                      />
-                    );
-                  })}
+                  {currentProperties.map((property) => (
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                    />
+                  ))}
                 </div>
 
                 {/* Pagination */}

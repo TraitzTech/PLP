@@ -6,44 +6,36 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Slider } from '@/components/ui/slider';
-import { X, MapPin, Chrome as Home, Building2, Bed, Bath, Wifi, Car, Utensils, Waves } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { X, MapPin } from 'lucide-react';
 
 interface SearchFiltersProps {
   filters: {
     type: string;
     location: string;
-    priceRange: number[];
+    priceRangeMin: string;
+    priceRangeMax: string;
     bedrooms: string;
     bathrooms: string;
-    amenities: string[];
+    facilities: string[];
+    region: string;
+    city: string;
+    purpose: string;
+    bedroomsMin: string;
+    bathroomsMin: string;
+    floorAreaMin: string;
+    floorAreaMax: string;
+    landAreaMin: string;
+    landAreaMax: string;
+    roomsCountMin: string;
+    starRating: string;
   };
+  propertyTypes?: Array<{ id: number; name: string }>;
   onFiltersChange: (filters: any) => void;
   onClose: () => void;
 }
 
-const propertyTypes = [
-  { value: 'hotels', label: 'Hotels', icon: Building2 },
-  { value: 'houses', label: 'Houses', icon: Home },
-  { value: 'apartments', label: 'Apartments', icon: Building2 },
-  { value: 'land', label: 'Land', icon: MapPin },
-  { value: 'villa', label: 'Villas', icon: Home },
-  { value: 'cabin', label: 'Cabins', icon: Home },
-];
-
-const amenitiesList = [
-  { value: 'wifi', label: 'WiFi', icon: Wifi },
-  { value: 'parking', label: 'Parking', icon: Car },
-  { value: 'kitchen', label: 'Kitchen', icon: Utensils },
-  { value: 'pool', label: 'Pool', icon: Waves },
-  { value: 'gym', label: 'Gym', icon: Building2 },
-  { value: 'spa', label: 'Spa', icon: Building2 },
-  { value: 'beach', label: 'Beach Access', icon: Waves },
-  { value: 'garden', label: 'Garden', icon: Home },
-];
-
-export function SearchFilters({ filters, onFiltersChange, onClose }: SearchFiltersProps) {
+export function SearchFilters({ filters, propertyTypes = [], onFiltersChange, onClose }: SearchFiltersProps) {
   const updateFilter = (key: string, value: any) => {
     onFiltersChange({
       ...filters,
@@ -51,23 +43,30 @@ export function SearchFilters({ filters, onFiltersChange, onClose }: SearchFilte
     });
   };
 
-  const toggleAmenity = (amenity: string) => {
-    const newAmenities = filters.amenities.includes(amenity)
-      ? filters.amenities.filter(a => a !== amenity)
-      : [...filters.amenities, amenity];
-    updateFilter('amenities', newAmenities);
-  };
-
   const clearAllFilters = () => {
     onFiltersChange({
-      type: '',
+      type: 'all',
       location: '',
-      priceRange: [0, 2000],
+      priceRangeMin: '0',
+      priceRangeMax: '10000000',
       bedrooms: '',
       bathrooms: '',
-      amenities: [],
+      facilities: [],
+      region: '',
+      city: '',
+      purpose: 'all',
+      bedroomsMin: 'any',
+      bathroomsMin: 'any',
+      floorAreaMin: '',
+      floorAreaMax: '',
+      landAreaMin: '',
+      landAreaMax: '',
+      roomsCountMin: '',
+      starRating: 'any',
     });
   };
+
+  const selectedPropertyType = filters.type.toLowerCase();
 
   return (
     <Card className="sticky top-24">
@@ -84,121 +83,221 @@ export function SearchFilters({ filters, onFiltersChange, onClose }: SearchFilte
       </CardHeader>
       
       <CardContent className="space-y-6">
+        {/* Property Type */}
+        <div className="space-y-2">
+          <Label htmlFor="type">Property Type</Label>
+          <Select value={filters.type} onValueChange={(value) => updateFilter('type', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="All Types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {propertyTypes.map((type) => (
+                <SelectItem key={type.id} value={type.name.toLowerCase()}>
+                  {type.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Purpose */}
+        <div className="space-y-2">
+          <Label htmlFor="purpose">Purpose</Label>
+          <Select value={filters.purpose} onValueChange={(value) => updateFilter('purpose', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Any Purpose" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any Purpose</SelectItem>
+              <SelectItem value="rent">For Rent</SelectItem>
+              <SelectItem value="purchase">For Purchase</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Location */}
         <div className="space-y-2">
-          <Label htmlFor="location">Location</Label>
+          <Label htmlFor="region">Region</Label>
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              id="location"
-              placeholder="Enter city or area"
-              value={filters.location}
-              onChange={(e) => updateFilter('location', e.target.value)}
+              id="region"
+              placeholder="Enter region"
+              value={filters.region}
+              onChange={(e) => updateFilter('region', e.target.value)}
               className="pl-10"
             />
           </div>
         </div>
 
-        {/* Property Type */}
-        <div className="space-y-3">
-          <Label>Property Type</Label>
-          <div className="grid grid-cols-2 gap-2">
-            {propertyTypes.map((type) => {
-              const Icon = type.icon;
-              return (
-                <Button
-                  key={type.value}
-                  variant={filters.type === type.value ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateFilter('type', filters.type === type.value ? '' : type.value)}
-                  className={`justify-start ${filters.type === type.value ? 'btn-primary' : ''}`}
-                >
-                  <Icon className="w-4 h-4 mr-2" />
-                  {type.label}
-                </Button>
-              );
-            })}
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="city">City</Label>
+          <Input
+            id="city"
+            placeholder="Enter city"
+            value={filters.city}
+            onChange={(e) => updateFilter('city', e.target.value)}
+          />
         </div>
 
         {/* Price Range */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <Label>Price Range</Label>
-          <div className="px-2">
-            <Slider
-              value={filters.priceRange}
-              onValueChange={(value) => updateFilter('priceRange', value)}
-              max={2000}
-              min={0}
-              step={50}
-              className="w-full"
-            />
-            <div className="flex justify-between text-sm text-gray-600 mt-2">
-              <span>${filters.priceRange[0]}</span>
-              <span>${filters.priceRange[1]}+</span>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Input
+                type="number"
+                placeholder="Min"
+                value={filters.priceRangeMin}
+                onChange={(e) => updateFilter('priceRangeMin', e.target.value)}
+              />
+            </div>
+            <div>
+              <Input
+                type="number"
+                placeholder="Max"
+                value={filters.priceRangeMax}
+                onChange={(e) => updateFilter('priceRangeMax', e.target.value)}
+              />
             </div>
           </div>
         </div>
 
-        {/* Bedrooms */}
-        <div className="space-y-2">
-          <Label>Bedrooms</Label>
-          <Select value={filters.bedrooms} onValueChange={(value) => updateFilter('bedrooms', value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Any" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Any</SelectItem>
-              <SelectItem value="1">1+</SelectItem>
-              <SelectItem value="2">2+</SelectItem>
-              <SelectItem value="3">3+</SelectItem>
-              <SelectItem value="4">4+</SelectItem>
-              <SelectItem value="5">5+</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Property Type Specific Filters */}
+        {selectedPropertyType && (
+          <div className="pt-4 border-t">
+            <Tabs defaultValue="general" className="w-full">
+              <TabsList className="grid w-full grid-cols-1">
+                <TabsTrigger value="general">Specific Filters</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="general" className="space-y-4 mt-4">
+                {selectedPropertyType === 'house' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Minimum Bedrooms</Label>
+                      <Select
+                        value={filters.bedroomsMin}
+                        onValueChange={(value) => updateFilter('bedroomsMin', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Any" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">Any</SelectItem>
+                          {[1, 2, 3, 4, 5, 6].map((num) => (
+                            <SelectItem key={num} value={num.toString()}>
+                              {num}+ Bedrooms
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-        {/* Bathrooms */}
-        <div className="space-y-2">
-          <Label>Bathrooms</Label>
-          <Select value={filters.bathrooms} onValueChange={(value) => updateFilter('bathrooms', value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Any" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Any</SelectItem>
-              <SelectItem value="1">1+</SelectItem>
-              <SelectItem value="2">2+</SelectItem>
-              <SelectItem value="3">3+</SelectItem>
-              <SelectItem value="4">4+</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+                    <div className="space-y-2">
+                      <Label>Minimum Bathrooms</Label>
+                      <Select
+                        value={filters.bathroomsMin}
+                        onValueChange={(value) => updateFilter('bathroomsMin', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Any" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">Any</SelectItem>
+                          {[1, 2, 3, 4, 5].map((num) => (
+                            <SelectItem key={num} value={num.toString()}>
+                              {num}+ Bathrooms
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-        {/* Amenities */}
-        <div className="space-y-3">
-          <Label>Amenities</Label>
-          <div className="space-y-2">
-            {amenitiesList.map((amenity) => {
-              const Icon = amenity.icon;
-              return (
-                <div key={amenity.value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={amenity.value}
-                    checked={filters.amenities.includes(amenity.value)}
-                    onCheckedChange={() => toggleAmenity(amenity.value)}
-                  />
-                  <Label
-                    htmlFor={amenity.value}
-                    className="flex items-center space-x-2 text-sm font-normal cursor-pointer"
-                  >
-                    <Icon className="w-4 h-4 text-gray-500" />
-                    <span>{amenity.label}</span>
-                  </Label>
-                </div>
-              );
-            })}
+                    <div className="space-y-2">
+                      <Label>Floor Area (sqm)</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          type="number"
+                          placeholder="Min"
+                          value={filters.floorAreaMin}
+                          onChange={(e) => updateFilter('floorAreaMin', e.target.value)}
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Max"
+                          value={filters.floorAreaMax}
+                          onChange={(e) => updateFilter('floorAreaMax', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {selectedPropertyType === 'land' && (
+                  <div className="space-y-2">
+                    <Label>Land Area (sqm)</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        type="number"
+                        placeholder="Min"
+                        value={filters.landAreaMin}
+                        onChange={(e) => updateFilter('landAreaMin', e.target.value)}
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Max"
+                        value={filters.landAreaMax}
+                        onChange={(e) => updateFilter('landAreaMax', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {selectedPropertyType === 'hotel' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Minimum Rooms</Label>
+                      <Input
+                        type="number"
+                        placeholder="e.g., 10"
+                        value={filters.roomsCountMin}
+                        onChange={(e) => updateFilter('roomsCountMin', e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Minimum Star Rating</Label>
+                      <Select
+                        value={filters.starRating}
+                        onValueChange={(value) => updateFilter('starRating', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Any Rating" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">Any Rating</SelectItem>
+                          {[1, 2, 3, 4, 5].map((rating) => (
+                            <SelectItem key={rating} value={rating.toString()}>
+                              {rating}+ Stars
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
+        )}
+
+        {/* Active Filters Count */}
+        <div className="pt-4 border-t">
+          <p className="text-sm text-gray-600">
+            {Object.values(filters).filter((v) => v && v !== '' && (!Array.isArray(v) || v.length > 0)).length} active filters
+          </p>
         </div>
       </CardContent>
     </Card>

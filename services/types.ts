@@ -261,6 +261,41 @@ export interface Listing {
   deleted_at: string | null;
   created_at: string | null;
   updated_at: string | null;
+  
+  // Purpose flags
+  for_rent?: boolean | null;
+  for_purchase?: boolean | null;
+  
+  // Address & geolocation
+  address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  
+  // Land-specific fields
+  land_area?: number | null;
+  land_area_unit?: string | null;
+  land_dimensions?: string | null;
+  zoning?: string | null;
+  
+  // House-specific fields
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  floor_area?: number | null;
+  floor_area_unit?: string | null;
+  year_built?: number | null;
+  house_type?: string | null;
+  
+  // Hotel-specific fields
+  rooms_count?: number | null;
+  star_rating?: number | null;
+  has_restaurant?: boolean | null;
+  has_pool?: boolean | null;
+  
+  // Related data
+  facilities?: Facility[];
+  images?: ListingImage[];
+  videos?: ListingVideo[];
+  property_type?: PropertyType;
 }
 export type ListingCreateRequest = {
   title: string;
@@ -278,7 +313,37 @@ export type ListingCreateRequest = {
   is_featured?: boolean | null;
   is_approved?: boolean | null;
   status: boolean;
-  facilities_id: string[];
+  facilities_id: number[];
+  
+  // Purpose flags
+  for_rent?: boolean | null;
+  for_purchase?: boolean | null;
+  
+  // Address & geolocation
+  address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  
+  // Land-specific fields
+  land_area?: number | null;
+  land_area_unit?: string | null;
+  land_dimensions?: string | null;
+  zoning?: string | null;
+  
+  // House-specific fields
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  floor_area?: number | null;
+  floor_area_unit?: string | null;
+  year_built?: number | null;
+  house_type?: string | null;
+  
+  // Hotel-specific fields
+  rooms_count?: number | null;
+  star_rating?: number | null;
+  has_restaurant?: boolean | null;
+  has_pool?: boolean | null;
+  
   /** additional field sometimes present in schema */
   ['facilities_id*']?: string;
 };
@@ -349,6 +414,37 @@ export interface AdminProperty {
     email: string;
   };
   property_type?: PropertyType;
+  
+  // Purpose flags
+  for_rent?: boolean | null;
+  for_purchase?: boolean | null;
+  
+  // Address & geolocation
+  address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  
+  // Land-specific fields
+  land_area?: number | null;
+  land_area_unit?: string | null;
+  land_dimensions?: string | null;
+  zoning?: string | null;
+  
+  // House-specific fields
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  floor_area?: number | null;
+  floor_area_unit?: string | null;
+  year_built?: number | null;
+  house_type?: string | null;
+  
+  // Hotel-specific fields
+  rooms_count?: number | null;
+  star_rating?: number | null;
+  has_restaurant?: boolean | null;
+  has_pool?: boolean | null;
+  
+  videos?: ListingVideo[];
 }
 
 export interface PaginatedProperties {
@@ -387,6 +483,35 @@ export type AdminPropertyCreateRequest = {
   is_approved?: boolean;
   status: PropertyStatus;
   facilities_id: number[];
+  
+  // Purpose flags
+  for_rent?: boolean | null;
+  for_purchase?: boolean | null;
+  
+  // Address & geolocation
+  address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  
+  // Land-specific fields
+  land_area?: number | null;
+  land_area_unit?: string | null;
+  land_dimensions?: string | null;
+  zoning?: string | null;
+  
+  // House-specific fields
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  floor_area?: number | null;
+  floor_area_unit?: string | null;
+  year_built?: number | null;
+  house_type?: string | null;
+  
+  // Hotel-specific fields
+  rooms_count?: number | null;
+  star_rating?: number | null;
+  has_restaurant?: boolean | null;
+  has_pool?: boolean | null;
 };
 
 export type AdminPropertyCreateResponse = { status: "success"; message: "Property created successfully"; data: AdminProperty };
@@ -404,6 +529,37 @@ export type AdminPropertyUpdateRequest = {
   discount_price?: number | null;
   discount_percentage?: number | null;
   number_available?: number;
+  
+  // Purpose flags
+  for_rent?: boolean | null;
+  for_purchase?: boolean | null;
+  
+  // Address & geolocation
+  address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  
+  // Land-specific fields
+  land_area?: number | null;
+  land_area_unit?: string | null;
+  land_dimensions?: string | null;
+  zoning?: string | null;
+  
+  // House-specific fields
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  floor_area?: number | null;
+  floor_area_unit?: string | null;
+  year_built?: number | null;
+  house_type?: string | null;
+  
+  // Hotel-specific fields
+  rooms_count?: number | null;
+  star_rating?: number | null;
+  has_restaurant?: boolean | null;
+  has_pool?: boolean | null;
+  
+  facilities_id?: number[];
 };
 
 export type AdminPropertyUpdateResponse = { status: "success"; message: "Property updated successfully"; data: AdminProperty };

@@ -54,13 +54,8 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                 setHasError(null);
 
                 const response = await publicPropertyService.getProperty(params.id);
-                const prop: AdminProperty = (response as any) || (response as any);
+                const prop: AdminProperty = (response.data as any) || (response.data as any);
                 
-                console.log("Property response:", prop);
-                console.log("Property title:", prop?.title);
-                console.log("Property price:", prop?.price);
-                console.log("Property facilities:", prop?.facilities);
-
                 // Fetch images
                 let images: string[] = [];
                 try {
@@ -99,18 +94,38 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                     amenities: (prop?.facilities || []).map((f: any) => f.name).filter(Boolean),
                     facilities: prop?.facilities || [],
                     type: prop?.property_type?.name || "Property",
-                    bedrooms: prop?.number_available || 0,
-                    bathrooms: 0,
+                    bedrooms: prop?.bedrooms || prop?.number_available || 0,
+                    bathrooms: prop?.bathrooms || 0,
                     area: 0,
                     description: prop?.description || "",
                     agent: prop?.agent || null,
                     region: prop?.region || "",
                     city: prop?.city || "",
-                    address: prop?.location || "",
+                    address: prop?.address || prop?.location || "",
                     numberAvailable: prop?.number_available || 0,
                     isNegotiable: prop?.is_negotiable || false,
                     isApproved: prop?.is_approved || false,
                     isFeatured: prop?.is_featured || false,
+                    is_available: prop?.is_available || true,
+                    is_approved: prop?.is_approved || false,
+                    is_featured: prop?.is_featured || false,
+                    is_negotiable: prop?.is_negotiable || false,
+                    for_rent: prop?.for_rent,
+                    for_purchase: prop?.for_purchase,
+                    floor_area: prop?.floor_area || 0,
+                    floor_area_unit: prop?.floor_area_unit || "sqm",
+                    land_area: prop?.land_area || 0,
+                    land_area_unit: prop?.land_area_unit || "sqm",
+                    land_dimensions: prop?.land_dimensions || "",
+                    year_built: prop?.year_built || 0,
+                    rooms_count: prop?.rooms_count || 0,
+                    star_rating: prop?.star_rating || 0,
+                    has_pool: prop?.has_pool || false,
+                    has_restaurant: prop?.has_restaurant || false,
+                    house_type: prop?.house_type || "",
+                    latitude: prop?.latitude || 0,
+                    longitude: prop?.longitude || 0,
+                    property_type: prop?.property_type,
                     createdAt: prop?.created_at || new Date().toISOString(),
                     updatedAt: prop?.updated_at || new Date().toISOString(),
                 };
@@ -122,27 +137,46 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                     const simRes = await publicPropertyService.getAllProperties({
                         per_page: 4,
                     });
-                    const sims = (simRes as any).data?.data || [];
+                    const sims = (simRes as any).data || [];
                     const mapped = sims
                         .filter((p: any) => p.id !== prop.id)
                         .slice(0, 3)
                         .map((p: any) => {
-                            const firstImage = p.images?.[0];
-                            const imagePath = firstImage?.image_path || firstImage?.image_url;
+                            // Fetch images for similar property
+                            let simImages: any[] = [];
+                            if (p.images && p.images.length > 0) {
+                                simImages = p.images.map((img: any) => ({
+                                    image_path: img.image_path || img.image_url,
+                                    image_url: img.image_url || img.image_path,
+                                    url: img.url,
+                                }));
+                            }
+
                             return {
                                 id: String(p.id),
                                 title: p.title,
                                 location: p.location || `${p.city}, ${p.region}`,
                                 price: Number(p.price),
-                                priceUnit: "night",
+                                priceUnit: getPriceUnit(p.property_type?.name),
                                 rating: 4.3,
                                 reviews: 0,
-                                images: [getImageUrl(imagePath)],
+                                images: simImages.length > 0 ? simImages : [],
                                 amenities: (p.facilities || []).map((f: any) => f.name).filter(Boolean),
+                                facilities: p.facilities || [],
+                                property_type: p.property_type || null,
                                 type: p.property_type?.name || "Property",
-                                bedrooms: p.number_available || 0,
-                                bathrooms: 0,
-                                area: 0,
+                                bedrooms: p.bedrooms || p.number_available || 0,
+                                bathrooms: p.bathrooms || 0,
+                                city: p.city || "",
+                                region: p.region || "",
+                                floor_area: p.floor_area || 0,
+                                floor_area_unit: p.floor_area_unit || "sqm",
+                                land_area: p.land_area || 0,
+                                land_area_unit: p.land_area_unit || "sqm",
+                                is_featured: p.is_featured || false,
+                                is_available: p.is_available || true,
+                                for_rent: p.for_rent,
+                                for_purchase: p.for_purchase,
                             };
                         });
                     setSimilarProperties(mapped);

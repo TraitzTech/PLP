@@ -119,11 +119,12 @@ export default function FacilitiesPage() {
 
     try {
       setIsSaving(true);
+      const payload = { ...formData, status: formData.status ? 1 : 0 };
       if (editingFacility) {
-        await facilitiesService.updateFacility(editingFacility.id, formData);
+        await facilitiesService.updateFacility(editingFacility.id, payload);
         toast.success("Facility updated successfully");
       } else {
-        await facilitiesService.createFacility(formData);
+        await facilitiesService.createFacility(payload);
         toast.success("Facility created successfully");
       }
       setIsDialogOpen(false);

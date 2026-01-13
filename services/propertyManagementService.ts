@@ -11,6 +11,8 @@ import type {
   AdminPropertyApprovalResponse,
   AdminPropertyFeaturedResponse,
   PropertyStatisticsResponse,
+  ListingImage,
+  ListingVideo,
 } from "./types";
 
 const BASE_URL = "/admin/properties";
@@ -67,7 +69,12 @@ export const propertyManagementService = {
    */
   async createProperty(data: AdminPropertyCreateRequest): Promise<AdminPropertyCreateResponse> {
     try {
-      const response = await apiClient.post<AdminPropertyCreateResponse>(BASE_URL, data);
+      // Convert facilities_id from numbers to strings for API
+      const payload = {
+        ...data,
+        facilities_id: data.facilities_id.map(id => id.toString()),
+      };
+      const response = await apiClient.post<AdminPropertyCreateResponse>(BASE_URL, payload);
       return response.data;
     } catch (error) {
       console.error("Failed to create property:", error);
@@ -134,6 +141,104 @@ export const propertyManagementService = {
       return response.data;
     } catch (error) {
       console.error(`Failed to toggle featured status for property ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Upload images for admin property
+   * Use this for admin property image uploads (not agent listings)
+   */
+  async uploadPropertyImages(
+    propertyId: string | number,
+    files: File[]
+  ): Promise<ListingImage[]> {
+    try {
+      if (!files || files.length === 0) {
+        throw new Error("No files provided");
+      }
+
+      const formData = new FormData();
+
+      // Append all files to FormData
+      files.forEach((file) => {
+        if (!file.type.startsWith("image/")) {
+          throw new Error(`${file.name} is not a valid image file`);
+        }
+        formData.append("images[]", file);
+      });
+
+      const response = await apiClient.post(
+        `${BASE_URL}/${propertyId}/images`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      return response.data.data || response.data || [];
+    } catch (error: any) {
+      console.error(`Error uploading images for property ${propertyId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete image from admin property
+   */
+  async deletePropertyImage(imageId: string | number): Promise<void> {
+    try {
+      await apiClient.delete(`${BASE_URL}/images/${imageId}`);
+    } catch (error) {
+      console.error(`Error deleting image ${imageId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Upload videos for admin property
+   * Use this for admin property video uploads (not agent listings)
+   */
+  async uploadPropertyVideos(
+    propertyId: string | number,
+    files: File[],
+    url?: string
+  ): Promise<any> {
+    try {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append("videos", file);
+      });
+      if (url) {
+        formData.append("url", url);
+      }
+
+      const response = await apiClient.post(
+        `${BASE_URL}/${propertyId}/videos`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to upload videos for property ${propertyId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete video from admin property
+   */
+  async deletePropertyVideo(videoId: string | number): Promise<void> {
+    try {
+      await apiClient.delete(`${BASE_URL}/videos/${videoId}`);
+    } catch (error) {
+      console.error(`Error deleting video ${videoId}:`, error);
       throw error;
     }
   },

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Upload, X, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -51,21 +51,31 @@ export default function CreatePropertyPage() {
     is_approved: false,
     status: true,
     facilities_id: [],
+    
+    // Purpose flags
     for_rent: false,
     for_purchase: false,
+    
+    // Address & geolocation
     address: "",
     latitude: null,
     longitude: null,
+    
+    // Land-specific fields
     land_area: null,
     land_area_unit: "sqm",
     land_dimensions: "",
     zoning: "",
+    
+    // House-specific fields
     bedrooms: null,
     bathrooms: null,
     floor_area: null,
     floor_area_unit: "sqm",
     year_built: null,
     house_type: "",
+    
+    // Hotel-specific fields
     rooms_count: null,
     star_rating: null,
     has_restaurant: false,
@@ -98,7 +108,7 @@ export default function CreatePropertyPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFacilityToggle = (facilityId: number) => {
+  const handleFacilityToggle = (facilityId: string) => {
     setFormData((prev) => ({
       ...prev,
       facilities_id: prev.facilities_id.includes(facilityId)
@@ -134,11 +144,6 @@ export default function CreatePropertyPage() {
     setVideoFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const getSelectedPropertyTypeName = (): string => {
-    const selectedType = propertyTypes.find(t => t.id === formData.property_type_id);
-    return selectedType?.name.toLowerCase() || "";
-  };
-
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 0: // Basic Information
@@ -170,7 +175,8 @@ export default function CreatePropertyPage() {
         }
         return true;
       case 2: // Property-specific fields
-        const typeName = getSelectedPropertyTypeName();
+        const selectedType = propertyTypes.find(t => t.id === formData.property_type_id);
+        const typeName = selectedType?.name.toLowerCase();
         
         if (typeName === "house") {
           if (!formData.bedrooms || formData.bedrooms <= 0) {
@@ -210,36 +216,28 @@ export default function CreatePropertyPage() {
     return validateStep(currentStep);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     try {
       setIsLoading(true);
 
+      // Create the listing
       const response = await listingService.createListing(formData);
       const newListingId = response.data.id;
 
       toast.success("Property created successfully!");
 
-      // Upload images
+      // Upload images if any
       if (imageFiles.length > 0) {
         try {
           await listingImageService.uploadImages(newListingId, imageFiles);
           toast.success(`${imageFiles.length} image(s) uploaded successfully`);
-        } catch (imageError: any) {
-          console.error("Image upload error:", imageError);
-          
-          if (imageError.response?.status === 403) {
-            toast.error(
-              "You don't have permission to upload images. " +
-              "Please ensure your agent account is approved."
-            );
-          } else {
-            toast.error(imageError.response?.data?.message || "Failed to upload images");
-          }
-          // Don't stop the flow - property was created successfully
+        } catch (error: any) {
+          console.error("Error uploading images:", error);
+          toast.error("Property created but some images failed to upload");
         }
       }
 
+      // Upload videos if any
       if (videoFiles.length > 0) {
         try {
           await listingVideoService.uploadVideos(newListingId, videoFiles);
@@ -250,11 +248,13 @@ export default function CreatePropertyPage() {
         }
       }
 
+      // Show notification about admin review
       toast.info(
         "Your property has been submitted. An admin will review it before it becomes public.",
         { duration: 5000 }
       );
 
+      // Redirect to properties list
       router.push("/dashboard/agent/properties");
     } catch (error: any) {
       console.error("Error creating property:", error);
@@ -262,253 +262,6 @@ export default function CreatePropertyPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const renderPropertyTypeFields = () => {
-    const typeName = getSelectedPropertyTypeName();
-
-    if (typeName === "house") {
-      return (
-        <div className="space-y-6">
-          <h3 className="font-semibold text-lg">House Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="bedrooms">Bedrooms *</Label>
-              <Input
-                id="bedrooms"
-                type="number"
-                min="0"
-                value={formData.bedrooms || ""}
-                onChange={(e) => handleInputChange("bedrooms", e.target.value ? parseInt(e.target.value) : null)}
-                placeholder="e.g., 3"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="bathrooms">Bathrooms *</Label>
-              <Input
-                id="bathrooms"
-                type="number"
-                min="0"
-                value={formData.bathrooms || ""}
-                onChange={(e) => handleInputChange("bathrooms", e.target.value ? parseInt(e.target.value) : null)}
-                placeholder="e.g., 2"
-                className="mt-1"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="floor_area">Floor Area</Label>
-              <Input
-                id="floor_area"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.floor_area || ""}
-                onChange={(e) => handleInputChange("floor_area", e.target.value ? parseFloat(e.target.value) : null)}
-                placeholder="e.g., 120.5"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="floor_area_unit">Area Unit</Label>
-              <Select
-                value={formData.floor_area_unit || "sqm"}
-                onValueChange={(value) => handleInputChange("floor_area_unit", value)}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {AREA_UNITS.map((unit) => (
-                    <SelectItem key={unit.value} value={unit.value}>
-                      {unit.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="house_type">House Type</Label>
-              <Select
-                value={formData.house_type || ""}
-                onValueChange={(value) => handleInputChange("house_type", value)}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {HOUSE_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="year_built">Year Built</Label>
-              <Input
-                id="year_built"
-                type="number"
-                min="1800"
-                max={new Date().getFullYear()}
-                value={formData.year_built || ""}
-                onChange={(e) => handleInputChange("year_built", e.target.value ? parseInt(e.target.value) : null)}
-                placeholder="e.g., 2020"
-                className="mt-1"
-              />
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (typeName === "land") {
-      return (
-        <div className="space-y-6">
-          <h3 className="font-semibold text-lg">Land Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="land_area">Land Area *</Label>
-              <Input
-                id="land_area"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.land_area || ""}
-                onChange={(e) => handleInputChange("land_area", e.target.value ? parseFloat(e.target.value) : null)}
-                placeholder="e.g., 1500"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="land_area_unit">Area Unit</Label>
-              <Select
-                value={formData.land_area_unit || "sqm"}
-                onValueChange={(value) => handleInputChange("land_area_unit", value)}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {AREA_UNITS.map((unit) => (
-                    <SelectItem key={unit.value} value={unit.value}>
-                      {unit.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="land_dimensions">Land Dimensions</Label>
-            <Input
-              id="land_dimensions"
-              value={formData.land_dimensions || ""}
-              onChange={(e) => handleInputChange("land_dimensions", e.target.value)}
-              placeholder="e.g., 30m x 50m"
-              className="mt-1"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="zoning">Zoning</Label>
-            <Select
-              value={formData.zoning || ""}
-              onValueChange={(value) => handleInputChange("zoning", value)}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select zoning" />
-              </SelectTrigger>
-              <SelectContent>
-                {ZONING_OPTIONS.map((zone) => (
-                  <SelectItem key={zone.value} value={zone.value}>
-                    {zone.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      );
-    }
-
-    if (typeName === "hotel") {
-      return (
-        <div className="space-y-6">
-          <h3 className="font-semibold text-lg">Hotel Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="rooms_count">Number of Rooms *</Label>
-              <Input
-                id="rooms_count"
-                type="number"
-                min="1"
-                value={formData.rooms_count || ""}
-                onChange={(e) => handleInputChange("rooms_count", e.target.value ? parseInt(e.target.value) : null)}
-                placeholder="e.g., 45"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="star_rating">Star Rating</Label>
-              <Select
-                value={formData.star_rating?.toString() || ""}
-                onValueChange={(value) => handleInputChange("star_rating", value ? parseInt(value) : null)}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select rating" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5].map((rating) => (
-                    <SelectItem key={rating} value={rating.toString()}>
-                      {rating} Star{rating > 1 ? 's' : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="font-medium">Hotel Amenities</h4>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="has_restaurant"
-                checked={formData.has_restaurant || false}
-                onCheckedChange={(checked) => handleInputChange("has_restaurant", checked)}
-              />
-              <Label htmlFor="has_restaurant" className="font-normal cursor-pointer">
-                Has Restaurant
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="has_pool"
-                checked={formData.has_pool || false}
-                onCheckedChange={(checked) => handleInputChange("has_pool", checked)}
-              />
-              <Label htmlFor="has_pool" className="font-normal cursor-pointer">
-                Has Swimming Pool
-              </Label>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="text-center py-8 text-gray-500">
-        <p>Select a property type to see specific fields</p>
-      </div>
-    );
   };
 
   const steps: FormStep[] = [
@@ -575,44 +328,9 @@ export default function CreatePropertyPage() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <h3 className="font-semibold">Purpose *</h3>
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="for_rent"
-                  checked={formData.for_rent || false}
-                  onCheckedChange={(checked) => handleInputChange("for_rent", checked)}
-                />
-                <Label htmlFor="for_rent" className="font-normal cursor-pointer">
-                  For Rent
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="for_purchase"
-                  checked={formData.for_purchase || false}
-                  onCheckedChange={(checked) => handleInputChange("for_purchase", checked)}
-                />
-                <Label htmlFor="for_purchase" className="font-normal cursor-pointer">
-                  For Sale/Purchase
-                </Label>
-              </div>
-            </div>
-            {formData.for_rent && !formData.for_purchase && (
-              <p className="text-sm text-gray-600">Price will be shown as monthly rent</p>
-            )}
-            {formData.for_purchase && !formData.for_rent && (
-              <p className="text-sm text-gray-600">Price will be shown as purchase price</p>
-            )}
-            {formData.for_rent && formData.for_purchase && (
-              <p className="text-sm text-gray-600">Property available for both rent and purchase</p>
-            )}
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="price">Price * {formData.for_rent && "(Monthly)"}</Label>
+              <Label htmlFor="price">Price *</Label>
               <Input
                 id="price"
                 type="number"
@@ -698,7 +416,7 @@ export default function CreatePropertyPage() {
             </div>
 
             <div>
-              <Label htmlFor="location">Location/Neighborhood *</Label>
+              <Label htmlFor="location">Location/Address *</Label>
               <Input
                 id="location"
                 value={formData.location}
@@ -709,51 +427,7 @@ export default function CreatePropertyPage() {
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="address">Full Address (Optional)</Label>
-            <Input
-              id="address"
-              value={formData.address || ""}
-              onChange={(e) => handleInputChange("address", e.target.value)}
-              placeholder="e.g., 123 Main Street, Apt 4B"
-              className="mt-1"
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              This will be used to show the property on a map
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="latitude">Latitude (Optional)</Label>
-              <Input
-                id="latitude"
-                type="number"
-                step="any"
-                value={formData.latitude || ""}
-                onChange={(e) => handleInputChange("latitude", e.target.value ? parseFloat(e.target.value) : null)}
-                placeholder="e.g., 34.0522"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="longitude">Longitude (Optional)</Label>
-              <Input
-                id="longitude"
-                type="number"
-                step="any"
-                value={formData.longitude || ""}
-                onChange={(e) => handleInputChange("longitude", e.target.value ? parseFloat(e.target.value) : null)}
-                placeholder="e.g., -118.2437"
-                className="mt-1"
-              />
-            </div>
-          </div>
-          <p className="text-sm text-gray-500">
-            Tip: You can find coordinates by searching your address on Google Maps
-          </p>
-
-          <div className="space-y-4 border-t pt-4">
+          <div className="space-y-4">
             <h3 className="font-semibold">Property Availability</h3>
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
@@ -783,34 +457,10 @@ export default function CreatePropertyPage() {
       ),
     },
     {
-      id: "property-details",
-      title: "Property Details",
-      description: "Property type-specific information",
-      isComplete: completedSteps[2],
-      content: (
-        <div className="space-y-6">
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Provide specific details about your {getSelectedPropertyTypeName()} property.
-            </AlertDescription>
-          </Alert>
-
-          {formData.property_type_id ? (
-            renderPropertyTypeFields()
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <p>Please select a property type in the previous step</p>
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
       id: "facilities",
       title: "Facilities",
       description: "Select amenities and facilities",
-      isComplete: completedSteps[3],
+      isComplete: completedSteps[2],
       content: (
         <div className="space-y-6">
           <Alert>
@@ -825,8 +475,8 @@ export default function CreatePropertyPage() {
               <div key={facility.id} className="flex items-start space-x-2 p-3 rounded-lg border hover:bg-gray-50 transition-colors">
                 <Checkbox
                   id={`facility-${facility.id}`}
-                  checked={formData.facilities_id.includes(facility.id)}
-                  onCheckedChange={() => handleFacilityToggle(facility.id)}
+                  checked={formData.facilities_id.includes(facility.id.toString())}
+                  onCheckedChange={() => handleFacilityToggle(facility.id.toString())}
                   className="mt-1"
                 />
                 <Label
@@ -855,7 +505,7 @@ export default function CreatePropertyPage() {
       id: "media",
       title: "Media & Images",
       description: "Upload photos and videos",
-      isComplete: completedSteps[4],
+      isComplete: completedSteps[3],
       content: (
         <div className="space-y-6">
           <Alert>
@@ -865,6 +515,7 @@ export default function CreatePropertyPage() {
             </AlertDescription>
           </Alert>
 
+          {/* Images Section */}
           <div className="space-y-4">
             <h3 className="font-semibold flex items-center gap-2">
               <span>Property Images</span>
@@ -919,6 +570,7 @@ export default function CreatePropertyPage() {
             )}
           </div>
 
+          {/* Videos Section */}
           <div className="space-y-4 border-t pt-6">
             <h3 className="font-semibold flex items-center gap-2">
               <span>Property Videos (Optional)</span>

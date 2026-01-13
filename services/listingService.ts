@@ -60,7 +60,12 @@ export const listingService = {
    */
   async createListing(data: ListingCreateRequest): Promise<ListingCreateResponse> {
     try {
-      const response = await apiClient.post<ListingCreateResponse>(BASE_URL, data);
+      // Convert facilities_id from numbers to strings for API
+      const payload = {
+        ...data,
+        facilities_id: data.facilities_id.map(id => id.toString()),
+      };
+      const response = await apiClient.post<ListingCreateResponse>(BASE_URL, payload);
       return response.data;
     } catch (error) {
       console.error("Failed to create listing:", error);
@@ -76,7 +81,12 @@ export const listingService = {
     data: ListingCreateRequest
   ): Promise<ListingUpdateResponse> {
     try {
-      const response = await apiClient.put<ListingUpdateResponse>(`${BASE_URL}/${id}`, data);
+      // Convert facilities_id from numbers to strings for API
+      const payload = {
+        ...data,
+        facilities_id: data.facilities_id.map(id => id.toString()),
+      };
+      const response = await apiClient.put<ListingUpdateResponse>(`${BASE_URL}/${id}`, payload);
       return response.data;
     } catch (error) {
       console.error(`Failed to update listing ${id}:`, error);
