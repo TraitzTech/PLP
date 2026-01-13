@@ -42,12 +42,14 @@ export function Navbar() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
     const [isLoadingTypes, setIsLoadingTypes] = useState(true);
+    const [mounted, setMounted] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
     const t = useTranslations();
 
     // Check authentication status on mount and set up listener
     useEffect(() => {
+        setMounted(true);
         const checkAuth = async () => {
             const authenticated = await authService.isAuthenticated();
             setIsAuthenticated(authenticated);
@@ -150,7 +152,7 @@ export function Navbar() {
                             <DropdownMenuContent className="w-56">
                                 <DropdownMenuLabel>Browse Properties</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                {isLoadingTypes ? (
+                                {!mounted ? null : isLoadingTypes ? (
                                     <div className="flex items-center justify-center py-2">
                                         <Loader2 className="w-4 h-4 animate-spin text-plp-purple" />
                                     </div>
@@ -201,7 +203,7 @@ export function Navbar() {
                         <ThemeToggle />
                         <LanguageSwitcher />
 
-                        {isAuthenticated ? (
+                        {mounted && isAuthenticated ? (
                             <>
                                 <Button
                                     variant="ghost"
@@ -257,7 +259,7 @@ export function Navbar() {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </>
-                        ) : (
+                        ) : mounted ? (
                             <div className="flex items-center space-x-2">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -290,7 +292,7 @@ export function Navbar() {
                                     <Link href="/auth/signup">{t('auth.signUp','Sign Up')}</Link>
                                 </Button>
                             </div>
-                        )}
+                        ) : null}
                     </div>
 
                     {/* Mobile menu button */}
@@ -315,7 +317,7 @@ export function Navbar() {
                             {/* Mobile Property Types */}
                             <div className="px-3 py-2">
                                 <p className="text-sm font-semibold text-gray-900 mb-2">Property Types</p>
-                                {isLoadingTypes ? (
+                                {!mounted ? null : isLoadingTypes ? (
                                     <div className="flex items-center justify-center py-2">
                                         <Loader2 className="w-4 h-4 animate-spin text-plp-purple" />
                                     </div>
@@ -361,7 +363,7 @@ export function Navbar() {
                             })}
 
                             <div className="pt-4 space-y-2">
-                                {isAuthenticated ? (
+                                {mounted && isAuthenticated ? (
                                     <>
                                         <Button
                                             variant="ghost"
@@ -422,7 +424,7 @@ export function Navbar() {
                                             </button>
                                         </div>
                                     </>
-                                ) : (
+                                ) : mounted ? (
                                     <>
                                         <div className="space-y-2">
                                             <p className="text-sm font-medium text-gray-700 px-3">{t('auth.signInAs','Sign In As:')}</p>
@@ -468,7 +470,7 @@ export function Navbar() {
                                             <Link href="/auth/signup">{t('auth.signUp','Sign Up')}</Link>
                                         </Button>
                                     </>
-                                )}
+                                ) : null}
                             </div>
                         </div>
                     </div>
