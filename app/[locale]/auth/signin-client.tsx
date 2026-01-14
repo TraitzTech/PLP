@@ -90,9 +90,7 @@ export function SignInClient() {
             {/* Header */}
             <header className="border-b bg-white/50 backdrop-blur-sm sticky top-0 z-40">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2">
-                        <Logo />
-                    </Link>
+                    <Logo />
                     <Link href="/" className="flex items-center gap-1 text-gray-600 hover:text-plp-purple transition-colors">
                         <ArrowLeft className="w-4 h-4" />
                         Back to Home

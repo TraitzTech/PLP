@@ -32,6 +32,26 @@ function getLocale(request: NextRequest): string {
 export function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
+    // CRITICAL: Don't intercept Next.js internal requests or RSC payloads
+    // These headers indicate RSC (React Server Components) requests
+    const isRSC = request.headers.get('RSC') === '1' || 
+                  request.headers.get('Next-Router-State-Tree') !== null ||
+                  request.headers.get('Next-Router-Prefetch') !== null;
+    
+    // Let RSC payloads and Next.js internal requests pass through
+    if (isRSC) {
+        return NextResponse.next();
+    }
+
+    // Skip static files and API routes
+    if (
+        pathname.startsWith('/_next') ||
+        pathname.startsWith('/api') ||
+        pathname.includes('.')
+    ) {
+        return NextResponse.next();
+    }
+
     // Check if pathname already has a locale
     const pathnameHasLocale = locales.some(
         (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
@@ -53,7 +73,14 @@ export function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        // Skip all internal paths (_next, api, static files)
-        '/((?!_next|api|.*\\..*).*)',
+        /*
+         * Match all request paths except for the ones starting with:
+         * - api (API routes)
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         * - public files with extensions
+         */
+        '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|_next/data).*)',
     ],
 };

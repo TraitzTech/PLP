@@ -158,7 +158,7 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
         }
     };
 
-    const currentUser = authService.getCurrentUser?.() || {
+    const currentUser = {
         name: 'John Doe',
         email: 'john@example.com',
         avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg'
@@ -218,9 +218,9 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                 <div className="flex flex-col h-full">
                     {/* Logo - Fixed at top */}
                     <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
-                        <Link href="/" onClick={() => setSidebarOpen(false)}>
+                        <div onClick={() => setSidebarOpen(false)}>
                             <Logo />
-                        </Link>
+                        </div>
                         <Button
                             variant="ghost"
                             size="sm"

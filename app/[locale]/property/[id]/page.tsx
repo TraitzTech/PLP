@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Navbar } from "@/components/navigation/navbar";
 import { Footer } from "@/components/navigation/footer";
 import { PropertyDetailsWrapper } from "@/components/properties/property-details-wrapper";
@@ -40,7 +40,10 @@ function PropertyPageSkeleton() {
     );
 }
 
-export default function PropertyDetailPage({ params }: { params: { id: string } }) {
+export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    // Unwrap the params Promise using React.use()
+    const { id } = use(params);
+    
     const [property, setProperty] = useState<any | null>(null);
     const [similarProperties, setSimilarProperties] = useState<any[]>([]);
     const [reviews, setReviews] = useState<any[]>([]);
@@ -53,7 +56,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                 setIsLoading(true);
                 setHasError(null);
 
-                const response = await publicPropertyService.getProperty(params.id);
+                const response = await publicPropertyService.getProperty(id);
                 const prop: AdminProperty = (response.data as any) || (response.data as any);
                 
                 // Fetch images
@@ -206,7 +209,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
         };
 
         fetchProperty();
-    }, [params.id]);
+    }, [id]); // Now using the unwrapped id
 
     return (
         <div className="min-h-screen bg-white">

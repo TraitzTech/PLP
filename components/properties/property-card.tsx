@@ -53,7 +53,6 @@ export function PropertyCard({ property }: PropertyCardProps) {
   // Ensure is_available is a boolean, defaulting to true if undefined
   const isAvailable = property.is_available !== false; // Treats undefined, null, and 0 as true by default
   
-  console.log("Property Availability:", property.is_available, "| isAvailable:", isAvailable);
 
   return (
     <Card className="property-card group h-full flex flex-col overflow-hidden hover:shadow-lg transition-shadow">

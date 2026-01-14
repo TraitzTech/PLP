@@ -6,6 +6,7 @@ const urbanist = Urbanist({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-urbanist',
+  fallback: ['system-ui', 'arial', 'sans-serif'],
 });
 
 export const metadata: Metadata = {
