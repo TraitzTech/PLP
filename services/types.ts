@@ -198,6 +198,7 @@ export type VerificationNotificationResponse = { status: "verification-link-sent
 
 // Facilities
 export interface Facility {
+  description: string;
   id: number;
   icon: string | null;
   name: string;

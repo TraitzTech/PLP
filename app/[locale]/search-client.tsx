@@ -228,8 +228,13 @@ export function SearchClient() {
       );
     }
 
-    // Filter by number available (minimum 1)
-    filtered = filtered.filter(property => property.number_available >= 1 && property.is_available);
+    // Filter by approval status (only show approved properties on public search)
+    filtered = filtered.filter(property => property.is_approved);
+
+    // Filter by availability (show properties that are available or have availability unset)
+    filtered = filtered.filter(property => 
+      property.is_available !== false && (property.number_available === undefined || property.number_available >= 1)
+    );
 
     // Sort
     switch (sortBy) {
@@ -415,7 +420,7 @@ export function SearchClient() {
                 <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No properties found</h3>
                 <p className="text-gray-600 mb-4">Try adjusting your filters or search criteria</p>
-                <Button variant="outline" onClick={clearFilters} className="btn-primary">
+                <Button variant="outline" onClick={clearFilters}>
                   Clear Filters
                 </Button>
               </div>
