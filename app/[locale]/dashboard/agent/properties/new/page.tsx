@@ -14,6 +14,7 @@ import { ArrowLeft, Upload, X, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MultiStepForm, type FormStep } from "@/components/ui/multi-step-form";
+import { LocationPicker } from "@/components/properties/location-picker";
 import { facilitiesService } from "@/services/facilitiesService";
 import { propertyTypeService } from "@/services/propertyTypeService";
 import { listingService } from "@/services/listingService";
@@ -723,9 +724,27 @@ export default function CreatePropertyPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>Pick Location from Map</Label>
+            <p className="text-xs text-gray-500 mb-3">Search for a location or click on the map to automatically get the coordinates</p>
+            <LocationPicker
+              latitude={formData.latitude}
+              longitude={formData.longitude}
+              address={formData.address}
+              onLocationSelect={(lat, lng, addr) => {
+                handleInputChange("latitude", lat);
+                handleInputChange("longitude", lng);
+                if (addr && !formData.address) {
+                  handleInputChange("address", addr);
+                }
+              }}
+              height="400px"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded">
             <div>
-              <Label htmlFor="latitude">Latitude (Optional)</Label>
+              <Label htmlFor="latitude">Latitude</Label>
               <Input
                 id="latitude"
                 type="number"
@@ -734,10 +753,11 @@ export default function CreatePropertyPage() {
                 onChange={(e) => handleInputChange("latitude", e.target.value ? parseFloat(e.target.value) : null)}
                 placeholder="e.g., 34.0522"
                 className="mt-1"
+                disabled
               />
             </div>
             <div>
-              <Label htmlFor="longitude">Longitude (Optional)</Label>
+              <Label htmlFor="longitude">Longitude</Label>
               <Input
                 id="longitude"
                 type="number"
@@ -746,12 +766,10 @@ export default function CreatePropertyPage() {
                 onChange={(e) => handleInputChange("longitude", e.target.value ? parseFloat(e.target.value) : null)}
                 placeholder="e.g., -118.2437"
                 className="mt-1"
+                disabled
               />
             </div>
           </div>
-          <p className="text-sm text-gray-500">
-            Tip: You can find coordinates by searching your address on Google Maps
-          </p>
 
           <div className="space-y-4 border-t pt-4">
             <h3 className="font-semibold">Property Availability</h3>

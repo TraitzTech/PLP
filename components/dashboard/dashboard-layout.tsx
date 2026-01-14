@@ -92,6 +92,7 @@ const adminNavItems = [
 
 export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState<any>(null);
     const pathname = usePathname();
     const router = useRouter();
 
@@ -103,6 +104,14 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                     const segments = pathname.split('/').filter(Boolean);
                     const locale = segments[0] || 'en';
                     router.replace(`/${locale}`);
+                } else {
+                    // Fetch current user details
+                    const res = await authService.getCurrentUser?.();
+
+                    if (res?.data) {
+                        setCurrentUser(res.data);
+                    }
+
                 }
             } catch (e) {
                 const segments = pathname.split('/').filter(Boolean);
@@ -158,13 +167,8 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
         }
     };
 
-    const currentUser = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg'
-    };
-
-    const getUserInitials = (name: string) => {
+    const getUserInitials = (name?: string) => {
+        if (!name) return 'U';
         return name
             .split(' ')
             .map(part => part[0])
@@ -297,12 +301,12 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="w-full justify-start p-2 hover:bg-gray-100">
                                     <Avatar className="w-8 h-8 mr-3">
-                                        <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
-                                        <AvatarFallback>{getUserInitials(currentUser.name)}</AvatarFallback>
+                                        <AvatarImage src={currentUser?.avatar} alt={currentUser?.name} />
+                                        <AvatarFallback>{getUserInitials(currentUser?.name)}</AvatarFallback>
                                     </Avatar>
                                     <div className="text-left">
                                         <p className="text-sm font-medium truncate max-w-[120px]">
-                                            {currentUser.name}
+                                            {currentUser?.name || 'User'}
                                         </p>
                                         <p className="text-xs text-gray-500 capitalize">
                                             {userType === 'agent' ? 'Property Agent' : userType}

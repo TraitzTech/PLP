@@ -11,6 +11,7 @@ import type {
     ResetPasswordResponse,
     VerificationNotificationResponse,
     VerifyEmailResponse,
+    User,
 } from "./types";
 
 // Helper function to get CSRF cookie
@@ -78,5 +79,14 @@ export const authService = {
 
         const { data } = await apiClient.post<ResetPasswordResponse>("/reset-password", payload);
         return data;
+    },
+
+    async getCurrentUser(): Promise<User | null> {
+        try {
+            const { data } = await apiClient.get<User>("/user");
+            return data;
+        } catch (error) {
+            return null;
+        }
     },
 };

@@ -153,7 +153,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total Users</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalUsers.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-gray-900">{(stats.totalUsers ?? 0).toLocaleString()}</p>
                   </div>
                   <Users className="w-8 h-8 text-plp-purple" />
                 </div>
@@ -165,7 +165,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total Properties</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalProperties.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-gray-900">{(stats.totalProperties ?? 0).toLocaleString()}</p>
                   </div>
                   <Building2 className="w-8 h-8 text-plp-pink" />
                 </div>
@@ -177,7 +177,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
-                    <p className="text-2xl font-bold text-gray-900">${stats.monthlyRevenue.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-gray-900">${(stats.monthlyRevenue ?? 0).toLocaleString()}</p>
                   </div>
                   <DollarSign className="w-8 h-8 text-plp-yellow" />
                 </div>
@@ -189,7 +189,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Platform Growth</p>
-                    <p className="text-2xl font-bold text-gray-900">+{stats.platformGrowth}%</p>
+                    <p className="text-2xl font-bold text-gray-900">+{stats.platformGrowth ?? 0}%</p>
                   </div>
                   <TrendingUp className="w-8 h-8 text-green-500" />
                 </div>

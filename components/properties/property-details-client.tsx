@@ -303,7 +303,7 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
             )}
 
             {isLandProperty(property) && (property.land_area || property.land_dimensions) && (
-              <Card className="bg-green-50 border-green-200">
+              <Card className="bg-green-50 border-green-200 mt-2">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Ruler className="h-5 w-5" />
@@ -340,7 +340,7 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
             )}
 
             {isHotelProperty(property) && (property.rooms_count || property.star_rating) && (
-              <Card className="bg-purple-50 border-purple-200">
+              <Card className="bg-purple-50 border-purple-200 mt-2">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Building2 className="h-5 w-5" />

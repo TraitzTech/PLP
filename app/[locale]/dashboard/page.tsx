@@ -49,7 +49,7 @@ const savedProperties = [
     bedrooms: 4,
     bathrooms: 3,
     area: 3200,
-  },
+  } as any,
   {
     id: '3',
     title: 'Cozy Mountain Cabin',
@@ -64,7 +64,7 @@ const savedProperties = [
     bedrooms: 3,
     bathrooms: 2,
     area: 1800,
-  },
+  } as any,
 ];
 
 const notifications = [
