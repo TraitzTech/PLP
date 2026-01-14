@@ -130,9 +130,7 @@ export function Navbar() {
                 <div className="flex justify-between items-center h-16 lg:h-20">
                     {/* Logo */}
                     <div className="flex-shrink-0">
-                        <Link href="/">
-                            <Logo />
-                        </Link>
+                       <Logo />
                     </div>
 
                     {/* Desktop Navigation */}

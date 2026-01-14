@@ -19,6 +19,8 @@ import { propertyTypeService } from "@/services/propertyTypeService";
 import { facilitiesService } from "@/services/facilitiesService";
 import { Badge } from "@/components/ui/badge";
 import type { AdminProperty, User, PropertyType, Facility, ListingImage, ListingVideo } from "@/services/types";
+import { listingImageService } from "@/services/listingImageService";
+import { listingVideoService } from "@/services/listingVideoService";
 
 export default function EditAdminPropertyPage() {
   const params = useParams();
