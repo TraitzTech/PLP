@@ -51,7 +51,7 @@ export function SearchClient() {
     type: searchParams?.get('type') || '',
     location: '',
     priceRangeMin: '0',
-    priceRangeMax: '10000000',
+    priceRangeMax: '1000000000000',
     bedrooms: '',
     bathrooms: '',
     facilities: [] as string[],
@@ -100,14 +100,11 @@ export function SearchClient() {
         });
 
         const properties = Array.isArray(response?.data) ? response.data : [];
-        
         // Fetch images for each property
         const propertiesWithImages = await Promise.all(
           properties.map(async (property) => {
             try {
               const imagesResponse = await listingImageService.getImagesByListing(property.id);
-              
-              console.log("Images response: ", imagesResponse);
               return {
                 ...property,
                 images: (imagesResponse as any) || [],
@@ -121,7 +118,6 @@ export function SearchClient() {
             }
           })
         );
-
         setAllProperties(propertiesWithImages);
 
       } catch (error) {
@@ -134,12 +130,14 @@ export function SearchClient() {
     fetchProperties();
   }, []);
 
-  // Apply filters and sorting
+  // Apply filters and sorting 
   useEffect(() => {
+    
     let filtered = [...allProperties];
 
     // Filter by property type
     if (filters.type) {
+      
       filtered = filtered.filter(property => 
         property.property_type?.name.toLowerCase().includes(filters.type.toLowerCase())
       );
@@ -147,24 +145,25 @@ export function SearchClient() {
 
     // Filter by purpose (rent/purchase)
     if (filters.purpose === 'rent') {
-      filtered = filtered.filter(property => property.for_rent);
+      filtered = filtered.filter(property => property.for_rent === true);
     } else if (filters.purpose === 'purchase') {
-      filtered = filtered.filter(property => property.for_purchase);
+      filtered = filtered.filter(property => property.for_purchase === true);
     }
 
     // Filter by region/location
     if (filters.region) {
       filtered = filtered.filter(property =>
-        property.region.toLowerCase().includes(filters.region.toLowerCase())
+        property.region?.toLowerCase().includes(filters.region.toLowerCase())
       );
     }
 
     // Filter by city
     if (filters.city) {
       filtered = filtered.filter(property =>
-        property.city.toLowerCase().includes(filters.city.toLowerCase())
+        property.city?.toLowerCase().includes(filters.city.toLowerCase())
       );
     }
+    
 
     // Filter by price range
     const minPrice = parseFloat(filters.priceRangeMin) || 0;
@@ -174,66 +173,72 @@ export function SearchClient() {
       return price >= minPrice && price <= maxPrice;
     });
 
-    // House-specific filters
-    if (filters.bedroomsMin) {
+    // House-specific filters - only apply if value exists AND is greater than 0
+    if (filters.bedroomsMin && !isNaN(Number(filters.bedroomsMin)) && Number(filters.bedroomsMin) > 0) {
       const minBedrooms = parseInt(filters.bedroomsMin);
       filtered = filtered.filter(property => 
-        property.bedrooms && property.bedrooms >= minBedrooms
+        property.bedrooms != null && property.bedrooms >= minBedrooms
       );
     }
-    if (filters.bathroomsMin) {
+    
+    if (filters.bathroomsMin && !isNaN(Number(filters.bathroomsMin)) && Number(filters.bathroomsMin) > 0) {
       const minBathrooms = parseInt(filters.bathroomsMin);
       filtered = filtered.filter(property => 
-        property.bathrooms && property.bathrooms >= minBathrooms
+        property.bathrooms != null && property.bathrooms >= minBathrooms
       );
     }
-    if (filters.floorAreaMin) {
+    
+    if (filters.floorAreaMin && !isNaN(Number(filters.floorAreaMin)) && Number(filters.floorAreaMin) > 0) {
       const minArea = parseFloat(filters.floorAreaMin);
       filtered = filtered.filter(property => 
-        property.floor_area && property.floor_area >= minArea
+        property.floor_area != null && Number(property.floor_area) >= minArea
       );
     }
-    if (filters.floorAreaMax) {
+    
+    if (filters.floorAreaMax && !isNaN(Number(filters.floorAreaMax)) && Number(filters.floorAreaMax) > 0) {
       const maxArea = parseFloat(filters.floorAreaMax);
       filtered = filtered.filter(property => 
-        property.floor_area && property.floor_area <= maxArea
+        property.floor_area != null && Number(property.floor_area) <= maxArea
       );
     }
 
-    // Land-specific filters
-    if (filters.landAreaMin) {
+    // Land-specific filters - only apply if value exists AND is greater than 0
+    if (filters.landAreaMin && !isNaN(Number(filters.landAreaMin)) && Number(filters.landAreaMin) > 0) {
       const minArea = parseFloat(filters.landAreaMin);
       filtered = filtered.filter(property => 
-        property.land_area && property.land_area >= minArea
+        property.land_area != null && Number(property.land_area) >= minArea
       );
     }
-    if (filters.landAreaMax) {
+    
+    if (filters.landAreaMax && !isNaN(Number(filters.landAreaMax)) && Number(filters.landAreaMax) > 0) {
       const maxArea = parseFloat(filters.landAreaMax);
       filtered = filtered.filter(property => 
-        property.land_area && property.land_area <= maxArea
+        property.land_area != null && Number(property.land_area) <= maxArea
       );
     }
 
-    // Hotel-specific filters
-    if (filters.roomsCountMin) {
+    // Hotel-specific filters - only apply if value exists AND is greater than 0
+    if (filters.roomsCountMin && !isNaN(Number(filters.roomsCountMin)) && Number(filters.roomsCountMin) > 0) {
       const minRooms = parseInt(filters.roomsCountMin);
       filtered = filtered.filter(property => 
-        property.rooms_count && property.rooms_count >= minRooms
+        property.rooms_count != null && property.rooms_count >= minRooms
       );
     }
-    if (filters.starRating) {
+    
+    if (filters.starRating && !isNaN(Number(filters.starRating)) && Number(filters.starRating) > 0) {
       const rating = parseInt(filters.starRating);
       filtered = filtered.filter(property => 
-        property.star_rating && property.star_rating >= rating
+        property.star_rating != null && property.star_rating >= rating
       );
     }
 
     // Filter by approval status (only show approved properties on public search)
-    filtered = filtered.filter(property => property.is_approved);
+    filtered = filtered.filter(property => property.is_approved === true);
 
     // Filter by availability (show properties that are available or have availability unset)
     filtered = filtered.filter(property => 
-      property.is_available !== false && (property.number_available === undefined || property.number_available >= 1)
+      property.is_available !== false && 
+      (property.number_available === undefined || property.number_available === null || property.number_available >= 1)
     );
 
     // Sort
@@ -354,7 +359,7 @@ export function SearchClient() {
           </div>
 
           {/* Active Filters */}
-          {(filters.type || filters.region || filters.city || filters.priceRangeMin !== '0' || filters.priceRangeMax !== '10000000') && (
+          {(filters.type || filters.region || filters.city || filters.priceRangeMin !== '0' || filters.priceRangeMax !== '1000000000000') && (
             <div className="flex flex-wrap items-center gap-2 mt-4 p-4 bg-blue-50 rounded-lg">
               <span className="text-sm font-medium text-gray-700">Active filters:</span>
               {filters.type && (
@@ -376,9 +381,9 @@ export function SearchClient() {
                   <X className="w-3 h-3 cursor-pointer" onClick={() => setFilters({...filters, city: ''})} />
                 </Badge>
               )}
-              {(filters.priceRangeMin !== '0' || filters.priceRangeMax !== '10000000') && (
+              {(filters.priceRangeMin !== '0' || filters.priceRangeMax !== '1000000000000') && (
                 <Badge variant="secondary" className="bg-plp-purple text-white flex items-center gap-1">
-                  ${filters.priceRangeMin} - ${filters.priceRangeMax}
+                  XAF{filters.priceRangeMin} - XAF{filters.priceRangeMax}
                   <X className="w-3 h-3 cursor-pointer" onClick={() => setFilters({...filters, priceRangeMin: '0', priceRangeMax: '10000000'})} />
                 </Badge>
               )}
