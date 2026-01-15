@@ -63,11 +63,12 @@ export default function AgentPropertiesPage() {
         per_page: 15,
         page: currentPage,
       });
-      console.log("Raw response:", response);
-      
+    
       // Handle both possible response structures
       const listingsData = response?.data || response;
       setListings(Array.isArray(listingsData) ? listingsData : []);
+
+      console.log("Fetched listings:", listingsData);
     } catch (error: any) {
       console.error("Error fetching listings:", error);
       toast.error(

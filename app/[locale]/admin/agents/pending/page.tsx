@@ -40,7 +40,7 @@ export default function PendingAgentsPage() {
     try {
       setIsLoading(true);
       const response = await agentService.getPendingAgents();
-      setPendingAgents(response.data || []);
+      setPendingAgents(response || []);
     } catch (error: any) {
       toast.error(
         error.response?.data?.message || "Failed to fetch pending agents"

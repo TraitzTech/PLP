@@ -25,7 +25,22 @@ export const authService = {
         await getCsrfCookie();
 
         const { data } = await apiClient.post<LoginResponse>("/login", payload);
-        if (data?.token) setToken(data.token);
+        
+        console.log("Login response data:", data);
+        console.log("Token in response:", data?.token ? "YES" : "NO");
+        
+        if (data?.token) {
+            setToken(data.token);
+            console.log("Token stored successfully");
+        } else {
+            console.warn("⚠️ Backend did not return a token in login response");
+            console.log("Response structure:", JSON.stringify(data, null, 2));
+            // Fallback: If backend returns user data, we might need to handle it differently
+            if (data?.user || data?.data?.user) {
+                console.log("User data received, but no token. Backend might be using session-based auth.");
+            }
+        }
+        
         return data;
     },
 

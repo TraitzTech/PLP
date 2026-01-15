@@ -26,14 +26,23 @@ export interface ListingUpdateResponse {
 
 export const listingService = {
   /**
-   * Get all agent listings
+   * Get all agent listings (authenticated)
+   * For agents: returns only their listings
+   * For others: returns public/approved listings
    */
   async getAllListings(params?: {
     per_page?: number;
     page?: number;
   }): Promise<ListingsListResponse> {
     try {
-      const response = await apiClient.get<ListingsListResponse>(BASE_URL, { params });
+      // apiClient already includes Bearer token via interceptor
+      const response = await apiClient.get<ListingsListResponse>(BASE_URL, { 
+        params,
+        headers: {
+          // Explicitly ensure we're sending auth if available
+          "Accept": "application/json",
+        }
+      });
       
       return response.data;
     } catch (error) {

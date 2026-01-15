@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, MapPin, Calendar, Edit, Trash2, CheckCircle, XCircle, Star, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { propertyManagementService } from "@/services/propertyManagementService";
+import { PropertyMap } from "@/components/properties/property-map";
 import type { AdminProperty, Facility } from "@/services/types";
 import {
   getPropertyPurposeBadges,
@@ -597,6 +598,33 @@ export default function AdminPropertyDetailsPage() {
                 <p className="font-medium">{property.location}</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Property Map */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="w-5 h-5" />
+              Exact Location
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {property.latitude && property.longitude ? (
+              <PropertyMap
+                latitude={property.latitude}
+                longitude={property.longitude}
+                title={property.title}
+                address={property.location}
+                height="500px"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <MapPin className="h-12 w-12 text-gray-300 mb-3" />
+                <p className="text-muted-foreground text-sm">Exact coordinates not provided</p>
+                <p className="text-gray-400 text-xs mt-1">Add precise location by editing this property</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { dashboardService } from '@/services/dashboardService';
 import { activityService } from '@/services/activityService';
 import { agentService } from '@/services/agentService';
+import { propertyManagementService } from '@/services/propertyManagementService';
 import type { DashboardStats, Activity, TopProperty, PendingApproval, Agent } from '@/services/types';
 import { 
   DashboardStatsLoader, 
@@ -83,7 +84,7 @@ export default function AdminDashboard() {
     // Fetch pending agents
     try {
       const response = await agentService.getPendingAgents();
-      setPendingAgents(response.data || []);
+      setPendingAgents(response || []);
     } catch (error: any) {
       console.error("Failed to load pending agents:", error);
     } finally {
@@ -120,6 +121,73 @@ export default function AdminDashboard() {
         return 'text-gray-600 bg-gray-50';
       default:
         return 'text-blue-600 bg-blue-50';
+    }
+  };
+
+  const handleReviewApproval = (approval: PendingApproval) => {
+    // Route to the appropriate detailed page based on type
+    switch (approval.type.toLowerCase()) {
+      case 'property':
+        router.push(`/admin/properties/${approval.id}`);
+        break;
+      case 'agent':
+        router.push(`/admin/agents/${approval.id}/edit`);
+        break;
+      case 'booking':
+        router.push(`/admin/bookings/${approval.id}`);
+        break;
+      default:
+        router.push(`/admin/properties/${approval.id}`);
+    }
+  };
+
+  const handleApproveApproval = async (approval: PendingApproval) => {
+    try {
+      if (approval.type.toLowerCase() === 'agent') {
+        await agentService.updateAgentStatus(approval.id, 'approved');
+      } else if (approval.type.toLowerCase() === 'property') {
+        await propertyManagementService.updateApprovalStatus(approval.id, { is_approved: true });
+      }
+      
+      toast.success(`${approval.type} approved successfully`);
+      
+      // Refresh pending approvals
+      try {
+        const response = await dashboardService.getPendingApprovals({ limit: 3 });
+        setPendingApprovals(response.data);
+      } catch (error) {
+        console.error("Failed to refresh approvals:", error);
+      }
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message || `Failed to approve ${approval.type.toLowerCase()}`
+      );
+      console.error("Approval error:", error);
+    }
+  };
+
+  const handleRejectApproval = async (approval: PendingApproval) => {
+    try {
+      if (approval.type.toLowerCase() === 'agent') {
+        await agentService.updateAgentStatus(approval.id, 'rejected');
+      } else if (approval.type.toLowerCase() === 'property') {
+        await propertyManagementService.updateApprovalStatus(approval.id, { is_approved: false });
+      }
+      
+      toast.success(`${approval.type} rejected successfully`);
+      
+      // Refresh pending approvals
+      try {
+        const response = await dashboardService.getPendingApprovals({ limit: 3 });
+        setPendingApprovals(response.data);
+      } catch (error) {
+        console.error("Failed to refresh approvals:", error);
+      }
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message || `Failed to reject ${approval.type.toLowerCase()}`
+      );
+      console.error("Rejection error:", error);
     }
   };
 
@@ -177,7 +245,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
-                    <p className="text-2xl font-bold text-gray-900">${(stats.monthlyRevenue ?? 0).toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-gray-900">XAF {(stats.monthlyRevenue ?? 0).toLocaleString()}</p>
                   </div>
                   <DollarSign className="w-8 h-8 text-plp-yellow" />
                 </div>
@@ -295,7 +363,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-gray-900">{item.title}</h3>
                         <Badge variant="outline" className="text-xs">
-                          {item.type.replace('_', ' ')}
+                          {item.type.replace('_', ' ').toUpperCase()}
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-600">Owner: {item.owner}</p>
@@ -303,13 +371,26 @@ export default function AdminDashboard() {
                       <p className="text-xs text-gray-500 mt-1">Submitted: {item.submitted}</p>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" className="btn-primary">
+                      <Button 
+                        size="sm" 
+                        className="btn-primary"
+                        onClick={() => handleApproveApproval(item)}
+                      >
                         Approve
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleReviewApproval(item)}
+                      >
                         Review
                       </Button>
-                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => handleRejectApproval(item)}
+                      >
                         Reject
                       </Button>
                     </div>
@@ -413,7 +494,7 @@ export default function AdminDashboard() {
                         <p className="text-gray-600">Bookings</p>
                       </div>
                       <div className="text-center">
-                        <p className="font-semibold text-gray-900">${property.revenue.toLocaleString()}</p>
+                        <p className="font-semibold text-gray-900">XAF {property.revenue.toLocaleString()}</p>
                         <p className="text-gray-600">Revenue</p>
                       </div>
                       <div className="text-center">

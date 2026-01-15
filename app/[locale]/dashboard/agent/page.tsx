@@ -7,127 +7,125 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DashboardStatsLoader } from '@/components/ui/shimmer-loaders';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Building2, Calendar, DollarSign, Eye, Star, TrendingUp, Users, MessageSquare, Plus, ChartBar as BarChart3, Award, Clock } from 'lucide-react';
+import { Building2, Calendar, DollarSign, Eye, Star, TrendingUp, Plus, ChartBar as BarChart3, Award, Clock, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import { listingService } from '@/services/listingService';
+import { dashboardService } from '@/services/dashboardService';
+import { activityService } from '@/services/activityService';
+import type { Listing, PendingApproval } from '@/services/types';
+import { useRouter } from 'next/navigation';
+import { getCurrentUser } from '@/lib/agentHelpers';
 
-// Mock data for agent
-const agentStats = {
-  totalProperties: 12,
-  activeBookings: 28,
-  monthlyRevenue: 18500000, // XAF
-  totalClients: 45,
-  averageRating: 4.8,
-  occupancyRate: 85,
-  pendingBookings: 8,
-  totalCommission: 2775000, // 15% commission
-};
-
-const recentBookings = [
-  {
-    id: '1',
-    property: 'Luxury Villa Bastos',
-    client: 'Marie Dubois',
-    checkIn: '2024-02-20',
-    checkOut: '2024-02-25',
-    status: 'confirmed',
-    amount: 2400000,
-    commission: 360000,
-  },
-  {
-    id: '2',
-    property: 'Modern Apartment Bonanjo',
-    client: 'Jean-Paul Kamga',
-    checkIn: '2024-02-22',
-    checkOut: '2024-02-27',
-    status: 'pending',
-    amount: 1800000,
-    commission: 270000,
-  },
-  {
-    id: '3',
-    property: 'Executive Suite Akwa',
-    client: 'Fatima Nkomo',
-    checkIn: '2024-02-25',
-    checkOut: '2024-03-02',
-    status: 'confirmed',
-    amount: 2100000,
-    commission: 315000,
-  },
-];
-
-const topProperties = [
-  {
-    id: '1',
-    name: 'Luxury Villa Bastos',
-    location: 'Bastos, Yaoundé',
-    status: 'active',
-    bookings: 15,
-    revenue: 12000000,
-    rating: 4.9,
-    image: 'https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg',
-  },
-  {
-    id: '2',
-    name: 'Modern Apartment Bonanjo',
-    location: 'Bonanjo, Douala',
-    status: 'active',
-    bookings: 22,
-    revenue: 8800000,
-    rating: 4.7,
-    image: 'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg',
-  },
-  {
-    id: '3',
-    name: 'Executive Suite Akwa',
-    location: 'Akwa, Douala',
-    status: 'active',
-    bookings: 18,
-    revenue: 10500000,
-    rating: 4.8,
-    image: 'https://images.pexels.com/photos/1029599/pexels-photo-1029599.jpeg',
-  },
-];
-
-const recentMessages = [
-  {
-    id: '1',
-    client: 'Marie Dubois',
-    property: 'Luxury Villa Bastos',
-    message: 'Bonjour, je voudrais confirmer ma réservation pour ce weekend...',
-    time: '1 hour ago',
-    unread: true,
-  },
-  {
-    id: '2',
-    client: 'Jean-Paul Kamga',
-    property: 'Modern Apartment Bonanjo',
-    message: 'Merci pour les informations. Le prix inclut-il le petit-déjeuner?',
-    time: '3 hours ago',
-    unread: false,
-  },
-  {
-    id: '3',
-    client: 'Fatima Nkomo',
-    property: 'Executive Suite Akwa',
-    message: 'Excellent service! Je recommande vivement cette propriété.',
-    time: '1 day ago',
-    unread: false,
-  },
-];
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "XAF", minimumFractionDigits: 0 }).format(amount);
 
 export default function AgentDashboard() {
-  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [isLoadingProperties, setIsLoadingProperties] = useState(true);
+  const [isLoadingActivities, setIsLoadingActivities] = useState(true);
+  const [isLoadingPending, setIsLoadingPending] = useState(true);
+  
+  const [agentStats, setAgentStats] = useState({
+    totalProperties: 0,
+    activeBookings: 0,
+    monthlyRevenue: 0,
+    pendingApprovals: 0,
+    averageRating: 0,
+  });
+  
+  const [properties, setProperties] = useState<Listing[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [pendingProperties, setPendingProperties] = useState<PendingApproval[]>([]);
+  const [agentName, setAgentName] = useState('Agent');
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    // Simulate data fetching
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
+    fetchDashboardData();
   }, []);
 
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch current user info
+      try {
+        const currentUser = await getCurrentUser();
+        if (currentUser) {
+          setAgentName(currentUser.name || 'Agent');
+          setCurrentUserId(currentUser.id);
+        }
+      } catch (error) {
+        console.error("Error fetching agent info:", error);
+      }
+
+      // Fetch dashboard stats for agent
+      try {
+        const response = await dashboardService.getStats('agent');
+        if (response.data) {
+          setAgentStats({
+            totalProperties: response.data.totalProperties || 0,
+            activeBookings: response.data.activeBookings || 0,
+            monthlyRevenue: response.data.monthlyRevenue || 0,
+            pendingApprovals: response.data.pendingApprovals || 0,
+            averageRating: response.data.averageRating || 0,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard stats:", error);
+        toast.error("Failed to load dashboard statistics");
+      } finally {
+        setIsLoadingStats(false);
+      }
+
+      // Fetch agent's listings
+      try {
+        const listingsResponse = await listingService.getAllListings({ per_page: 10 });
+        if (listingsResponse.data) {
+          setProperties(listingsResponse.data);
+        }
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+        toast.error("Failed to load properties");
+      } finally {
+        setIsLoadingProperties(false);
+      }
+
+      // Fetch recent activities for current user only
+      try {
+        const currentUser = await getCurrentUser();
+        if (currentUser) {
+          const activitiesResponse = await activityService.getAllActivities({ 
+            per_page: 3,
+            user_id: currentUser.id 
+          });
+          if (activitiesResponse.data?.data) {
+            setActivities(activitiesResponse.data.data);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching activities:", error);
+      } finally {
+        setIsLoadingActivities(false);
+      }
+
+      // Fetch pending properties for agent
+      try {
+        const pendingResponse = await dashboardService.getPendingApprovals();
+        if (pendingResponse.data) {
+          setPendingProperties(pendingResponse.data);
+        }
+      } catch (error) {
+        console.error("Error fetching pending properties:", error);
+      } finally {
+        setIsLoadingPending(false);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-CM', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'XAF',
       minimumFractionDigits: 0,
@@ -155,27 +153,27 @@ export default function AgentDashboard() {
         {/* Welcome Section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Bienvenue, Agent Mballa!</h1>
-            <p className="text-gray-600 mt-2">Voici un aperçu de vos propriétés et réservations.</p>
+            <h1 className="text-3xl font-bold text-gray-900">Welcome, {agentName}!</h1>
+            <p className="text-gray-600 mt-2">Overview of your properties, bookings, and activity.</p>
           </div>
           <Link href="/dashboard/agent/properties/new">
             <Button className="btn-primary">
               <Plus className="w-4 h-4 mr-2" />
-              Ajouter une Propriété
+              Add Property
             </Button>
           </Link>
         </div>
 
         {/* Quick Stats */}
-        {isLoading ? (
+        {isLoadingStats ? (
           <DashboardStatsLoader />
         ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-6">
-          <Card className="xl:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Propriétés</p>
+                  <p className="text-sm font-medium text-gray-600">Properties</p>
                   <p className="text-2xl font-bold text-gray-900">{agentStats.totalProperties}</p>
                 </div>
                 <Building2 className="w-8 h-8 text-plp-purple" />
@@ -183,11 +181,11 @@ export default function AgentDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="xl:col-span-2">
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Réservations Actives</p>
+                  <p className="text-sm font-medium text-gray-600">Bookings</p>
                   <p className="text-2xl font-bold text-gray-900">{agentStats.activeBookings}</p>
                 </div>
                 <Calendar className="w-8 h-8 text-plp-pink" />
@@ -195,11 +193,11 @@ export default function AgentDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="xl:col-span-2">
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Revenus Mensuels</p>
+                  <p className="text-sm font-medium text-gray-600">Revenue</p>
                   <p className="text-2xl font-bold text-gray-900">{formatCurrency(agentStats.monthlyRevenue).replace('XAF', '').trim()}</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-plp-yellow" />
@@ -207,35 +205,48 @@ export default function AgentDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="xl:col-span-2">
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Clients</p>
-                  <p className="text-2xl font-bold text-gray-900">{agentStats.totalClients}</p>
+                  <p className="text-sm font-medium text-gray-600">Pending</p>
+                  <p className="text-2xl font-bold text-gray-900">{agentStats.pendingApprovals}</p>
                 </div>
-                <Users className="w-8 h-8 text-blue-500" />
+                <AlertCircle className="w-8 h-8 text-orange-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Rating</p>
+                  <p className="text-2xl font-bold text-gray-900">{agentStats.averageRating.toFixed(1)} ⭐</p>
+                </div>
+                <Star className="w-8 h-8 text-yellow-500" />
               </div>
             </CardContent>
           </Card>
         </div>
         )}
 
+        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Recent Bookings */}
+          {/* Recent Activity */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  Réservations Récentes
+                  <Clock className="w-5 h-5" />
+                  Recent Activity
                 </CardTitle>
-                <Link href="/dashboard/agent/bookings">
-                  <Button variant="outline" size="sm">Voir Tout</Button>
+                <Link href="/dashboard/agent/activity">
+                  <Button variant="outline" size="sm">View All</Button>
                 </Link>
               </CardHeader>
               <CardContent>
-                {isLoading ? (
+                {isLoadingActivities ? (
                   <div className="space-y-4">
                     {[1, 2, 3].map((i) => (
                       <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
@@ -252,181 +263,172 @@ export default function AgentDashboard() {
                       </div>
                     ))}
                   </div>
-                ) : (
+                ) : activities.length > 0 ? (
                 <div className="space-y-4">
-                  {recentBookings.map((booking) => (
-                    <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  {activities.map((activity) => (
+                    <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">{booking.property}</h3>
-                        <p className="text-sm text-gray-600">Client: {booking.client}</p>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                          <span>{booking.checkIn} - {booking.checkOut}</span>
-                          <Badge className={getStatusColor(booking.status)}>
-                            {booking.status}
-                          </Badge>
+                        <h3 className="font-semibold text-gray-900">{activity.description}</h3>
+                        <p className="text-sm text-gray-600 mt-1">You {activity.action}</p>
+                        <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
+                          <Clock className="w-4 h-4" />
+                          <span>{new Date(activity.created_at).toLocaleDateString('en-US')}</span>
+                          <Badge variant="outline" className="text-xs capitalize">{activity.action}</Badge>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-gray-900">{formatCurrency(booking.amount)}</p>
-                        <p className="text-sm text-plp-purple">Commission: {formatCurrency(booking.commission)}</p>
-                        <Button variant="outline" size="sm" className="mt-2">
-                          Détails
-                        </Button>
                       </div>
                     </div>
                   ))}
                 </div>
+                ) : (
+                  <p className="text-sm text-gray-500 text-center py-8">No recent activity</p>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Recent Messages */}
+          {/* My Properties Summary */}
           <div>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5" />
-                  Messages
+                  <Building2 className="w-5 h-5" />
+                  My Properties
                 </CardTitle>
-                <Link href="/dashboard/agent/messages">
-                  <Button variant="outline" size="sm">Voir Tout</Button>
+                <Link href="/dashboard/agent/properties">
+                  <Button variant="outline" size="sm">View All</Button>
                 </Link>
               </CardHeader>
               <CardContent>
-                {isLoading ? (
+                {isLoadingProperties ? (
                   <div className="space-y-3">
                     {[1, 2, 3].map((i) => (
                       <div key={i} className="p-3 rounded-lg border">
-                        <div className="flex items-center justify-between mb-2">
-                          <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-2 w-2 rounded-full" />
-                        </div>
-                        <Skeleton className="h-3 w-24 mb-1" />
+                        <Skeleton className="h-4 w-32 mb-2" />
                         <Skeleton className="h-3 w-full mb-1" />
-                        <Skeleton className="h-3 w-20 mt-2" />
+                        <Skeleton className="h-3 w-24" />
                       </div>
                     ))}
                   </div>
-                ) : (
+                ) : properties.length > 0 ? (
                 <div className="space-y-3">
-                  {recentMessages.map((message) => (
+                  {properties.slice(0, 3).map((property) => (
                     <div
-                      key={message.id}
-                      className={`p-3 rounded-lg border ${
-                        message.unread ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'
-                      }`}
+                      key={property.id}
+                      className="p-3 rounded-lg border hover:bg-gray-50 transition cursor-pointer"
+                      onClick={() => router.push(`/dashboard/agent/properties/${property.id}`)}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-sm text-gray-900">
-                          {message.client}
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-medium text-sm text-gray-900 line-clamp-1">
+                          {property.title}
                         </h4>
-                        {message.unread && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        )}
+                        <Badge variant={property.is_approved ? "default" : "secondary"} className="text-xs">
+                          {property.is_approved ? 'Active' : 'Pending'}
+                        </Badge>
                       </div>
-                      <p className="text-xs text-gray-600 mb-1">{message.property}</p>
-                      <p className="text-sm text-gray-700 line-clamp-2">
-                        {message.message}
-                      </p>
-                      <span className="text-xs text-gray-500 mt-2 block">{message.time}</span>
+                      <p className="text-xs text-gray-600 mb-2">{property.location}</p>
+                      <p className="text-sm font-semibold text-plp-purple">{formatCurrency(Number(property.price)).replace('XAF', '').trim()}</p>
                     </div>
                   ))}
                 </div>
+                ) : (
+                  <p className="text-sm text-gray-500 text-center py-8">No properties yet</p>
                 )}
               </CardContent>
             </Card>
           </div>
         </div>
 
-        {/* Top Performing Properties */}
+        {/* Pending Properties Alert */}
+        {!isLoadingPending && pendingProperties.length > 0 && (
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-yellow-900">
+                <AlertCircle className="w-5 h-5" />
+                Pending Approval ({pendingProperties.length})
+              </CardTitle>
+              <Link href="/dashboard/agent/properties">
+                <Button variant="outline" size="sm">Review</Button>
+              </Link>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {pendingProperties.slice(0, 3).map((item) => (
+                  <div key={item.id} className="p-3 bg-white rounded-lg border border-yellow-200 flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{item.title}</p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {item.type === 'property' && 'Your property listing is awaiting approval'}
+                        {item.type === 'agent' && 'Your account is awaiting approval'}
+                        {item.type === 'booking' && 'A booking requires your attention'}
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Top Properties Grid */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Award className="w-5 h-5" />
-              Propriétés les Plus Performantes
+              Your Listings
             </CardTitle>
             <div className="flex gap-2">
-              <Link href="/dashboard/agent/analytics">
-                <Button variant="outline" size="sm">
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Analytics
-                </Button>
-              </Link>
               <Link href="/dashboard/agent/properties">
-                <Button variant="outline" size="sm">Voir Tout</Button>
+                <Button variant="outline" size="sm">View All</Button>
               </Link>
             </div>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3].map((i) => (
+            {isLoadingProperties ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="border rounded-lg overflow-hidden">
-                    <Skeleton className="w-full h-48" />
-                    <div className="p-4 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Skeleton className="w-6 h-6 rounded-full" />
-                        <Skeleton className="h-5 w-48" />
-                      </div>
-                      <Skeleton className="h-4 w-32" />
-                      <div className="grid grid-cols-3 gap-2">
-                        <Skeleton className="h-12 w-full" />
-                        <Skeleton className="h-12 w-full" />
-                        <Skeleton className="h-12 w-full" />
-                      </div>
-                      <div className="flex gap-2">
-                        <Skeleton className="h-8 flex-1" />
-                        <Skeleton className="h-8 flex-1" />
-                      </div>
+                    <Skeleton className="w-full h-32" />
+                    <div className="p-3 space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-32" />
+                      <Skeleton className="h-3 w-20" />
                     </div>
                   </div>
                 ))}
               </div>
-            ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {topProperties.map((property, index) => (
-                <div key={property.id} className="border rounded-lg overflow-hidden">
-                  <img
-                    src={property.image}
-                    alt={property.name}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-6 h-6 bg-plp-purple text-white rounded-full flex items-center justify-center text-sm font-bold">
-                        {index + 1}
-                      </div>
-                      <h3 className="font-semibold text-gray-900 line-clamp-1">{property.name}</h3>
+            ) : properties.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {properties.slice(0, 4).map((property, index) => (
+                <div 
+                  key={property.id} 
+                  className="border rounded-lg overflow-hidden hover:shadow-md transition cursor-pointer"
+                  onClick={() => router.push(`/dashboard/agent/properties/${property.id}`)}
+                >
+                  <div className="w-full h-32 bg-gradient-to-br from-plp-purple to-plp-pink flex items-center justify-center">
+                    <Building2 className="w-8 h-8 text-white opacity-70" />
+                  </div>
+                  <div className="p-3">
+                    <div className="flex items-start justify-between mb-1">
+                      <h3 className="font-semibold text-sm text-gray-900 line-clamp-2">{property.title}</h3>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">{property.location}</p>
-                    
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <div className="text-center">
-                        <p className="font-semibold text-gray-900">{property.bookings}</p>
-                        <p className="text-gray-600">Réservations</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="font-semibold text-gray-900">{formatCurrency(property.revenue).replace('XAF', '').trim()}</p>
-                        <p className="text-gray-600">Revenus</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="font-semibold text-gray-900">{property.rating}</p>
-                        <p className="text-gray-600">Note</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2 mt-4">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Modifier
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Voir
-                      </Button>
+                    <p className="text-xs text-gray-600 mb-2 line-clamp-1">{property.location}, {property.city}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-plp-purple">{formatCurrency(Number(property.price)).replace('XAF', '').trim()}</p>
+                      <Badge variant={property.is_approved ? "default" : "secondary"} className="text-xs">
+                        {property.is_approved ? 'OK' : 'Pending'}
+                      </Badge>
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
+            ) : (
+            <div className="text-center py-12">
+              <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No properties listed yet</p>
             </div>
             )}
           </CardContent>

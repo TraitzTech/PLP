@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import type { AdminProperty, User, PropertyType, Facility, ListingImage, ListingVideo } from "@/services/types";
 import { listingImageService } from "@/services/listingImageService";
 import { listingVideoService } from "@/services/listingVideoService";
+import { LocationPicker } from "@/components/properties/location-picker";
 
 export default function EditAdminPropertyPage() {
   const params = useParams();
@@ -506,7 +507,7 @@ export default function EditAdminPropertyPage() {
             <CardHeader>
               <CardTitle>Location</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="region">Region *</Label>
@@ -554,9 +555,29 @@ export default function EditAdminPropertyPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Location Picker Map */}
+              <div>
+                <Label>Exact Location (Pick from Map)</Label>
+                <p className="text-sm text-muted-foreground mb-3">Search for a location or click on the map to set precise coordinates</p>
+                <LocationPicker
+                  latitude={formData.latitude ? parseFloat(formData.latitude) : null}
+                  longitude={formData.longitude ? parseFloat(formData.longitude) : null}
+                  address={formData.location}
+                  onLocationSelect={(lat, lng, addr) => {
+                    handleInputChange("latitude", lat);
+                    handleInputChange("longitude", lng);
+                    if (addr && !formData.location) {
+                      handleInputChange("location", addr);
+                    }
+                  }}
+                  height="450px"
+                />
+              </div>
+
+              {/* Coordinate Display */}
+              <div className="grid grid-cols-2 gap-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <div>
-                  <Label htmlFor="latitude">Latitude</Label>
+                  <Label htmlFor="latitude" className="text-xs text-blue-900">Latitude</Label>
                   <Input
                     id="latitude"
                     type="number"
@@ -564,11 +585,12 @@ export default function EditAdminPropertyPage() {
                     onChange={(e) => handleInputChange("latitude", e.target.value)}
                     placeholder="e.g., 3.8667"
                     step="0.0001"
+                    className="text-sm mt-1"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="longitude">Longitude</Label>
+                  <Label htmlFor="longitude" className="text-xs text-blue-900">Longitude</Label>
                   <Input
                     id="longitude"
                     type="number"
@@ -576,6 +598,7 @@ export default function EditAdminPropertyPage() {
                     onChange={(e) => handleInputChange("longitude", e.target.value)}
                     placeholder="e.g., 11.5167"
                     step="0.0001"
+                    className="text-sm mt-1"
                   />
                 </div>
               </div>
