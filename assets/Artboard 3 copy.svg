@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2240 1181.13">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #390058;
+      }
+
+      .cls-2 {
+        letter-spacing: -.01em;
+      }
+
+      .cls-3 {
+        fill: #ffac3b;
+      }
+
+      .cls-4 {
+        letter-spacing: 0em;
+      }
+
+      .cls-5 {
+        letter-spacing: -.02em;
+      }
+
+      .cls-6 {
+        fill: #ff4672;
+      }
+
+      .cls-7 {
+        letter-spacing: -.01em;
+      }
+
+      .cls-8 {
+        letter-spacing: -.01em;
+      }
+
+      .cls-9 {
+        letter-spacing: 0em;
+      }
+
+      .cls-10 {
+        letter-spacing: 0em;
+      }
+
+      .cls-11 {
+        fill: #fff;
+        font-family: Mont-Bold, Mont;
+        font-size: 162.98px;
+        font-weight: 700;
+      }
+
+      .cls-12 {
+        letter-spacing: -.01em;
+      }
+
+      .cls-13 {
+        letter-spacing: -.02em;
+      }
+
+      .cls-14 {
+        letter-spacing: -.03em;
+      }
+    </style>
+  </defs>
+  <g>
+    <path class="cls-1" d="M558.34,846.97h-175.19c-37.54,0-66.79-32.55-62.78-69.87l42.97-400.69c3.44-32.08,30.52-56.41,62.78-56.41h175.19c37.54,0,66.79,32.55,62.78,69.87l-42.97,400.69c-3.44,32.08-30.52,56.41-62.78,56.41Z"/>
+    <path class="cls-6" d="M644.33,846.97h-175.19c-37.54,0-66.79-32.55-62.78-69.87l42.97-400.69c3.44-32.08,30.52-56.41,62.78-56.41h175.19c37.54,0,66.79,32.55,62.78,69.87l-42.97,400.69c-3.44,32.08-30.52,56.41-62.78,56.41Z"/>
+    <path class="cls-3" d="M730.32,846.97h-175.19c-37.54,0-66.79-32.55-62.78-69.87l42.97-400.69c3.44-32.08,30.52-56.41,62.78-56.41h175.19c37.54,0,66.79,32.55,62.78,69.87l-42.97,400.69c-3.44,32.08-30.52,56.41-62.78,56.41Z"/>
+  </g>
+  <text class="cls-11" transform="translate(869.14 654.94)"><tspan class="cls-8" x="0" y="0">P</tspan><tspan class="cls-13" x="99.74" y="0">r</tspan><tspan class="cls-4" x="162.49" y="0">ope</tspan><tspan class="cls-9" x="477.52" y="0">r</tspan><tspan class="cls-8" x="542.87" y="0">t</tspan><tspan class="cls-14" x="611.32" y="0">y</tspan><tspan class="cls-8" x="703.73" y="0"> </tspan></text>
+  <text class="cls-11" transform="translate(853.17 826.91)"><tspan class="cls-8" x="0" y="0">Li</tspan><tspan class="cls-7" x="128.42" y="0">s</tspan><tspan class="cls-4" x="211.54" y="0">ting </tspan><tspan class="cls-5" x="572.86" y="0">P</tspan><tspan class="cls-8" x="671.62" y="0">o</tspan><tspan class="cls-10" x="776.41" y="0">r</tspan><tspan class="cls-2" x="841.77" y="0">t</tspan><tspan class="cls-12" x="909.4" y="0">al</tspan></text>
+</svg>
