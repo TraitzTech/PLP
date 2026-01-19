@@ -1,4 +1,7 @@
 {
+  "error": {
+    "message": "Please sign in to list a property"
+  },
   "nav": {
     "home": "Home",
     "myAccount": "My Account",
@@ -12,8 +15,11 @@
     "selectLanguage": "Select Language",
     "about": "About",
     "contact": "Contact",
-    "propertyTypes": "Property Types"
+    "propertyTypes": "Property Types",
+    "browse": "Browse Properties",
+    "none": "No property available"
   },
+
   "auth": {
     "signIn": "Sign In",
     "signUp": "Sign Up",
@@ -51,6 +57,8 @@
     "title": "Explore Property Types",
     "subtitle": "Whether you're looking for a luxury hotel, dream home, or investment land, we have the perfect property waiting for you.",
     "exploreButton": "Explore",
+    "none": "No property type available",
+    "view": " View All Property Types",
     "hotels": {
       "name": "Hotels",
       "description": "Luxury hotels and resorts for your perfect getaway",
@@ -70,7 +78,8 @@
   "featured": {
     "title": "Featured Properties",
     "subtitle": "Discover our handpicked selection of premium properties that offer exceptional experiences and unmatched value.",
-    "viewAll": "View All Properties"
+    "viewAll": "View All Properties",
+    "none": "No featured properties available"
   },
   "stats": {
     "title": "Trusted by Thousands",
@@ -101,7 +110,9 @@
     "emailRequired": "Please enter your email address",
     "subscribeSuccess": "Thank you for subscribing!",
     "successMessage": "Successfully subscribed!",
-    "thankYouMessage": "Thank you! You'll receive our latest updates soon."
+    "thankYouMessage": "Thank you! You'll receive our latest updates soon.",
+    "success": "Thank you for subscribing!",
+    "error": "Please enter your email address"
   },
   "footer": {
     "description": "The trusted bridge for seamless property listing, booking, and discovery. Connecting property owners with travelers worldwide.",

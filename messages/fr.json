@@ -1,4 +1,7 @@
 {
+  "error": {
+    "message": "Veuillez vous connecter pour publier une annonce immobilière."
+  },
   "nav": {
     "home": "Accueil",
     "myAccount": "Mon Compte",
@@ -12,8 +15,11 @@
     "selectLanguage": "Choisir la langue",
     "about": "À Propos",
     "contact": "Contact",
-    "propertyTypes": "Types de Propriétés"
+    "propertyTypes": "Types de Propriétés",
+    "browse": "Parcourir les propriétés",
+    "none": "Aucune propriété disponible"
   },
+
   "auth": {
     "signIn": "Se Connecter",
     "signUp": "S'Inscrire",
@@ -51,6 +57,8 @@
     "title": "Explorer les Types de Propriétés",
     "subtitle": "Que vous recherchiez un hôtel de luxe, une maison de rêve ou un terrain d'investissement, nous avons la propriété parfaite qui vous attend.",
     "exploreButton": "Explorer",
+    "none": "Aucun type de propriété disponible",
+    "view": "Voir tous les types de propriété",
     "hotels": {
       "name": "Hôtels",
       "description": "Hôtels de luxe et centres de villégiature pour votre escapade parfaite",
@@ -70,7 +78,8 @@
   "featured": {
     "title": "Propriétés en Vedette",
     "subtitle": "Découvrez notre sélection triée sur le volet de propriétés premium qui offrent des expériences exceptionnelles et une valeur inégalée.",
-    "viewAll": "Voir Toutes les Propriétés"
+    "viewAll": "Voir Toutes les Propriétés",
+    "none": "Aucune propriété en vedette disponible"
   },
   "stats": {
     "title": "Approuvé par des Milliers",

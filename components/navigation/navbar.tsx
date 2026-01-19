@@ -126,7 +126,7 @@ export function Navbar() {
 
   const handleListProperty = () => {
     if (!isAuthenticated) {
-      toast.error("Please sign in to list a property");
+      toast.error(t("error.message", "Please sign in to list a property"));
       router.push("/auth/signin?type=agent");
       return;
     }
@@ -162,7 +162,9 @@ export function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Browse Properties</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                  {t("nav.browse", "Browse Properties")}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {isLoadingTypes ? (
                   <div className="flex items-center justify-center py-2">
@@ -170,7 +172,7 @@ export function Navbar() {
                   </div>
                 ) : propertyTypes.length === 0 ? (
                   <div className="px-2 py-2 text-sm text-gray-500">
-                    No property types available
+                    {t("nav.none", "No property available")}
                   </div>
                 ) : (
                   propertyTypes.map((type) => (
@@ -363,7 +365,7 @@ export function Navbar() {
               {/* Mobile Property Types */}
               <div className="px-3 py-2">
                 <p className="text-sm font-semibold text-gray-900 mb-2">
-                  Property Types
+                  {t("nav.propertyTypes", "Property Types")}
                 </p>
                 {isLoadingTypes ? (
                   <div className="flex items-center justify-center py-2">
@@ -371,7 +373,7 @@ export function Navbar() {
                   </div>
                 ) : propertyTypes.length === 0 ? (
                   <p className="text-xs text-gray-500">
-                    No property types available
+                    {t("none", "No Property Types Available")}
                   </p>
                 ) : (
                   <div className="space-y-1">
