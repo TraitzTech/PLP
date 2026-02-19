@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DashboardStatsLoader } from '@/components/ui/shimmer-loaders';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Building2, Calendar, DollarSign, Eye, Star, TrendingUp, Users, MessageSquare, Plus, ChartBar as BarChart3 } from 'lucide-react';
+import { Building2, Calendar, Banknote, Eye, Star, TrendingUp, Users, MessageSquare, Plus, ChartBar as BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 
 // Mock data
@@ -113,6 +113,14 @@ export default function OwnerDashboard() {
     return () => clearTimeout(timer);
   }, []);
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-CM', {
+      style: 'currency',
+      currency: 'XAF',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
@@ -193,9 +201,9 @@ export default function OwnerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">${ownerStats.monthlyRevenue.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(ownerStats.monthlyRevenue)}</p>
                 </div>
-                <DollarSign className="w-8 h-8 text-plp-yellow" />
+                <Banknote className="w-8 h-8 text-plp-yellow" />
               </div>
             </CardContent>
           </Card>
@@ -283,7 +291,7 @@ export default function OwnerDashboard() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-gray-900">${booking.amount}</p>
+                        <p className="font-semibold text-gray-900">{formatCurrency(booking.amount)}</p>
                         <Button variant="outline" size="sm" className="mt-2">
                           View Details
                         </Button>
@@ -422,7 +430,7 @@ export default function OwnerDashboard() {
                         <p className="text-gray-600">Bookings</p>
                       </div>
                       <div className="text-center">
-                        <p className="font-semibold text-gray-900">${property.revenue}</p>
+                        <p className="font-semibold text-gray-900">{formatCurrency(property.revenue)}</p>
                         <p className="text-gray-600">Revenue</p>
                       </div>
                       <div className="text-center">

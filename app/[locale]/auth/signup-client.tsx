@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { authService } from "@/services/authService";
 import { AgentSignupForm } from "@/components/auth/agent-signup-form";
+import { AuthGuard } from "@/components/auth/auth-guard";
 import type { RegisterRequest } from "@/services/types";
 
 interface CustomerSignupData {
@@ -138,6 +139,7 @@ export function SignUpClient() {
   // If user type is agent, show the multi-step agent form
   if (userType === "agent") {
     return (
+      <AuthGuard redirectAuthenticated>
       <div className="min-h-screen bg-gradient-to-br from-plp-purple via-plp-pink to-plp-yellow py-12 px-4 sm:px-6 lg:px-8">
         <div className="flex justify-center mb-8">
           <Button
@@ -162,11 +164,13 @@ export function SignUpClient() {
           <AgentSignupForm />
         </div>
       </div>
+      </AuthGuard>
     );
   }
 
   // Customer signup form
   return (
+    <AuthGuard redirectAuthenticated>
     <div className="min-h-screen bg-gradient-to-br from-plp-purple via-plp-pink to-plp-yellow flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
@@ -290,5 +294,6 @@ export function SignUpClient() {
         </CardContent>
       </Card>
     </div>
+    </AuthGuard>
   );
 }

@@ -3,10 +3,10 @@
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { NotificationsPage } from '@/components/dashboard/notifications-page';
 
-export default function AdminNotificationsPage() {
+export default function CustomerNotificationsPage() {
   return (
-    <DashboardLayout userType="admin">
-      <NotificationsPage userType="admin" />
+    <DashboardLayout userType="customer">
+      <NotificationsPage userType="customer" />
     </DashboardLayout>
   );
 }

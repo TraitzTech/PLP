@@ -1,13 +1,17 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, MapPin } from 'lucide-react';
+import { toast } from 'sonner';
 import { AdminProperty, Listing } from '@/services/types';
+import { authService } from '@/services/authService';
+import { savedPropertyService } from '@/services/savedPropertyService';
 import { 
   getPropertyTypeSummary, 
   getPropertyPurposeBadges, 
@@ -21,8 +25,56 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property }: PropertyCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(Boolean((property as any).is_saved));
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    setIsFavorite(Boolean((property as any).is_saved));
+  }, [property]);
+
+  const getLocaleFromPath = () => {
+    const segments = pathname.split('/').filter(Boolean);
+    const locale = segments[0];
+    return locale === 'en' || locale === 'fr' ? locale : 'en';
+  };
+
+  const handleToggleFavorite = async (event: React.MouseEvent) => {
+    event.preventDefault();
+
+    if (isSaving) {
+      return;
+    }
+
+    const isAuthenticated = await authService.isAuthenticated();
+    if (!isAuthenticated) {
+      const locale = getLocaleFromPath();
+      toast.error('Please sign in to save properties');
+      router.push(`/${locale}/auth/signin?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    setIsSaving(true);
+    const previousValue = isFavorite;
+    setIsFavorite(!previousValue);
+
+    try {
+      if (previousValue) {
+        await savedPropertyService.removeSavedProperty(property.id);
+        toast.success('Removed from saved properties');
+      } else {
+        await savedPropertyService.saveProperty(property.id);
+        toast.success('Saved property');
+      }
+    } catch (error) {
+      setIsFavorite(previousValue);
+      toast.error('Failed to update saved properties');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const getImageUrl = (prop: AdminProperty | Listing): string => {
     if ('images' in prop && prop.images && prop.images.length > 0) {
@@ -95,13 +147,11 @@ export function PropertyCard({ property }: PropertyCardProps) {
         <Button
           size="sm"
           variant="ghost"
+          disabled={isSaving}
           className={`absolute top-3 right-3 h-8 w-8 p-0 rounded-full bg-white/80 hover:bg-white transition-colors ${
             isFavorite ? 'text-red-500' : 'text-gray-600'
           }`}
-          onClick={(e) => {
-            e.preventDefault();
-            setIsFavorite(!isFavorite);
-          }}
+          onClick={handleToggleFavorite}
         >
           <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
         </Button>

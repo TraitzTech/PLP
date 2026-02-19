@@ -28,12 +28,23 @@
     "description": "The trusted bridge for seamless property listing, booking, and discovery. Find your perfect stay from luxury hotels to dream homes."
   },
   "search": {
-    "locationPlaceholder": "Where are you going?",
+    "locationPlaceholder": "City, region, or area...",
+    "location": "Location",
     "checkin": "Check-in",
     "checkout": "Check-out",
-    "searchButton": "Search",
+    "searchButton": "Search Properties",
     "propertyType": "Property Type",
+    "selectPropertyType": "What are you looking for?",
+    "forRent": "For Rent",
+    "forSale": "For Sale",
+    "priceRange": "Price Range",
+    "anyPrice": "Any Price",
+    "popular": "Popular:",
     "guests": "Guests",
+    "price": {
+      "budget": "Under $50,000",
+      "luxury": "$1M+"
+    },
     "types": {
       "hotels": "Hotels",
       "houses": "Houses",

@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
 import { PropertyCard } from '@/components/properties/property-card';
 import { PropertyReviews } from '@/components/reviews/property-reviews';
 import { PropertyMap } from '@/components/properties/property-map';
@@ -11,6 +12,12 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
 import { 
   Star, 
   Heart, 
@@ -26,7 +33,10 @@ import {
   Home,
   Building2,
   Ruler,
-  Zap
+  Zap,
+  Loader2,
+  Send,
+  CheckCircle
 } from 'lucide-react';
 import { 
   getPropertyTypeSummary, 
@@ -38,6 +48,11 @@ import {
   isLandProperty,
   isHotelProperty
 } from '@/lib/propertyHelpers';
+import { bookingService, type CreateBookingRequest, type GuestBookingRequest } from '@/services/bookingService';
+import { reviewService, type CreateReviewRequest } from '@/services/reviewService';
+import { Input } from '@/components/ui/input';
+import { authService } from '@/services/authService';
+import { savedPropertyService } from '@/services/savedPropertyService';
 
 interface PropertyDetailsClientProps {
   property: any;
@@ -46,12 +61,160 @@ interface PropertyDetailsClientProps {
   language?: string;
 }
 
-export function PropertyDetailsClient({ property, similarProperties, reviews, language = 'en' }: PropertyDetailsClientProps) {
+// Local type for API reviews
+interface ApiReview {
+  id: number;
+  user_id: number | null;
+  guest_name?: string;
+  guest_email?: string;
+  is_guest_review?: boolean;
+  listing_id: number;
+  rating: number;
+  comment: string;
+  created_at: string;
+  user?: {
+    id: number;
+    name: string;
+    email?: string;
+    avatar?: string;
+  };
+}
+
+// Type for display reviews (what PropertyReviews component expects)
+interface DisplayReview {
+  id: string;
+  user: {
+    name: string;
+    avatar: string;
+    verified: boolean;
+  };
+  rating: number;
+  date: string;
+  comment: {
+    en: string;
+    fr: string;
+  };
+  helpful: number;
+}
+
+export function PropertyDetailsClient({ property, similarProperties, reviews: initialReviews, language = 'en' }: PropertyDetailsClientProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState(2);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(Boolean(property?.is_saved));
+  const [isSavingFavorite, setIsSavingFavorite] = useState(false);
+  const [specialRequests, setSpecialRequests] = useState('');
+  const [isBooking, setIsBooking] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+  
+  // Authentication and guest booking state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [bookingMode, setBookingMode] = useState<'choose' | 'guest' | 'login'>('choose');
+  const [guestName, setGuestName] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  
+  // Review state
+  const [reviews, setReviews] = useState<ApiReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [averageRating, setAverageRating] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [ratingDistribution, setRatingDistribution] = useState<Record<number, number>>({});
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewGuestName, setReviewGuestName] = useState('');
+  const [reviewGuestEmail, setReviewGuestEmail] = useState('');
+  const pathname = usePathname();
+  const router = useRouter();
+
+  // Fetch reviews on mount
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setReviewsLoading(true);
+        const response = await reviewService.getListingReviews(property.id, { per_page: 20 });
+        setReviews(response.data);
+        setAverageRating(response.meta.average_rating || 0);
+        setTotalReviews(response.meta.total);
+        setRatingDistribution(response.meta.rating_distribution || {});
+      } catch (error) {
+        console.error('Failed to fetch reviews:', error);
+        // Fallback to initial reviews if API fails
+        setReviews(initialReviews || []);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    if (property?.id) {
+      fetchReviews();
+    }
+  }, [property?.id, initialReviews]);
+
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const isAuthed = await authService.isAuthenticated();
+        setIsAuthenticated(isAuthed);
+        if (isAuthed) {
+          setBookingMode('guest'); // If authenticated, skip the choose step
+        }
+      } catch (error) {
+        setIsAuthenticated(false);
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    setIsFavorite(Boolean(property?.is_saved));
+  }, [property?.is_saved]);
+
+  const getLocaleFromPath = () => {
+    const segments = pathname.split('/').filter(Boolean);
+    const locale = segments[0];
+    return locale === 'en' || locale === 'fr' ? locale : 'en';
+  };
+
+  const handleToggleSave = async () => {
+    if (isSavingFavorite) {
+      return;
+    }
+
+    const isAuthed = await authService.isAuthenticated();
+    if (!isAuthed) {
+      const locale = getLocaleFromPath();
+      toast.error('Please sign in to save properties');
+      router.push(`/${locale}/auth/signin?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    setIsSavingFavorite(true);
+    const previousValue = isFavorite;
+    setIsFavorite(!previousValue);
+
+    try {
+      if (previousValue) {
+        await savedPropertyService.removeSavedProperty(property.id);
+        toast.success('Removed from saved properties');
+      } else {
+        await savedPropertyService.saveProperty(property.id);
+        toast.success('Property saved');
+      }
+    } catch (error) {
+      setIsFavorite(previousValue);
+      toast.error('Failed to update saved properties');
+    } finally {
+      setIsSavingFavorite(false);
+    }
+  };
 
   const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect fill='%23f3f4f6' width='800' height='600'/%3E%3Ctext x='50%25' y='50%25' font-size='24' text-anchor='middle' dy='.3em' fill='%23999'%3EImage coming soon%3C/text%3E%3C/svg%3E";
   const images = property?.images?.length ? property.images : [placeholderImage];
@@ -98,6 +261,153 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
     "Full property:", property
   )
 
+  // Handle booking submission
+  const handleBooking = async () => {
+    if (!checkIn || !checkOut) {
+      toast.error('Please select check-in and check-out dates');
+      return;
+    }
+
+    if (checkIn >= checkOut) {
+      toast.error('Check-out date must be after check-in date');
+      return;
+    }
+
+    // If not authenticated, validate guest details
+    if (!isAuthenticated) {
+      if (!guestName.trim()) {
+        toast.error('Please enter your name');
+        return;
+      }
+      if (!guestEmail.trim()) {
+        toast.error('Please enter your email');
+        return;
+      }
+      // Simple email validation
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+        toast.error('Please enter a valid email address');
+        return;
+      }
+      if (!guestPhone.trim()) {
+        toast.error('Please enter your phone number');
+        return;
+      }
+    }
+
+    setIsBooking(true);
+    try {
+      if (isAuthenticated) {
+        // Authenticated user booking
+        await bookingService.createBooking({
+          listing_id: property.id,
+          check_in_date: format(checkIn, 'yyyy-MM-dd'),
+          check_out_date: format(checkOut, 'yyyy-MM-dd'),
+          guest_count: guests,
+          special_requests: specialRequests || undefined,
+        });
+      } else {
+        // Guest booking
+        await bookingService.createGuestBooking({
+          listing_id: property.id,
+          check_in_date: format(checkIn, 'yyyy-MM-dd'),
+          check_out_date: format(checkOut, 'yyyy-MM-dd'),
+          guest_count: guests,
+          guest_name: guestName.trim(),
+          guest_email: guestEmail.trim(),
+          guest_phone: guestPhone.trim(),
+          special_requests: specialRequests || undefined,
+        });
+      }
+
+      setBookingSuccess(true);
+      toast.success('Booking request submitted successfully! You will receive a confirmation email shortly.');
+      
+      // Reset form after success
+      setTimeout(() => {
+        setBookingSuccess(false);
+        setSpecialRequests('');
+        setGuestName('');
+        setGuestEmail('');
+        setGuestPhone('');
+        setBookingMode('choose');
+      }, 3000);
+    } catch (error: any) {
+      console.error('Booking error:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to submit booking. Please try again.';
+      toast.error(errorMessage);
+    } finally {
+      setIsBooking(false);
+    }
+  };
+
+  // Handle review submission
+  const handleReviewSubmit = async () => {
+    if (!reviewComment.trim()) {
+      toast.error('Please write a review comment');
+      return;
+    }
+
+    if (reviewComment.trim().length < 10) {
+      toast.error('Review must be at least 10 characters long');
+      return;
+    }
+
+    if (reviewRating < 1 || reviewRating > 5) {
+      toast.error('Please select a rating between 1 and 5');
+      return;
+    }
+
+    // Validate guest info if not authenticated
+    if (!isAuthenticated) {
+      if (!reviewGuestName.trim()) {
+        toast.error('Please enter your name');
+        return;
+      }
+      if (!reviewGuestEmail.trim()) {
+        toast.error('Please enter your email');
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reviewGuestEmail)) {
+        toast.error('Please enter a valid email address');
+        return;
+      }
+    }
+
+    setIsSubmittingReview(true);
+    try {
+      if (isAuthenticated) {
+        // Authenticated user review
+        await reviewService.createReview({
+          listing_id: property.id,
+          rating: reviewRating,
+          comment: reviewComment.trim(),
+        });
+      } else {
+        // Guest review
+        await reviewService.createGuestReview({
+          listing_id: property.id,
+          rating: reviewRating,
+          comment: reviewComment.trim(),
+          guest_name: reviewGuestName.trim(),
+          guest_email: reviewGuestEmail.trim(),
+        });
+      }
+
+      toast.success('Review submitted successfully! It will be visible after admin approval.');
+      setShowReviewDialog(false);
+      setReviewRating(5);
+      setReviewComment('');
+      setReviewGuestName('');
+      setReviewGuestEmail('');
+    } catch (error: any) {
+      console.error('Review error:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to submit review. Please try again.';
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
   return (
     <>
       {/* Header */}
@@ -139,7 +449,8 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsFavorite(!isFavorite)}
+              onClick={handleToggleSave}
+              disabled={isSavingFavorite}
               className={isFavorite ? 'text-red-500 border-red-200' : ''}
             >
               <Heart className={`w-4 h-4 mr-2 ${isFavorite ? 'fill-current' : ''}`} />
@@ -752,26 +1063,169 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
             </TabsContent>
             
             <TabsContent value="reviews">
-              <PropertyReviews
-                reviews={reviews.map(review => ({
-                  id: review.id.toString(),
-                  user: {
-                    name: review.user,
-                    avatar: review.avatar,
-                    verified: true,
-                  },
-                  rating: review.rating,
-                  date: review.date,
-                  comment: {
-                    en: review.comment,
-                    fr: review.comment,
-                  },
-                  helpful: Math.floor(Math.random() * 20),
-                }))}
-                language={language}
-                propertyRating={property.rating || 0}
-                totalReviews={property.reviews || 0}
-              />
+              {/* Write Review Button */}
+              <div className="mb-6 flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-semibold">Customer Reviews</h3>
+                  <p className="text-sm text-gray-600">
+                    {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'} • {averageRating.toFixed(1)} average rating
+                  </p>
+                </div>
+                <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-plp-purple hover:bg-plp-purple/90">
+                      <Send className="w-4 h-4 mr-2" />
+                      Write a Review
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Write a Review</DialogTitle>
+                      <DialogDescription>
+                        Share your experience with this property. Your review will be visible after admin approval.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      {/* Guest Info (only for non-authenticated users) */}
+                      {!isAuthenticated && !checkingAuth && (
+                        <div className="space-y-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <p className="text-sm font-medium text-gray-700">Your Information</p>
+                          <div>
+                            <Label htmlFor="review-guest-name" className="text-xs font-medium">Name *</Label>
+                            <Input
+                              id="review-guest-name"
+                              type="text"
+                              placeholder="Your name"
+                              value={reviewGuestName}
+                              onChange={(e) => setReviewGuestName(e.target.value)}
+                              className="mt-1 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="review-guest-email" className="text-xs font-medium">Email *</Label>
+                            <Input
+                              id="review-guest-email"
+                              type="email"
+                              placeholder="your@email.com"
+                              value={reviewGuestEmail}
+                              onChange={(e) => setReviewGuestEmail(e.target.value)}
+                              className="mt-1 text-sm"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Star Rating */}
+                      <div>
+                        <Label className="text-sm font-medium">Your Rating</Label>
+                        <div className="flex gap-1 mt-2">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => setReviewRating(star)}
+                              className="focus:outline-none"
+                            >
+                              <Star
+                                className={`w-8 h-8 transition-colors ${
+                                  star <= reviewRating
+                                    ? 'text-yellow-400 fill-yellow-400'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {reviewRating === 5 ? 'Excellent' : reviewRating === 4 ? 'Very Good' : reviewRating === 3 ? 'Good' : reviewRating === 2 ? 'Fair' : 'Poor'}
+                        </p>
+                      </div>
+                      
+                      {/* Review Comment */}
+                      <div>
+                        <Label htmlFor="review-comment" className="text-sm font-medium">Your Review</Label>
+                        <Textarea
+                          id="review-comment"
+                          placeholder="Tell us about your experience with this property (minimum 10 characters)..."
+                          value={reviewComment}
+                          onChange={(e) => setReviewComment(e.target.value)}
+                          className="mt-2 min-h-[120px]"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">{reviewComment.length} / 10 minimum characters</p>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setShowReviewDialog(false)}>
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleReviewSubmit}
+                        disabled={
+                          isSubmittingReview || 
+                          !reviewComment.trim() || 
+                          reviewComment.trim().length < 10 ||
+                          (!isAuthenticated && (!reviewGuestName.trim() || !reviewGuestEmail.trim()))
+                        }
+                        className="bg-plp-purple hover:bg-plp-purple/90"
+                      >
+                        {isSubmittingReview ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Submitting...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 mr-2" />
+                            Submit Review
+                          </>
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {/* Reviews Loading State */}
+              {reviewsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-plp-purple" />
+                  <span className="ml-2 text-gray-600">Loading reviews...</span>
+                </div>
+              ) : reviews.length === 0 ? (
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                  <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <h4 className="text-lg font-medium text-gray-900 mb-1">No reviews yet</h4>
+                  <p className="text-gray-600 mb-4">Be the first to share your experience!</p>
+                  <Button 
+                    onClick={() => setShowReviewDialog(true)}
+                    className="bg-plp-purple hover:bg-plp-purple/90"
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    Write a Review
+                  </Button>
+                </div>
+              ) : (
+                <PropertyReviews
+                  reviews={reviews.map(review => ({
+                    id: review.id.toString(),
+                    user: {
+                      name: review.user?.name || review.guest_name || 'Anonymous',
+                      avatar: review.user?.avatar || '',
+                      verified: !review.is_guest_review,
+                    },
+                    rating: review.rating,
+                    date: review.created_at,
+                    comment: {
+                      en: review.comment,
+                      fr: review.comment,
+                    },
+                    helpful: Math.floor(Math.random() * 20),
+                  }))}
+                  language={language}
+                  propertyRating={averageRating}
+                  totalReviews={totalReviews}
+                />
+              )}
             </TabsContent>
           </Tabs>
         </div>
@@ -822,23 +1276,49 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label htmlFor="checkin" className="text-xs font-medium">Check-in</Label>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start text-left font-normal text-sm mt-1"
-                        >
-                          <CalendarIcon className="mr-2 h-3 w-3" />
-                          {checkIn ? checkIn.toLocaleDateString() : 'Select'}
-                        </Button>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left font-normal text-sm mt-1"
+                            >
+                              <CalendarIcon className="mr-2 h-3 w-3" />
+                              {checkIn ? format(checkIn, 'MMM dd, yyyy') : 'Select'}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={checkIn}
+                              onSelect={setCheckIn}
+                              disabled={(date) => date < new Date()}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                       <div>
                         <Label htmlFor="checkout" className="text-xs font-medium">Check-out</Label>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start text-left font-normal text-sm mt-1"
-                        >
-                          <CalendarIcon className="mr-2 h-3 w-3" />
-                          {checkOut ? checkOut.toLocaleDateString() : 'Select'}
-                        </Button>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left font-normal text-sm mt-1"
+                            >
+                              <CalendarIcon className="mr-2 h-3 w-3" />
+                              {checkOut ? format(checkOut, 'MMM dd, yyyy') : 'Select'}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={checkOut}
+                              onSelect={setCheckOut}
+                              disabled={(date) => date <= (checkIn || new Date())}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
                     
@@ -882,10 +1362,159 @@ export function PropertyDetailsClient({ property, similarProperties, reviews, la
                       </div>
                     </div>
                   )}
+
+                  {/* Special Requests */}
+                  <div>
+                    <Label htmlFor="special-requests" className="text-xs font-medium">Special Requests (optional)</Label>
+                    <Textarea
+                      id="special-requests"
+                      placeholder="Any special requirements or preferences..."
+                      value={specialRequests}
+                      onChange={(e) => setSpecialRequests(e.target.value)}
+                      className="mt-1 text-sm min-h-[80px]"
+                    />
+                  </div>
+
+                  {/* Guest/User Booking Choice */}
+                  {!isAuthenticated && !checkingAuth && (
+                    <div className="space-y-3">
+                      {bookingMode === 'choose' && (
+                        <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                          <h4 className="font-semibold text-gray-900 mb-3">How would you like to book?</h4>
+                          <div className="space-y-2">
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left h-auto py-3"
+                              onClick={() => setBookingMode('guest')}
+                            >
+                              <div>
+                                <p className="font-medium">Continue as Guest</p>
+                                <p className="text-xs text-gray-500">Book without creating an account</p>
+                              </div>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left h-auto py-3"
+                              onClick={() => {
+                                // Redirect to login page
+                                window.location.href = `/${language}/auth/signin?redirect=${encodeURIComponent(window.location.pathname)}`;
+                              }}
+                            >
+                              <div>
+                                <p className="font-medium">Login / Register</p>
+                                <p className="text-xs text-gray-500">Sign in to track your bookings</p>
+                              </div>
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {bookingMode === 'guest' && (
+                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-gray-900">Your Details</h4>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs text-blue-600 h-auto p-0"
+                              onClick={() => setBookingMode('choose')}
+                            >
+                              Change
+                            </Button>
+                          </div>
+                          <div className="space-y-2">
+                            <div>
+                              <Label htmlFor="guest-name" className="text-xs font-medium">Full Name *</Label>
+                              <Input
+                                id="guest-name"
+                                type="text"
+                                placeholder="John Doe"
+                                value={guestName}
+                                onChange={(e) => setGuestName(e.target.value)}
+                                className="mt-1 text-sm"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="guest-email" className="text-xs font-medium">Email Address *</Label>
+                              <Input
+                                id="guest-email"
+                                type="email"
+                                placeholder="john@example.com"
+                                value={guestEmail}
+                                onChange={(e) => setGuestEmail(e.target.value)}
+                                className="mt-1 text-sm"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="guest-phone" className="text-xs font-medium">Phone Number *</Label>
+                              <Input
+                                id="guest-phone"
+                                type="tel"
+                                placeholder="+237 6XX XXX XXX"
+                                value={guestPhone}
+                                onChange={(e) => setGuestPhone(e.target.value)}
+                                className="mt-1 text-sm"
+                              />
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            Confirmation will be sent to your email
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Authenticated user indicator */}
+                  {isAuthenticated && (
+                    <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                      <p className="text-sm text-green-800 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" />
+                        Booking as registered user
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Booking Success Message */}
+                  {bookingSuccess && (
+                    <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-800">
+                      <CheckCircle className="w-5 h-5" />
+                      <span className="text-sm font-medium">Booking submitted successfully!</span>
+                    </div>
+                  )}
                   
-                  <Button className="w-full bg-plp-purple hover:bg-plp-purple/90 h-11 font-semibold text-base">
-                    <CalendarIcon className="w-4 h-4 mr-2" />
-                    Book Now
+                  <Button 
+                    className="w-full bg-plp-purple hover:bg-plp-purple/90 h-11 font-semibold text-base"
+                    onClick={handleBooking}
+                    disabled={
+                      isBooking || 
+                      !checkIn || 
+                      !checkOut || 
+                      checkingAuth ||
+                      (!isAuthenticated && bookingMode === 'choose')
+                    }
+                  >
+                    {isBooking ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : checkingAuth ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Checking...
+                      </>
+                    ) : !isAuthenticated && bookingMode === 'choose' ? (
+                      <>
+                        <CalendarIcon className="w-4 h-4 mr-2" />
+                        Select Booking Method
+                      </>
+                    ) : (
+                      <>
+                        <CalendarIcon className="w-4 h-4 mr-2" />
+                        {isAuthenticated ? 'Book Now' : 'Book as Guest'}
+                      </>
+                    )}
                   </Button>
                 </>
               )}

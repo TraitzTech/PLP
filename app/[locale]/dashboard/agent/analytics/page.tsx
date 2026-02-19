@@ -93,7 +93,7 @@ export default function AgentAnalyticsPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Revenus Totaux</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(totalRevenue).replace('XAF', '').trim()}
+                    {formatCurrency(totalRevenue)}
                   </p>
                   <div className="flex items-center text-green-600 text-sm mt-1">
                     <TrendingUp className="w-4 h-4 mr-1" />
@@ -111,7 +111,7 @@ export default function AgentAnalyticsPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Commissions</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(totalCommission).replace('XAF', '').trim()}
+                    {formatCurrency(totalCommission)}
                   </p>
                   <div className="flex items-center text-green-600 text-sm mt-1">
                     <TrendingUp className="w-4 h-4 mr-1" />

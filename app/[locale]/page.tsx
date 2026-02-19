@@ -7,6 +7,7 @@ import { PropertyCategories } from '@/components/properties/property-categories'
 import { StatsSection } from '@/components/sections/stats-section';
 import { NewsletterSection } from '@/components/sections/newsletter-section';
 import { Footer } from '@/components/navigation/footer';
+import { NewsletterPopup } from '@/components/ui/newsletter-popup';
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
       <StatsSection />
       <NewsletterSection />
       <Footer />
+      <NewsletterPopup delay={5000} />
     </main>
   );
 }

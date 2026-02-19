@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { authService } from "@/services/authService";
+import { AuthGuard } from '@/components/auth/auth-guard';
 
 type ValidationErrors = {
     email?: string;
@@ -23,6 +24,7 @@ export function SignInClient() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const userType = searchParams?.get('type') || 'customer';
+    const redirectUrl = searchParams?.get('redirect');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<ValidationErrors>({});
@@ -44,6 +46,12 @@ export function SignInClient() {
             await authService.login(formData);
 
             toast.success('Welcome back!');
+
+            // Check for redirect URL first
+            if (redirectUrl) {
+                router.push(redirectUrl);
+                return;
+            }
 
             // Redirect based on user type
             switch (userType) {
@@ -86,6 +94,7 @@ export function SignInClient() {
     };
 
     return (
+        <AuthGuard redirectAuthenticated>
         <div className="min-h-screen bg-gradient-to-br from-plp-purple/5 via-white to-plp-pink/5 flex flex-col">
             {/* Header */}
             <header className="border-b bg-white/50 backdrop-blur-sm sticky top-0 z-40">
@@ -271,5 +280,6 @@ export function SignInClient() {
                 </div>
             </div>
         </div>
+        </AuthGuard>
     );
 }

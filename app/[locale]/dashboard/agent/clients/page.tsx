@@ -173,7 +173,7 @@ export default function AgentClientsPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Revenus Clients</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(totalRevenue).replace('XAF', '').trim()}
+                    {formatCurrency(totalRevenue)}
                   </p>
                 </div>
                 <Star className="w-8 h-8 text-plp-yellow" />
@@ -186,7 +186,7 @@ export default function AgentClientsPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Dépense Moyenne</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(averageSpending).replace('XAF', '').trim()}
+                    {formatCurrency(averageSpending)}
                   </p>
                 </div>
                 <Calendar className="w-8 h-8 text-green-500" />
@@ -281,7 +281,7 @@ export default function AgentClientsPage() {
                       </div>
                       <div className="text-center">
                         <p className="font-semibold text-gray-900">
-                          {formatCurrency(client.totalSpent).replace('XAF', '').trim()}
+                          {formatCurrency(client.totalSpent)}
                         </p>
                         <p className="text-gray-600">Dépensé</p>
                       </div>

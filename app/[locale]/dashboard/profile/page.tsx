@@ -193,7 +193,7 @@ export default function ProfilePage() {
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-plp-yellow">{formatCurrency(userProfile.stats.totalSpent).replace('XAF', '').trim()}</div>
+              <div className="text-2xl font-bold text-plp-yellow">{formatCurrency(userProfile.stats.totalSpent)}</div>
               <div className="text-sm text-gray-600">Total Spent (XAF)</div>
             </CardContent>
           </Card>

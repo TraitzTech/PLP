@@ -37,6 +37,7 @@ export interface User {
   phone: string;
   gender: UserGender;
   user_type: UserType;
+  avatar?: string | null;
   email_verified_at: string | null;
   created_at: string;
   updated_at: string;
@@ -297,6 +298,8 @@ export interface Listing {
   images?: ListingImage[];
   videos?: ListingVideo[];
   property_type?: PropertyType;
+  is_saved?: boolean;
+  saved_at?: string | null;
 }
 export type ListingCreateRequest = {
   title: string;
@@ -446,6 +449,8 @@ export interface AdminProperty {
   has_pool?: boolean | null;
   
   videos?: ListingVideo[];
+  is_saved?: boolean;
+  saved_at?: string | null;
 }
 
 export interface PaginatedProperties {

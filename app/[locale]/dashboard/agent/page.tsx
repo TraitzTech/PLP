@@ -198,7 +198,7 @@ export default function AgentDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(agentStats.monthlyRevenue).replace('XAF', '').trim()}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(agentStats.monthlyRevenue)}</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-plp-yellow" />
               </div>
@@ -326,7 +326,7 @@ export default function AgentDashboard() {
                         </Badge>
                       </div>
                       <p className="text-xs text-gray-600 mb-2">{property.location}</p>
-                      <p className="text-sm font-semibold text-plp-purple">{formatCurrency(Number(property.price)).replace('XAF', '').trim()}</p>
+                      <p className="text-sm font-semibold text-plp-purple">{formatCurrency(Number(property.price))}</p>
                     </div>
                   ))}
                 </div>
@@ -416,7 +416,7 @@ export default function AgentDashboard() {
                     </div>
                     <p className="text-xs text-gray-600 mb-2 line-clamp-1">{property.location}, {property.city}</p>
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-plp-purple">{formatCurrency(Number(property.price)).replace('XAF', '').trim()}</p>
+                      <p className="text-sm font-semibold text-plp-purple">{formatCurrency(Number(property.price))}</p>
                       <Badge variant={property.is_approved ? "default" : "secondary"} className="text-xs">
                         {property.is_approved ? 'OK' : 'Pending'}
                       </Badge>

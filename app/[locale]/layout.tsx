@@ -32,6 +32,7 @@ export const metadata: Metadata = {
 };
 
 import { SupportWidget } from '@/components/support/SupportWidget';
+import { PushNotificationProvider } from '@/components/push-notification-provider';
 
 export default async function RootLayout({
                                              children,
@@ -54,7 +55,9 @@ export default async function RootLayout({
             disableTransitionOnChange
         >
             <TranslationProvider messages={messages}>
-                {children}
+                <PushNotificationProvider>
+                    {children}
+                </PushNotificationProvider>
                 <SupportWidget />
             </TranslationProvider>
             <Toaster />

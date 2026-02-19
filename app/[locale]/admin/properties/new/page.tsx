@@ -979,7 +979,7 @@ export default function AdminCreatePropertyPage() {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Price</p>
-                  <p className="font-medium">${formData.price.toFixed(2)}</p>
+                  <p className="font-medium">{new Intl.NumberFormat('fr-CM', { style: 'currency', currency: 'XAF', minimumFractionDigits: 0 }).format(formData.price)}</p>
                 </div>
               </CardContent>
             </Card>

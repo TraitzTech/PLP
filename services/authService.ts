@@ -98,8 +98,11 @@ export const authService = {
 
     async getCurrentUser(): Promise<User | null> {
         try {
-            const { data } = await apiClient.get<User>("/user");
-            return data;
+            const { data } = await apiClient.get<{ data?: User } | User>("/user");
+            if (data && typeof data === 'object' && 'data' in data && data.data) {
+                return data.data as User;
+            }
+            return data as User;
         } catch (error) {
             return null;
         }

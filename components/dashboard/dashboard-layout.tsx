@@ -18,6 +18,7 @@ import { Chrome as Home, Calendar, Heart, MessageSquare, Settings, User, LogOut,
 import { FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { authService } from '@/services/authService';
+import { NotificationDropdown } from './notification-dropdown';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -29,6 +30,7 @@ const customerNavItems = [
     { name: 'My Bookings', href: '/dashboard/bookings', icon: Calendar },
     { name: 'Saved Properties', href: '/dashboard/saved', icon: Heart },
     { name: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
+    { name: 'Notifications', href: '/dashboard/notifications', icon: Bell },
     { name: 'Profile', href: '/dashboard/profile', icon: User },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
@@ -40,6 +42,7 @@ const ownerNavItems = [
     { name: 'Bookings', href: '/dashboard/owner/bookings', icon: Calendar },
     { name: 'Analytics', href: '/dashboard/owner/analytics', icon: BarChart3 },
     { name: 'Messages', href: '/dashboard/owner/messages', icon: MessageSquare },
+    { name: 'Notifications', href: '/dashboard/owner/notifications', icon: Bell },
     { name: 'Profile', href: '/dashboard/owner/profile', icon: User },
     { name: 'Settings', href: '/dashboard/owner/settings', icon: Settings },
 ];
@@ -58,6 +61,7 @@ const agentNavItems = [
     { name: 'Clients', href: '/dashboard/agent/clients', icon: Users },
     { name: 'Analytics', href: '/dashboard/agent/analytics', icon: BarChart3 },
     { name: 'Messages', href: '/dashboard/agent/messages', icon: MessageSquare },
+    { name: 'Notifications', href: '/dashboard/agent/notifications', icon: Bell },
     { name: 'Subscription', href: '/dashboard/agent/subscription', icon: Star },
     { name: 'Profile', href: '/dashboard/agent/profile', icon: User },
     { name: 'Settings', href: '/dashboard/agent/settings', icon: Settings },
@@ -84,6 +88,9 @@ const adminNavItems = [
         ]
     },
     { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
+    { name: 'Messages', href: '/admin/messages', icon: MessageSquare },
+    { name: 'Reviews', href: '/admin/reviews', icon: Star },
+    { name: 'Notifications', href: '/admin/notifications', icon: Bell },
     { name: 'Blog', href: '/admin/blog', icon: FileText },
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: Star },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
@@ -93,34 +100,65 @@ const adminNavItems = [
 export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState<any>(null);
+    const [isAuthorized, setIsAuthorized] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
 
     useEffect(() => {
         const checkAuth = async () => {
             try {
+                const segments = pathname.split('/').filter(Boolean);
+                const locale = segments[0] || 'en';
+                
                 const isAuthed = await authService.isAuthenticated();
                 if (!isAuthed) {
-                    const segments = pathname.split('/').filter(Boolean);
-                    const locale = segments[0] || 'en';
-                    router.replace(`/${locale}`);
-                } else {
-                    // Fetch current user details
-                    const res = await authService.getCurrentUser?.();
+                    router.replace(`/${locale}/auth/signin?redirect=${encodeURIComponent(pathname)}`);
+                    return;
+                }
+                
+                // Fetch current user details
+                const user = await authService.getCurrentUser?.();
 
-                    if (res?.data) {
-                        setCurrentUser(res.data);
+                if (user) {
+                    setCurrentUser(user);
+                    
+                    // Check role-based access
+                    const actualUserType = user.user_type;
+                    
+                    // Map expected userType to actual user_type values
+                    const expectedUserTypes: Record<string, string[]> = {
+                        'admin': ['admin'],
+                        'agent': ['agent'],
+                        'customer': ['customer'],
+                        'owner': ['customer', 'agent'] // owners can be customers or agents
+                    };
+                    
+                    const allowedTypes = expectedUserTypes[userType] || [];
+                    
+                    if (!actualUserType || !allowedTypes.includes(actualUserType)) {
+                        // Redirect to the user's appropriate dashboard
+                        if (actualUserType === 'admin') {
+                            router.replace(`/${locale}/admin`);
+                        } else if (actualUserType === 'agent') {
+                            router.replace(`/${locale}/dashboard/agent`);
+                        } else {
+                            router.replace(`/${locale}/dashboard`);
+                        }
+                        return;
                     }
-
+                    
+                    setIsAuthorized(true);
+                } else {
+                    router.replace(`/${locale}/auth/signin`);
                 }
             } catch (e) {
                 const segments = pathname.split('/').filter(Boolean);
                 const locale = segments[0] || 'en';
-                router.replace(`/${locale}`);
+                router.replace(`/${locale}/auth/signin`);
             }
         };
         checkAuth();
-    }, [pathname]);
+    }, [pathname, userType, router]);
 
     const navItems = userType === 'customer' ? customerNavItems :
         userType === 'owner' ? ownerNavItems :
@@ -141,7 +179,7 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
             case 'customer': return '/dashboard/profile';
             case 'owner': return '/dashboard/owner/profile';
             case 'agent': return '/dashboard/agent/profile';
-            case 'admin': return '/admin/profile';
+            case 'admin': return '/admin/settings';
             default: return '/dashboard/profile';
         }
     };
@@ -176,6 +214,18 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
             .toUpperCase()
             .slice(0, 2);
     };
+
+    // Show loading while checking authorization
+    if (!isAuthorized) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-10 h-10 border-4 border-plp-purple border-t-transparent rounded-full animate-spin" />
+                    <p className="text-gray-600">Verifying access...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -363,14 +413,7 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <Button variant="ghost" size="sm" className="relative" asChild>
-                                <Link href={userType === 'customer' ? '/dashboard/notifications' :
-                                    userType === 'owner' ? '/dashboard/owner/notifications' :
-                                        userType === 'agent' ? '/dashboard/agent/notifications' : '/admin/notifications'}>
-                                    <Bell className="w-4 h-4" />
-                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                                </Link>
-                            </Button>
+                            <NotificationDropdown userType={userType} />
 
                             <Link href="/">
                                 <Button variant="outline" size="sm">

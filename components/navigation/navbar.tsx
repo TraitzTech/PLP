@@ -21,6 +21,7 @@ import {toast} from "sonner";
 import { useTranslations } from '@/components/translation-provider';
 import { propertyTypeService } from '@/services/propertyTypeService';
 import type { PropertyType } from '@/services/types';
+import type { User } from '@/services/types';
 
 interface StaticNavItem {
     nameKey: string;
@@ -40,6 +41,7 @@ export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
     const [isLoadingTypes, setIsLoadingTypes] = useState(true);
     const [mounted, setMounted] = useState(false);
@@ -47,12 +49,53 @@ export function Navbar() {
     const router = useRouter();
     const t = useTranslations();
 
+    const getRoutesByUserType = (userType?: User['user_type']) => {
+        if (userType === 'admin') {
+            return {
+                dashboard: '/admin',
+                profile: '/admin/settings',
+                saved: '/admin/properties',
+                messages: '/admin/notifications',
+                settings: '/admin/settings',
+                listProperty: '/admin/properties/new',
+            };
+        }
+
+        if (userType === 'agent') {
+            return {
+                dashboard: '/dashboard/agent',
+                profile: '/dashboard/agent/profile',
+                saved: '/dashboard/agent/properties',
+                messages: '/dashboard/agent/messages',
+                settings: '/dashboard/agent/settings',
+                listProperty: '/dashboard/agent/properties/new',
+            };
+        }
+
+        return {
+            dashboard: '/dashboard',
+            profile: '/dashboard/profile',
+            saved: '/dashboard/saved',
+            messages: '/dashboard/messages',
+            settings: '/dashboard/settings',
+            listProperty: '/dashboard/agent/properties/new',
+        };
+    };
+
+    const accountRoutes = getRoutesByUserType(currentUser?.user_type);
+
     // Check authentication status on mount and set up listener
     useEffect(() => {
         setMounted(true);
         const checkAuth = async () => {
             const authenticated = await authService.isAuthenticated();
             setIsAuthenticated(authenticated);
+            if (authenticated) {
+                const user = await authService.getCurrentUser();
+                setCurrentUser(user);
+            } else {
+                setCurrentUser(null);
+            }
         };
 
         checkAuth();
@@ -101,6 +144,7 @@ export function Navbar() {
         try {
             await authService.logout();
             setIsAuthenticated(false); // Update state immediately
+            setCurrentUser(null);
             toast.success(t('auth.loggedOut', 'Logged out successfully.'));
             router.push('/');
             // No need for window.location.reload() anymore
@@ -116,8 +160,14 @@ export function Navbar() {
             router.push('/auth/signin?type=agent');
             return;
         }
-        // If you need user type check, you'll need to add getCurrentUser to authService
-        router.push('/dashboard/agent/properties/create');
+
+        if (currentUser?.user_type === 'customer') {
+            toast.error('Only agent or admin accounts can list properties');
+            router.push('/auth/signin?type=agent');
+            return;
+        }
+
+        router.push(accountRoutes.listProperty);
     };
 
     return (
@@ -223,25 +273,33 @@ export function Navbar() {
                                         <DropdownMenuLabel>{t('nav.myAccount','My Account')}</DropdownMenuLabel>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem asChild>
-                                            <Link href="/dashboard/profile" className="flex items-center">
+                                            <Link href={accountRoutes.dashboard} className="flex items-center">
+                                                <Home className="w-4 h-4 mr-2" />
+                                                {t('nav.dashboard','Dashboard')}
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href={accountRoutes.profile} className="flex items-center">
                                                 <User className="w-4 h-4 mr-2" />
                                                 {t('nav.profile','Profile')}
                                             </Link>
                                         </DropdownMenuItem>
+                                        {currentUser?.user_type === 'customer' && (
+                                            <DropdownMenuItem asChild>
+                                                <Link href={accountRoutes.saved} className="flex items-center">
+                                                    <Heart className="w-4 h-4 mr-2" />
+                                                    {t('nav.saved','Saved Properties')}
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        )}
                                         <DropdownMenuItem asChild>
-                                            <Link href="/dashboard/saved" className="flex items-center">
-                                                <Heart className="w-4 h-4 mr-2" />
-                                                {t('nav.saved','Saved Properties')}
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/dashboard/messages" className="flex items-center">
+                                            <Link href={accountRoutes.messages} className="flex items-center">
                                                 <MessageSquare className="w-4 h-4 mr-2" />
                                                 {t('nav.messages','Messages')}
                                             </Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
-                                            <Link href="/dashboard/settings" className="flex items-center">
+                                            <Link href={accountRoutes.settings} className="flex items-center">
                                                 <Settings className="w-4 h-4 mr-2" />
                                                 {t('nav.settings','Settings')}
                                             </Link>
@@ -380,30 +438,32 @@ export function Navbar() {
                                             asChild
                                             onClick={() => setIsOpen(false)}
                                         >
-                                            <Link href="/dashboard">
+                                            <Link href={accountRoutes.dashboard}>
                                                 <User className="w-4 h-4 mr-2" />
                                                 {t('nav.dashboard','Dashboard')}
                                             </Link>
                                         </Button>
                                         <div className="border-t pt-2 mt-2">
                                             <Link
-                                                href="/dashboard/profile"
+                                                href={accountRoutes.profile}
                                                 className="flex items-center px-3 py-2 text-gray-700 hover:text-plp-purple"
                                                 onClick={() => setIsOpen(false)}
                                             >
                                                 <User className="w-4 h-4 mr-2" />
                                                 {t('nav.profile','Profile')}
                                             </Link>
+                                            {currentUser?.user_type === 'customer' && (
+                                                <Link
+                                                    href={accountRoutes.saved}
+                                                    className="flex items-center px-3 py-2 text-gray-700 hover:text-plp-purple"
+                                                    onClick={() => setIsOpen(false)}
+                                                >
+                                                    <Heart className="w-4 h-4 mr-2" />
+                                                    {t('nav.saved','Saved Properties')}
+                                                </Link>
+                                            )}
                                             <Link
-                                                href="/dashboard/saved"
-                                                className="flex items-center px-3 py-2 text-gray-700 hover:text-plp-purple"
-                                                onClick={() => setIsOpen(false)}
-                                            >
-                                                <Heart className="w-4 h-4 mr-2" />
-                                                {t('nav.saved','Saved Properties')}
-                                            </Link>
-                                            <Link
-                                                href="/dashboard/messages"
+                                                href={accountRoutes.messages}
                                                 className="flex items-center px-3 py-2 text-gray-700 hover:text-plp-purple"
                                                 onClick={() => setIsOpen(false)}
                                             >

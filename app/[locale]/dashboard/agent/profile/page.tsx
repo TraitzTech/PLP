@@ -241,7 +241,7 @@ export default function AgentProfilePage() {
           <Card className="lg:col-span-2">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-plp-yellow">
-                {formatCurrency(agentProfile.stats.totalCommission).replace('XAF', '').trim()}
+                {formatCurrency(agentProfile.stats.totalCommission)}
               </div>
               <div className="text-sm text-gray-600">Commissions (XAF)</div>
             </CardContent>

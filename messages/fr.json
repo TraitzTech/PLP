@@ -28,12 +28,23 @@
     "description": "Le pont de confiance pour une inscription, réservation et découverte de propriétés sans faille. Trouvez votre séjour parfait des hôtels de luxe aux maisons de rêve."
   },
   "search": {
-    "locationPlaceholder": "Où allez-vous?",
+    "locationPlaceholder": "Ville, région ou quartier...",
+    "location": "Localisation",
     "checkin": "Arrivée",
     "checkout": "Départ",
-    "searchButton": "Rechercher",
+    "searchButton": "Rechercher des Propriétés",
     "propertyType": "Type de Propriété",
+    "selectPropertyType": "Que recherchez-vous?",
+    "forRent": "À Louer",
+    "forSale": "À Vendre",
+    "priceRange": "Gamme de Prix",
+    "anyPrice": "Tout Prix",
+    "popular": "Populaire:",
     "guests": "Invités",
+    "price": {
+      "budget": "Moins de 50 000 $",
+      "luxury": "1M$+"
+    },
     "types": {
       "hotels": "Hôtels",
       "houses": "Maisons",

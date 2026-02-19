@@ -14,6 +14,7 @@ import { MapPin, Filter, Grid3x3 as Grid3X3, Map, ChevronLeft, ChevronRight, X }
 import { publicPropertyService } from '@/services/publicPropertyService';
 import { listingImageService } from '@/services/listingImageService';
 import { propertyTypeService } from '@/services/propertyTypeService';
+import { SearchMap } from '@/components/search/search-map';
 import type { AdminProperty, PropertyType } from '@/services/types';
 
 // Helper function to get image URL
@@ -49,9 +50,9 @@ export function SearchClient() {
   
   const [filters, setFilters] = useState({
     type: searchParams?.get('type') || '',
-    location: '',
-    priceRangeMin: '0',
-    priceRangeMax: '1000000000000',
+    location: searchParams?.get('location') || '',
+    priceRangeMin: searchParams?.get('priceMin') || '0',
+    priceRangeMax: searchParams?.get('priceMax') || '1000000000000',
     bedrooms: '',
     bathrooms: '',
     facilities: [] as string[],
@@ -148,6 +149,17 @@ export function SearchClient() {
       filtered = filtered.filter(property => property.for_rent === true);
     } else if (filters.purpose === 'purchase') {
       filtered = filtered.filter(property => property.for_purchase === true);
+    }
+
+    // Filter by location (searches city, region, neighborhood, address)
+    if (filters.location) {
+      const locationLower = filters.location.toLowerCase();
+      filtered = filtered.filter(property =>
+        property.city?.toLowerCase().includes(locationLower) ||
+        property.region?.toLowerCase().includes(locationLower) ||
+        (property as any).neighborhood?.toLowerCase().includes(locationLower) ||
+        property.address?.toLowerCase().includes(locationLower)
+      );
     }
 
     // Filter by region/location
@@ -491,13 +503,10 @@ export function SearchClient() {
               </>
             ) : (
               /* Map View */
-              <div className="bg-white rounded-lg border h-[600px] flex items-center justify-center">
-                <div className="text-center">
-                  <Map className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Map View</h3>
-                  <p className="text-gray-600">Interactive map coming soon</p>
-                </div>
-              </div>
+              <SearchMap 
+                properties={filteredProperties}
+                height="600px"
+              />
             )}
           </div>
         </div>

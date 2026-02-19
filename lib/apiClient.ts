@@ -1,8 +1,10 @@
 import axios, { AxiosError } from "axios";
 import { getToken, clearToken } from "@/lib/authToken";
 
+const resolvedBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+
 const apiClient = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    baseURL: resolvedBaseUrl,
     headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -44,7 +46,7 @@ export default apiClient;
 
 // Separate client for non-API routes (like Sanctum CSRF)
 export const sanctumClient = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL?.replace('/api', ''), // Remove /api from base URL
+    baseURL: resolvedBaseUrl.replace('/api', ''), // Remove /api from base URL
     headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
