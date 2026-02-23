@@ -22,6 +22,11 @@ export const metadata: Metadata = {
     description: 'Discover, book, and manage properties with ease. The trusted bridge for seamless property listing, booking, and discovery.',
     keywords: 'property, real estate, booking, hotels, houses, land, rental',
     authors: [{ name: 'Property Listing Portal' }],
+    icons: {
+        icon: '/logo-images/PlpLisitng-Fav-Icon-8.png',
+        shortcut: '/logo-images/PlpLisitng-Fav-Icon-8.png',
+        apple: '/logo-images/PlpLisitng-Fav-Icon-8.png',
+    },
     openGraph: {
         title: 'Property Listing Portal',
         description: 'Your Dream Property Awaits',

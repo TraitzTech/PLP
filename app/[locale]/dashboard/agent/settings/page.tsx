@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,26 +11,35 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Bell, Shield, DollarSign, Globe, Camera, Save, Eye, EyeOff, Building2, MessageSquare } from 'lucide-react';
+import { User, Bell, Shield, DollarSign, Globe, Camera, Save, Eye, EyeOff, Building2, MessageSquare, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { profileService } from '@/services/profileService';
 
 export default function AgentSettingsPage() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   
   const [profileData, setProfileData] = useState({
-    firstName: 'Pierre',
-    lastName: 'Mballa',
-    email: 'pierre.mballa@propertyagent.cm',
-    phone: '+237 6XX XXX XXX',
-    bio: 'Agent immobilier professionnel avec plus de 8 ans d\'expérience dans le marché camerounais.',
-    location: 'Yaoundé, Cameroun',
-    company: 'Mballa Properties & Associates',
-    licenseNumber: 'AGENT-CM-2020-1547',
-    language: 'fr',
-    currency: 'XAF',
-    timezone: 'Africa/Douala',
+    name: '',
+    email: '',
+    phone: '',
+    bio: '',
+    company: '',
+    licenseNumber: '',
+    avatar: null as string | null,
+  });
+
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    new_password: '',
+    new_password_confirmation: '',
   });
 
   const [businessSettings, setBusinessSettings] = useState({
@@ -68,8 +77,71 @@ export default function AgentSettingsPage() {
     allowReviews: true,
   });
 
-  const handleSaveProfile = () => {
-    toast.success('Profil mis à jour avec succès!');
+  // Load profile on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const data = await profileService.getProfile();
+        setProfileData({
+          name: data.name || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          bio: data.bio || '',
+          company: data.company || '',
+          licenseNumber: data.license_number || '',
+          avatar: data.avatar,
+        });
+      } catch (err) {
+        toast.error('Failed to load profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfile();
+  }, []);
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Photo must be less than 2MB');
+        return;
+      }
+      setSelectedPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setPhotoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    try {
+      const updated = await profileService.updateProfile({
+        name: profileData.name,
+        phone: profileData.phone,
+        bio: profileData.bio,
+        profile_photo: selectedPhoto || undefined,
+      });
+      setProfileData(prev => ({ ...prev, avatar: updated.avatar }));
+      setSelectedPhoto(null);
+      setPhotoPreview(null);
+      // Update localStorage so sidebar avatar refreshes
+      try {
+        const stored = localStorage.getItem('user');
+        if (stored) {
+          const user = JSON.parse(stored);
+          user.name = updated.name || profileData.name;
+          user.avatar = updated.avatar;
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+      } catch {}
+      toast.success('Profil mis à jour avec succès!');
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSaveBusinessSettings = () => {
@@ -84,8 +156,33 @@ export default function AgentSettingsPage() {
     toast.success('Paramètres de confidentialité mis à jour!');
   };
 
-  const handleChangePassword = () => {
-    toast.success('Mot de passe modifié avec succès!');
+  const handleChangePassword = async () => {
+    if (!passwordData.current_password || !passwordData.new_password) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+    if (passwordData.new_password !== passwordData.new_password_confirmation) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    if (passwordData.new_password.length < 8) {
+      toast.error('New password must be at least 8 characters');
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      await profileService.changePassword(passwordData);
+      setPasswordData({ current_password: '', new_password: '', new_password_confirmation: '' });
+      toast.success('Mot de passe modifié avec succès!');
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
@@ -128,96 +225,102 @@ export default function AgentSettingsPage() {
                 <CardTitle>Informations du Profil</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Avatar Section */}
-                <div className="flex items-center space-x-4">
-                  <Avatar className="w-20 h-20">
-                    <AvatarImage src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg" />
-                    <AvatarFallback>PM</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <Button variant="outline" className="mb-2">
-                      <Camera className="w-4 h-4 mr-2" />
-                      Changer la Photo
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                  </div>
+                ) : (
+                  <>
+                    {/* Avatar Section */}
+                    <div className="flex items-center space-x-4">
+                      <Avatar className="w-20 h-20">
+                        <AvatarImage src={photoPreview || profileData.avatar || undefined} />
+                        <AvatarFallback className="text-lg">{getInitials(profileData.name || 'U')}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/jpeg,image/png,image/gif,image/webp"
+                          className="hidden"
+                          onChange={handlePhotoSelect}
+                        />
+                        <Button variant="outline" className="mb-2" onClick={() => fileInputRef.current?.click()}>
+                          <Camera className="w-4 h-4 mr-2" />
+                          Changer la Photo
+                        </Button>
+                        <p className="text-sm text-gray-500">JPG, GIF ou PNG. 2MB max.</p>
+                        {selectedPhoto && (
+                          <p className="text-sm text-green-600 mt-1">Photo sélectionnée: {selectedPhoto.name}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Profile Form */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Nom Complet</Label>
+                        <Input
+                          id="name"
+                          value={profileData.name}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={profileData.email}
+                          disabled
+                          className="bg-gray-50 dark:bg-gray-800"
+                        />
+                        <p className="text-xs text-gray-500">L&apos;email ne peut pas être modifié</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Téléphone</Label>
+                        <Input
+                          id="phone"
+                          value={profileData.phone}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="company">Entreprise</Label>
+                        <Input
+                          id="company"
+                          value={profileData.company}
+                          disabled
+                          className="bg-gray-50 dark:bg-gray-800"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="licenseNumber">Numéro de Licence</Label>
+                        <Input
+                          id="licenseNumber"
+                          value={profileData.licenseNumber}
+                          disabled
+                          className="bg-gray-50 dark:bg-gray-800"
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="bio">Biographie Professionnelle</Label>
+                        <Textarea
+                          id="bio"
+                          value={profileData.bio}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
+                          placeholder="Décrivez votre expérience et expertise..."
+                          rows={4}
+                        />
+                      </div>
+                    </div>
+
+                    <Button onClick={handleSaveProfile} className="btn-primary" disabled={saving}>
+                      {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                      {saving ? 'Enregistrement...' : 'Sauvegarder les Modifications'}
                     </Button>
-                    <p className="text-sm text-gray-500">JPG, GIF ou PNG. 1MB max.</p>
-                  </div>
-                </div>
-
-                {/* Profile Form */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">Prénom</Label>
-                    <Input
-                      id="firstName"
-                      value={profileData.firstName}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Nom</Label>
-                    <Input
-                      id="lastName"
-                      value={profileData.lastName}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={profileData.email}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Téléphone</Label>
-                    <Input
-                      id="phone"
-                      value={profileData.phone}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="company">Entreprise</Label>
-                    <Input
-                      id="company"
-                      value={profileData.company}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, company: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="licenseNumber">Numéro de Licence</Label>
-                    <Input
-                      id="licenseNumber"
-                      value={profileData.licenseNumber}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, licenseNumber: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="location">Localisation</Label>
-                    <Input
-                      id="location"
-                      value={profileData.location}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="bio">Biographie Professionnelle</Label>
-                    <Textarea
-                      id="bio"
-                      value={profileData.bio}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
-                      placeholder="Décrivez votre expérience et expertise..."
-                      rows={4}
-                    />
-                  </div>
-                </div>
-
-                <Button onClick={handleSaveProfile} className="btn-primary">
-                  <Save className="w-4 h-4 mr-2" />
-                  Sauvegarder les Modifications
-                </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -234,6 +337,8 @@ export default function AgentSettingsPage() {
                       id="currentPassword"
                       type={showCurrentPassword ? 'text' : 'password'}
                       className="pr-10"
+                      value={passwordData.current_password}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, current_password: e.target.value }))}
                     />
                     <Button
                       type="button"
@@ -253,6 +358,8 @@ export default function AgentSettingsPage() {
                       id="newPassword"
                       type={showNewPassword ? 'text' : 'password'}
                       className="pr-10"
+                      value={passwordData.new_password}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, new_password: e.target.value }))}
                     />
                     <Button
                       type="button"
@@ -272,6 +379,8 @@ export default function AgentSettingsPage() {
                       id="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
                       className="pr-10"
+                      value={passwordData.new_password_confirmation}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, new_password_confirmation: e.target.value }))}
                     />
                     <Button
                       type="button"
@@ -284,8 +393,9 @@ export default function AgentSettingsPage() {
                     </Button>
                   </div>
                 </div>
-                <Button onClick={handleChangePassword} className="btn-primary">
-                  Changer le Mot de Passe
+                <Button onClick={handleChangePassword} className="btn-primary" disabled={changingPassword}>
+                  {changingPassword ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                  {changingPassword ? 'Modification...' : 'Changer le Mot de Passe'}
                 </Button>
               </CardContent>
             </Card>
@@ -578,10 +688,7 @@ export default function AgentSettingsPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>Langue</Label>
-                  <Select
-                    value={profileData.language}
-                    onValueChange={(value) => setProfileData(prev => ({ ...prev, language: value }))}
-                  >
+                  <Select defaultValue="fr">
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -594,10 +701,7 @@ export default function AgentSettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Devise</Label>
-                  <Select
-                    value={profileData.currency}
-                    onValueChange={(value) => setProfileData(prev => ({ ...prev, currency: value }))}
-                  >
+                  <Select defaultValue="XAF">
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -610,10 +714,7 @@ export default function AgentSettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Fuseau Horaire</Label>
-                  <Select
-                    value={profileData.timezone}
-                    onValueChange={(value) => setProfileData(prev => ({ ...prev, timezone: value }))}
-                  >
+                  <Select defaultValue="Africa/Douala">
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -627,7 +728,7 @@ export default function AgentSettingsPage() {
               </CardContent>
             </Card>
 
-            <Button onClick={handleSaveProfile} className="btn-primary">
+            <Button className="btn-primary" onClick={() => toast.success('Préférences sauvegardées!')}>
               <Save className="w-4 h-4 mr-2" />
               Sauvegarder les Préférences
             </Button>

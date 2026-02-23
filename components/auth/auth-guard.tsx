@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { authService } from '@/services/authService';
-import { Loader2 } from 'lucide-react';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -18,13 +17,21 @@ export function AuthGuard({
 }: AuthGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const pathnameRef = useRef(pathname);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
+  // Keep ref in sync
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
+
+  // Only check auth once on mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const segments = pathname.split('/').filter(Boolean);
+        const currentPath = pathnameRef.current;
+        const segments = currentPath.split('/').filter(Boolean);
         const locale = segments[0] || 'en';
 
         const isAuthenticated = await authService.isAuthenticated();
@@ -52,7 +59,7 @@ export function AuthGuard({
 
         // For protected pages - check if authenticated
         if (!isAuthenticated) {
-          router.replace(`/${locale}/auth/signin?redirect=${encodeURIComponent(pathname)}`);
+          router.replace(`/${locale}/auth/signin?redirect=${encodeURIComponent(currentPath)}`);
           return;
         }
 
@@ -82,7 +89,8 @@ export function AuthGuard({
         setIsAuthorized(true);
       } catch (error) {
         console.error('Auth check error:', error);
-        const segments = pathname.split('/').filter(Boolean);
+        const currentPath = pathnameRef.current;
+        const segments = currentPath.split('/').filter(Boolean);
         const locale = segments[0] || 'en';
         
         if (!redirectAuthenticated) {
@@ -96,14 +104,30 @@ export function AuthGuard({
     };
 
     checkAuth();
-  }, [pathname, router, allowedRoles, redirectAuthenticated]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router, allowedRoles, redirectAuthenticated]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-plp-purple/5 via-white to-plp-pink/5">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-plp-purple" />
-          <p className="text-gray-600">Checking authentication...</p>
+      <div className="min-h-screen bg-gradient-to-br from-plp-purple/5 via-white to-plp-pink/5 flex items-center justify-center">
+        <div className="w-full max-w-md mx-auto p-8 space-y-6">
+          <div className="flex justify-center">
+            <div className="h-10 w-32 bg-gray-200/60 rounded animate-pulse" />
+          </div>
+          <div className="bg-white/80 rounded-xl shadow-sm p-8 space-y-5">
+            <div className="h-7 w-40 mx-auto bg-gray-200 rounded animate-pulse" />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+                <div className="h-10 bg-gray-100 rounded-lg animate-pulse" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+                <div className="h-10 bg-gray-100 rounded-lg animate-pulse" />
+              </div>
+            </div>
+            <div className="h-10 bg-gray-200 rounded-lg animate-pulse" />
+          </div>
         </div>
       </div>
     );

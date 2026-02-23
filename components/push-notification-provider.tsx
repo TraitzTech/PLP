@@ -80,8 +80,8 @@ export function PushNotificationProvider({ children }: PushNotificationProviderP
       }
       const notification = new Notification(title, {
         body,
-        icon: '/logo.png',
-        badge: '/logo.png',
+        icon: '/logo-images/PlpLisitng-Fav-Icon-8.png',
+        badge: '/logo-images/PlpLisitng-Fav-Icon-8.png',
         tag: 'plp-message-notification',
       });
 

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Logo } from '@/components/ui/logo';
@@ -103,16 +103,24 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
     const [isAuthorized, setIsAuthorized] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
+    const pathnameRef = useRef(pathname);
 
+    // Keep ref in sync so redirects use the latest pathname
+    useEffect(() => {
+        pathnameRef.current = pathname;
+    }, [pathname]);
+
+    // Only check auth once on mount (not on every route change within the dashboard)
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const segments = pathname.split('/').filter(Boolean);
+                const currentPath = pathnameRef.current;
+                const segments = currentPath.split('/').filter(Boolean);
                 const locale = segments[0] || 'en';
                 
                 const isAuthed = await authService.isAuthenticated();
                 if (!isAuthed) {
-                    router.replace(`/${locale}/auth/signin?redirect=${encodeURIComponent(pathname)}`);
+                    router.replace(`/${locale}/auth/signin?redirect=${encodeURIComponent(currentPath)}`);
                     return;
                 }
                 
@@ -152,13 +160,15 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                     router.replace(`/${locale}/auth/signin`);
                 }
             } catch (e) {
-                const segments = pathname.split('/').filter(Boolean);
+                const currentPath = pathnameRef.current;
+                const segments = currentPath.split('/').filter(Boolean);
                 const locale = segments[0] || 'en';
                 router.replace(`/${locale}/auth/signin`);
             }
         };
         checkAuth();
-    }, [pathname, userType, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userType, router]);
 
     const navItems = userType === 'customer' ? customerNavItems :
         userType === 'owner' ? ownerNavItems :
@@ -215,13 +225,60 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
             .slice(0, 2);
     };
 
-    // Show loading while checking authorization
+    // Show shimmer skeleton while checking authorization (only on initial load)
     if (!isAuthorized) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-10 h-10 border-4 border-plp-purple border-t-transparent rounded-full animate-spin" />
-                    <p className="text-gray-600">Verifying access...</p>
+            <div className="min-h-screen bg-gray-50 flex">
+                {/* Sidebar skeleton */}
+                <div className="hidden lg:block w-64 bg-white shadow-lg border-r flex-shrink-0">
+                    <div className="p-6 border-b">
+                        <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
+                    </div>
+                    <div className="px-4 py-6 space-y-3">
+                        {[75, 60, 85, 70, 90, 65, 80].map((w, i) => (
+                            <div key={i} className="flex items-center gap-3 px-3 py-2">
+                                <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+                                <div className="h-4 bg-gray-200 rounded animate-pulse" style={{ width: `${w}%` }} />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="absolute bottom-0 left-0 w-64 p-4 border-t">
+                        <div className="flex items-center gap-3 p-2">
+                            <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
+                            <div className="space-y-1.5 flex-1">
+                                <div className="h-3.5 w-24 bg-gray-200 rounded animate-pulse" />
+                                <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/* Main content skeleton */}
+                <div className="flex-1">
+                    <header className="bg-white shadow-sm border-b">
+                        <div className="flex items-center justify-between px-6 py-4">
+                            <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
+                            <div className="flex items-center gap-4">
+                                <div className="w-8 h-8 bg-gray-200 rounded animate-pulse" />
+                                <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
+                            </div>
+                        </div>
+                    </header>
+                    <div className="p-6 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {Array.from({ length: 3 }).map((_, i) => (
+                                <div key={i} className="bg-white rounded-lg shadow-sm p-6">
+                                    <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-3" />
+                                    <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
+                                </div>
+                            ))}
+                        </div>
+                        <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
+                            <div className="h-5 w-40 bg-gray-200 rounded animate-pulse" />
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <div key={i} className="h-12 bg-gray-100 rounded animate-pulse" />
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
         );

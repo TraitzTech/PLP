@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { authService } from "@/services/authService";
 import { AgentSignupForm } from "@/components/auth/agent-signup-form";
 import { AuthGuard } from "@/components/auth/auth-guard";
+import { Logo } from "@/components/ui/logo";
 import type { RegisterRequest } from "@/services/types";
 
 interface CustomerSignupData {
@@ -153,6 +154,9 @@ export function SignUpClient() {
 
         <div className="container mx-auto py-8">
           <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <Logo theme="dark" />
+            </div>
             <h1 className="text-4xl font-bold text-white mb-2">
               Become a Property Agent
             </h1>
@@ -173,7 +177,10 @@ export function SignUpClient() {
     <AuthGuard redirectAuthenticated>
     <div className="min-h-screen bg-gradient-to-br from-plp-purple via-plp-pink to-plp-yellow flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader>
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <Logo variant="mark-only" />
+          </div>
           <CardTitle className="text-2xl">Create Account</CardTitle>
           <CardDescription>
             Sign up to start booking properties

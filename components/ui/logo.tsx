@@ -1,54 +1,72 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface LogoProps {
   className?: string;
   showText?: boolean;
   variant?: 'horizontal' | 'vertical' | 'mark-only';
+  /** Use 'dark' theme for dark backgrounds (e.g., footer) */
+  theme?: 'light' | 'dark';
 }
 
-export function Logo({ className = '', showText = true, variant = 'horizontal' }: LogoProps) {
-  const logoMark = (
-    <div className="flex items-center gap-0">
-      {/* Three stacked rounded rectangles representing Hotels, Houses, Lands */}
-      <div className="relative">
-        <div className="w-6 h-8 bg-plp-purple rounded-lg transform -rotate-12 relative z-10"></div>
-        <div className="w-6 h-8 bg-plp-pink rounded-lg transform -rotate-6 absolute top-0 left-1 z-20"></div>
-        <div className="w-6 h-8 bg-plp-yellow rounded-lg transform rotate-0 absolute top-0 left-2 z-30"></div>
-      </div>
-    </div>
-  );
+/**
+ * Logo component using real brand images from /logo-images/
+ *
+ * Image variants:
+ * - Full-Blk: Full logo with "Property Listing Portal" text (dark)
+ * - Half_Blk: Compact logo with "plp" text (dark)
+ * - Half_White: Compact logo with "plp" text (white, for dark bgs)
+ * - Fav-Icon: Just the icon mark
+ * - Profile: Icon in a circle (for avatars)
+ */
+export function Logo({ className = '', showText = true, variant = 'horizontal', theme }: LogoProps) {
+  // Auto-detect dark theme from className if not explicitly set
+  const isDark = theme === 'dark' || className.includes('text-white');
 
-  const logoText = (
-    <div className="font-urbanist font-bold">
-      <span className="text-plp-purple">Property</span>
-      <br className={variant === 'vertical' ? 'block' : 'hidden'} />
-      <span className={variant === 'vertical' ? '' : ' '}>
-        <span className="text-plp-pink">Listing</span>{' '}
-        <span className="text-plp-yellow">Portal</span>
-      </span>
-    </div>
-  );
+  // Select the appropriate image based on variant and theme
+  const getLogoSrc = () => {
+    if (variant === 'mark-only') {
+      return '/logo-images/PlpLisitng-Fav-Icon.svg';
+    }
+    if (!showText) {
+      return isDark
+        ? '/logo-images/PlpLisitng-Half_White.svg'
+        : '/logo-images/PlpLisitng-Half_Blk.svg';
+    }
+    // showText=true: use full logo for light, compact white for dark (no full-white variant exists)
+    return isDark
+      ? '/logo-images/PlpLisitng-Half_White.svg'
+      : '/logo-images/PlpLisitng-Full-Blk.svg';
+  };
 
-  if (variant === 'mark-only') {
-    return (
-      <Link href="/" className={`flex items-center ${className}`}>
-        {logoMark}
-      </Link>
-    );
-  }
+  const getLogoDimensions = () => {
+    if (variant === 'mark-only') {
+      return { width: 40, height: 40 };
+    }
+    if (!showText || isDark) {
+      return { width: 100, height: 40 };
+    }
+    // Full logo with text
+    return { width: 180, height: 45 };
+  };
+
+  const src = getLogoSrc();
+  const { width, height } = getLogoDimensions();
 
   return (
-    <Link 
-      href="/" 
-      className={`flex items-center gap-3 ${variant === 'vertical' ? 'flex-col text-center' : ''} ${className}`}
+    <Link
+      href="/"
+      className={`flex items-center ${variant === 'vertical' ? 'flex-col text-center' : ''} ${className}`}
     >
-      {logoMark}
-      {showText && (
-        <div className={`text-lg ${variant === 'vertical' ? 'text-center' : ''}`}>
-          {logoText}
-        </div>
-      )}
+      <Image
+        src={src}
+        alt="Property Listing Portal"
+        width={width}
+        height={height}
+        className="object-contain"
+        priority
+      />
     </Link>
   );
 }

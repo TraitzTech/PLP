@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,9 +8,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { toast as sonnerToast } from 'sonner';
 import { 
   MessageSquare, 
   Send, 
@@ -26,7 +37,11 @@ import {
   Bell,
   BellOff,
   RefreshCw,
-  Loader2
+  Loader2,
+  Check,
+  CheckCheck,
+  Reply,
+  Trash2
 } from 'lucide-react';
 import messageService, { 
   Conversation, 
@@ -34,11 +49,28 @@ import messageService, {
   User,
   SendMessageData 
 } from '@/services/messageService';
+import { authService } from '@/services/authService';
 
-// Notification sound (base64 encoded short beep)
-const NOTIFICATION_SOUND = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1zdHp7d29naGpucHRxbWVjYV9aWVZQTElGRENAPz09Ojo3NTMxLy0rKSglIyEfHRsZFxUTEQ8NCwkHBQMBAAIEBggKDA4QEhQWGBocHiAiJCYoKiwtLzEzNTc5Ozw+QEJESE1RVVpfZGltcnZ6foKGio2RlJeam52foaOlp6mqrK2ur7CxsbKysrKysrGwr62rqaelpKKgnp2bmZeVk5GQjo2LiomIh4aFhIOCgYCAf35+fn5+fn5+f4CBgoOEhYaIiYqLjI6PkJGSk5SVlpeYmJmam5ucnJ2dnZ6enp6enp6dnZ2cm5uamZmYl5aVlJOSkZCPjo2MioqIh4aFhIKBgH9+fXx7enl5eHh3d3d3d3d4eHh5enp7fH1+f4CBgoOEhYaHiImKi4yNjY6PkJCRkZKSk5OTlJSUlJSUlJSUlJSTk5OSkpKRkZCQj4+OjY2MjIuKiomIiIeGhYWEg4OCgYGAgH9/fn59fXx8fHx8fHx8fHx9fX1+fn9/gICBgoKDg4SFhYaGh4iIiYmKiouLjIyMjY2Ojo6Ojo+Pj4+Pj4+Pj4+Pjo6OjY2NjIyLi4uKiomJiIiHhoaFhYSEg4OCgoGBgIB/f35+fn19fX19fHx8fHx8fXx9fX1+fn5/f4CAgIGBgoKDg4SFhYaGh4eIiImJiYqKi4uLjIyMjIyNjY2NjY2NjY2NjY2NjIyMjIyLi4uKioqJiYiIh4eGhoWFhISEg4OCgoGBgICAf39/fn5+fn19fX19fX19fX19fn5+fn9/f4CAgICBgYKCgoODhISEhYWGhoaHh4eIiIiIiYmJiYmJiomJiYmJiYmJiYmJiYmIiIiIh4eHhoaGhYWEhIODgoKBgYGAgIB/f39+fn5+fn19fX19fX19fX19fn5+fn9/f39/gICAgYGBgYKCgoODg4SEhISFhYWFhoaGhoeHh4eHh4eHh4eHh4eHh4eHh4eGhoaGhYWFhYWEhIODg4KCgoGBgYCAgH9/f39+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgoKCgoODg4ODhISEhISFhYWFhYWFhYaGhoaGhoaGhoaGhoaGhoWFhYWFhYSEhISEg4ODg4KCgoKBgYGBgICAgH9/f39/fn5+fn5+fn5+fn5+fn9/f39/f39/gICAgIGBgYGBgYKCgoKCg4ODg4ODg4SEhISEhISEhISEhYWFhYWFhYWFhYWFhYWFhYWEhISEhISEg4ODg4OCgoKCgoGBgYGBgICAgIB/f39/f39/f39/fn5/f39/f39/f39/f3+AgICAgICAgYGBgYGBgoKCgoKCgoODg4ODg4ODg4SEhISEhISEhISEhISEhISEhISEhISEhIODg4ODg4ODgoKCgoKCgYGBgYGBgICAgICAgH9/f39/f39/f39/f39/f39/f39/gICAgICAgICAgYGBgYGBgYGBgoKCgoKCgoKCg4ODg4ODg4ODg4ODg4ODg4SDg4ODg4ODg4ODg4ODg4KCgoKCgoKCgoKBgYGBgYGBgYCAgICAgICAgH9/f39/f39/f39/f39/f4CAgICAgICAgICAgICAgIGBgYGBgYGBgYGBgYKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgYGBgYGBgYGBgYGBgYCAgICAgICAgICAgICAgICAgH+AgICAgICAgICAgICAgICAgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
+const SWIPE_THRESHOLD_PX = 70;
+const REPLY_META_REGEX = /^\[\[reply:(\d+)\]\]\n?/;
 
 export default function AdminMessagesPage() {
+  const resolveUserId = (value: any): number | null => {
+    const candidates = [value?.id, value?.user_id, value?.data?.id, value?.user?.id];
+    for (const candidate of candidates) {
+      const parsed = Number(candidate);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+    return null;
+  };
+
+  const resolveMessageSenderId = (message: Message): number | null => {
+    const parsed = Number(message.sender_id ?? message.sender?.id);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
   // State for conversations and messages
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -63,31 +95,78 @@ export default function AdminMessagesPage() {
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [chatSearchTerm, setChatSearchTerm] = useState('');
+  const [showMediaOnly, setShowMediaOnly] = useState(false);
+  const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
+  const [deleteConfirmMessage, setDeleteConfirmMessage] = useState<Message | null>(null);
   
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastMessageIdRef = useRef<number>(0);
+  const touchStartXRef = useRef<number | null>(null);
+  const messageRefsRef = useRef<Record<number, HTMLDivElement | null>>({});
+  const pendingDeletesRef = useRef<Record<number, { message: Message; index: number; timeoutId: ReturnType<typeof setTimeout> }>>({});
   
   const { toast } = useToast();
 
-  // Initialize audio element
+  const parseMessageContent = (rawMessage?: string) => {
+    const original = rawMessage || '';
+    const metaMatch = original.match(REPLY_META_REGEX);
+    const replyToId = metaMatch ? Number(metaMatch[1]) : null;
+
+    let bodyText = metaMatch ? original.replace(REPLY_META_REGEX, '') : original;
+    bodyText = bodyText.replace(/^(\s*↪\s*)+/, '').trimStart();
+
+    return { replyToId, bodyText };
+  };
+
+  const buildReplyMessage = (replyToId: number | null, bodyText: string) => {
+    if (!replyToId) return bodyText;
+    return `[[reply:${replyToId}]]\n${bodyText}`;
+  };
+
+  const scrollToReferencedMessage = (messageId: number) => {
+    const element = messageRefsRef.current[messageId];
+    if (!element) return;
+
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    element.classList.add('ring-2', 'ring-plp-pink', 'ring-offset-2');
+    setTimeout(() => {
+      element.classList.remove('ring-2', 'ring-plp-pink', 'ring-offset-2');
+    }, 1200);
+  };
+
+  // Initialize user + permissions
   useEffect(() => {
-    audioRef.current = new Audio(NOTIFICATION_SOUND);
-    audioRef.current.volume = 0.5;
-    
-    // Get current user ID from localStorage
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      try {
-        const user = JSON.parse(userData);
-        setCurrentUserId(Number(user.id));
-      } catch (e) {
-        console.error('Error parsing user data:', e);
+    const initializeCurrentUserId = async () => {
+      let resolvedUserId: number | null = null;
+
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          resolvedUserId = resolveUserId(JSON.parse(userData));
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
       }
-    }
+
+      if (!resolvedUserId) {
+        try {
+          const user = await authService.getCurrentUser();
+          resolvedUserId = resolveUserId(user);
+        } catch (e) {
+          console.error('Error fetching current user:', e);
+        }
+      }
+
+      if (resolvedUserId) {
+        setCurrentUserId(resolvedUserId);
+      }
+    };
+
+    initializeCurrentUserId();
     
     // Request notification permission
     if ('Notification' in window && Notification.permission === 'default') {
@@ -110,20 +189,46 @@ export default function AdminMessagesPage() {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // Play notification sound
-  const playNotificationSound = useCallback(() => {
-    if (audioRef.current && notificationsEnabled) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {});
-    }
+  const playTone = useCallback((frequency: number, duration = 0.12, gain = 0.02) => {
+    if (!notificationsEnabled || typeof window === 'undefined') return;
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    const context = new AudioContextClass();
+    const oscillator = context.createOscillator();
+    const gainNode = context.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.value = frequency;
+    gainNode.gain.value = gain;
+
+    oscillator.connect(gainNode);
+    gainNode.connect(context.destination);
+
+    oscillator.start();
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
+    oscillator.stop(context.currentTime + duration);
+
+    setTimeout(() => {
+      context.close().catch(() => {});
+    }, duration * 1000 + 50);
   }, [notificationsEnabled]);
+
+  const playIncomingSound = useCallback(() => {
+    playTone(620, 0.13, 0.02);
+    setTimeout(() => playTone(760, 0.1, 0.015), 65);
+  }, [playTone]);
+
+  const playOutgoingSound = useCallback(() => {
+    playTone(520, 0.09, 0.015);
+  }, [playTone]);
 
   // Show web notification
   const showWebNotification = useCallback((title: string, body: string) => {
     if ('Notification' in window && Notification.permission === 'granted' && notificationsEnabled) {
       new Notification(title, {
         body,
-        icon: '/logo.png',
+        icon: '/logo-images/PlpLisitng-Fav-Icon-8.png',
         tag: 'admin-message-notification',
       });
     }
@@ -151,8 +256,9 @@ export default function AdminMessagesPage() {
       // Check for new messages and play sound
       if (!showLoading && newMessages.length > 0) {
         const latestMessage = newMessages[newMessages.length - 1];
-        if (latestMessage.id > lastMessageIdRef.current && latestMessage.sender_id !== currentUserId) {
-          playNotificationSound();
+        const latestSenderId = resolveMessageSenderId(latestMessage);
+        if (latestMessage.id > lastMessageIdRef.current && latestSenderId !== currentUserId) {
+          playIncomingSound();
           showWebNotification(
             'New Message', 
             `${latestMessage.sender?.first_name || 'Someone'}: ${messageService.getMessagePreview(latestMessage)}`
@@ -174,7 +280,7 @@ export default function AdminMessagesPage() {
     } finally {
       setLoadingMessages(false);
     }
-  }, [currentUserId, playNotificationSound, showWebNotification]);
+  }, [currentUserId, playIncomingSound, showWebNotification]);
 
   // Fetch unread count
   const fetchUnreadCount = useCallback(async () => {
@@ -183,7 +289,7 @@ export default function AdminMessagesPage() {
       const newCount = response.data.unread_count;
       
       if (newCount > unreadCount && notificationsEnabled && !selectedConversation) {
-        playNotificationSound();
+        playIncomingSound();
         showWebNotification('New Message', 'You have new unread messages');
       }
       
@@ -191,12 +297,20 @@ export default function AdminMessagesPage() {
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }
-  }, [unreadCount, notificationsEnabled, selectedConversation, playNotificationSound, showWebNotification]);
+  }, [unreadCount, notificationsEnabled, selectedConversation, playIncomingSound, showWebNotification]);
 
   // Initial load - also load initial users for new conversation dialog
   useEffect(() => {
     fetchConversations();
     fetchUnreadCount();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      Object.values(pendingDeletesRef.current).forEach((entry) => {
+        clearTimeout(entry.timeoutId);
+      });
+    };
   }, []);
 
   // Poll for new messages
@@ -229,18 +343,37 @@ export default function AdminMessagesPage() {
 
     setSendingMessage(true);
     try {
+      const outgoingText = buildReplyMessage(replyToMessage?.id ?? null, newMessage.trim()).trim();
+
       const messageData: SendMessageData = {
         receiver_id: selectedConversation.user.id,
-        message: newMessage.trim() || undefined,
+        message: outgoingText || undefined,
         attachment: selectedFile || undefined,
       };
 
+      // Add optimistic message immediately to avoid "Invalid Date" flash
+      const optimisticMsg: Message = {
+        id: Date.now(),
+        sender_id: currentUserId || 0,
+        receiver_id: selectedConversation.user.id,
+        message: outgoingText,
+        message_type: 'text',
+        is_read: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, optimisticMsg]);
+      setTimeout(scrollToBottom, 50);
+
       const response = await messageService.sendMessage(messageData);
       
-      setMessages(prev => [...prev, response.data.message]);
+      // Replace optimistic message with real one
+      setMessages(prev => prev.map(m => m.id === optimisticMsg.id ? response.data.message : m));
       lastMessageIdRef.current = response.data.message.id;
+      playOutgoingSound();
       
       setNewMessage('');
+      setReplyToMessage(null);
       clearFileSelection();
       fetchConversations();
       setTimeout(scrollToBottom, 100);
@@ -253,6 +386,73 @@ export default function AdminMessagesPage() {
     } finally {
       setSendingMessage(false);
     }
+  };
+
+  const requestDeleteMessage = (message: Message) => {
+    setDeleteConfirmMessage(message);
+  };
+
+  const undoDeleteMessage = (messageId: number) => {
+    const pending = pendingDeletesRef.current[messageId];
+    if (!pending) return;
+
+    clearTimeout(pending.timeoutId);
+    delete pendingDeletesRef.current[messageId];
+
+    setMessages((prev) => {
+      if (prev.some((msg) => msg.id === pending.message.id)) return prev;
+      const restored = [...prev];
+      const insertAt = Math.max(0, Math.min(pending.index, restored.length));
+      restored.splice(insertAt, 0, pending.message);
+      return restored;
+    });
+
+    toast({ title: 'Message restored' });
+  };
+
+  const confirmDeleteMessage = () => {
+    if (!deleteConfirmMessage) return;
+
+    const messageToDelete = deleteConfirmMessage;
+    setDeleteConfirmMessage(null);
+
+    const originalIndex = messages.findIndex((msg) => msg.id === messageToDelete.id);
+    setMessages((prev) => prev.filter((msg) => msg.id !== messageToDelete.id));
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        await messageService.deleteMessage(messageToDelete.id);
+      } catch (error: any) {
+        setMessages((prev) => {
+          if (prev.some((msg) => msg.id === messageToDelete.id)) return prev;
+          const restored = [...prev];
+          const insertAt = Math.max(0, Math.min(originalIndex, restored.length));
+          restored.splice(insertAt, 0, messageToDelete);
+          return restored;
+        });
+        toast({
+          title: 'Delete failed',
+          description: error?.response?.data?.message || 'Could not delete message',
+          variant: 'destructive',
+        });
+      } finally {
+        delete pendingDeletesRef.current[messageToDelete.id];
+      }
+    }, 5000);
+
+    pendingDeletesRef.current[messageToDelete.id] = {
+      message: messageToDelete,
+      index: originalIndex,
+      timeoutId,
+    };
+
+    sonnerToast('Message deleted', {
+      description: 'Undo available for 5 seconds',
+      action: {
+        label: 'Undo',
+        onClick: () => undoDeleteMessage(messageToDelete.id),
+      },
+    });
   };
 
   // Handle file selection
@@ -391,12 +591,96 @@ export default function AdminMessagesPage() {
     });
   };
 
+  const getApiOrigin = () => {
+    const fallback = 'http://localhost:8000';
+    const configured = process.env.NEXT_PUBLIC_API_URL || `${fallback}/api`;
+    try {
+      return new URL(configured).origin;
+    } catch {
+      return fallback;
+    }
+  };
+
+  const normalizeAttachmentUrl = (rawUrl: string) => {
+    if (!rawUrl) return '';
+    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) return rawUrl;
+
+    const origin = getApiOrigin();
+    if (rawUrl.startsWith('/storage/')) return `${origin}${rawUrl}`;
+    if (rawUrl.startsWith('storage/')) return `${origin}/${rawUrl}`;
+    return `${origin}/storage/${rawUrl.replace(/^\/+/, '')}`;
+  };
+
+  const formatDateHeader = (timestamp: string) => {
+    const messageDate = new Date(timestamp);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const messageDay = messageDate.toDateString();
+    if (messageDay === today.toDateString()) return 'Today';
+    if (messageDay === yesterday.toDateString()) return 'Yesterday';
+    return messageDate.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  const visibleMessages = useMemo(() => {
+    const query = chatSearchTerm.trim().toLowerCase();
+    return messages.filter((msg) => {
+      const isMedia = msg.message_type !== 'text' || !!msg.attachment_url;
+      if (showMediaOnly && !isMedia) return false;
+
+      if (!query) return true;
+      const { bodyText } = parseMessageContent(msg.message);
+      const content = `${bodyText} ${msg.attachment_name || ''}`.toLowerCase();
+      return content.includes(query);
+    });
+  }, [messages, chatSearchTerm, showMediaOnly]);
+
+  const groupedMessages = useMemo(() => {
+    const groups: Array<{ label: string; items: Message[] }> = [];
+    let currentLabel = '';
+
+    visibleMessages.forEach((msg) => {
+      const label = formatDateHeader(msg.created_at);
+      if (label !== currentLabel) {
+        groups.push({ label, items: [msg] });
+        currentLabel = label;
+      } else {
+        groups[groups.length - 1].items.push(msg);
+      }
+    });
+
+    return groups;
+  }, [visibleMessages]);
+
+  const onMessageTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    touchStartXRef.current = e.changedTouches[0]?.clientX ?? null;
+  };
+
+  const onMessageTouchEnd = (e: React.TouchEvent<HTMLDivElement>, message: Message, isOwnMessage: boolean) => {
+    const startX = touchStartXRef.current;
+    if (startX === null) return;
+
+    const endX = e.changedTouches[0]?.clientX ?? startX;
+    const deltaX = endX - startX;
+
+    if (deltaX > SWIPE_THRESHOLD_PX && !isOwnMessage) {
+      setReplyToMessage(message);
+    } else if (deltaX < -SWIPE_THRESHOLD_PX && isOwnMessage) {
+      requestDeleteMessage(message);
+    }
+  };
+
   // Render message attachment
   const renderAttachment = (message: Message) => {
     if (!message.attachment_url) return null;
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || '';
-    const attachmentUrl = `${baseUrl}/storage/${message.attachment_url}`;
+    const attachmentUrl = normalizeAttachmentUrl(message.attachment_url);
 
     switch (message.message_type) {
       case 'image':
@@ -431,6 +715,7 @@ export default function AdminMessagesPage() {
             href={attachmentUrl}
             target="_blank"
             rel="noopener noreferrer"
+            download={message.attachment_name || true}
             className="mt-2 flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             <FileIcon className="w-4 h-4" />
@@ -533,7 +818,7 @@ export default function AdminMessagesPage() {
                               ))
                             ) : (
                               <p className="text-center text-gray-500 py-4">
-                                {userSearchTerm.length >= 2 ? 'No users found' : 'Type to search users'}
+                                {userSearchTerm.length >= 2 ? 'No users found' : 'No users available'}
                               </p>
                             )}
                           </ScrollArea>
@@ -643,6 +928,20 @@ export default function AdminMessagesPage() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
+                      <Input
+                        placeholder="Search chat/media..."
+                        value={chatSearchTerm}
+                        onChange={(e) => setChatSearchTerm(e.target.value)}
+                        className="w-44 h-8"
+                      />
+                      <Button
+                        variant={showMediaOnly ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setShowMediaOnly(prev => !prev)}
+                        title="Toggle media only"
+                      >
+                        <ImageIcon className="w-4 h-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -673,48 +972,116 @@ export default function AdminMessagesPage() {
                         </div>
                       ))}
                     </div>
-                  ) : messages.length === 0 ? (
+                  ) : visibleMessages.length === 0 ? (
                     <div className="h-full flex items-center justify-center">
                       <div className="text-center text-gray-500">
                         <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No messages yet</p>
-                        <p className="text-sm mt-1">Send a message to start the conversation!</p>
+                        <p>No matching messages</p>
+                        <p className="text-sm mt-1">Try clearing search/media filters.</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      {messages.map((message, index) => {
-                        const isOwnMessage = Number(message.sender_id) === Number(currentUserId);
-                        return (
-                          <div
-                            key={`msg-${message.id}-${index}`}
-                            className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
-                          >
-                            <div
-                              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                                isOwnMessage
-                                  ? 'bg-plp-purple text-white'
-                                  : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-                              }`}
-                            >
-                              {message.message && (
-                                <p className="text-sm whitespace-pre-wrap break-words">{message.message}</p>
-                              )}
-                              {renderAttachment(message)}
-                              <div className="flex items-center justify-end gap-1 mt-1">
-                                <p className={`text-xs ${
-                                  isOwnMessage ? 'text-purple-200' : 'text-gray-500'
-                                }`}>
-                                  {formatMessageTime(message.created_at)}
-                                </p>
-                                {isOwnMessage && message.is_read && (
-                                  <span className="text-xs text-purple-200">&#10003;&#10003;</span>
-                                )}
-                              </div>
-                            </div>
+                    <div className="space-y-1">
+                      {groupedMessages.map((group, groupIndex) => (
+                        <div key={`${group.label}-${group.items[0]?.id ?? groupIndex}`} className="space-y-1">
+                          <div className="flex justify-center py-2">
+                            <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+                              {group.label}
+                            </span>
                           </div>
-                        );
-                      })}
+                          {group.items.map((message, index) => {
+                            const senderId = resolveMessageSenderId(message);
+                            const isOwnMessage = currentUserId !== null && senderId === currentUserId;
+                            return (
+                              <div
+                                key={`msg-${message.id}-${index}`}
+                                className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} w-full`}
+                                onTouchStart={onMessageTouchStart}
+                                onTouchEnd={(e) => onMessageTouchEnd(e, message, isOwnMessage)}
+                                ref={(el) => {
+                                  messageRefsRef.current[message.id] = el;
+                                }}
+                              >
+                                <div
+                                  className={`max-w-[75%] lg:max-w-[65%] px-3 py-1.5 rounded-lg ${
+                                    isOwnMessage
+                                      ? 'bg-plp-purple text-white rounded-br-none'
+                                      : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-none'
+                                  }`}
+                                >
+                                  {(() => {
+                                    const { replyToId, bodyText } = parseMessageContent(message.message);
+                                    const repliedMessage = replyToId ? messages.find((msg) => msg.id === replyToId) : null;
+                                    const repliedPreview = repliedMessage
+                                      ? (parseMessageContent(repliedMessage.message).bodyText || repliedMessage.attachment_name || 'Media')
+                                      : 'Original message';
+
+                                    return (
+                                      <>
+                                        {replyToId && (
+                                          <button
+                                            type="button"
+                                            onClick={() => scrollToReferencedMessage(replyToId)}
+                                            className={`w-full text-left mb-1 rounded-md px-2 py-1 border-l-2 ${
+                                              isOwnMessage
+                                                ? 'bg-white/15 border-white/50 hover:bg-white/20'
+                                                : 'bg-black/5 border-plp-purple/50 hover:bg-black/10'
+                                            }`}
+                                          >
+                                            <div className="flex items-center gap-1 text-[10px] font-medium opacity-90">
+                                              <Reply className="w-3 h-3" />
+                                              Replied message
+                                            </div>
+                                            <div className="text-xs truncate opacity-80">{repliedPreview}</div>
+                                          </button>
+                                        )}
+                                        {bodyText && (
+                                          <p className="text-sm whitespace-pre-wrap break-words">{bodyText}</p>
+                                        )}
+                                      </>
+                                    );
+                                  })()}
+                                  {renderAttachment(message)}
+                                  <div className={`flex items-center gap-1 mt-0.5 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                                    {!isOwnMessage && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-5 px-1"
+                                        onClick={() => setReplyToMessage(message)}
+                                      >
+                                        <Reply className="w-3 h-3" />
+                                      </Button>
+                                    )}
+                                    {isOwnMessage && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-5 px-1 text-red-300 hover:text-red-200"
+                                        onClick={() => requestDeleteMessage(message)}
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    )}
+                                    <span className={`text-[10px] leading-none ${
+                                      isOwnMessage ? 'text-purple-200' : 'text-gray-400'
+                                    }`}>
+                                      {formatMessageTime(message.created_at)}
+                                    </span>
+                                    {isOwnMessage && (
+                                      message.is_read ? (
+                                        <CheckCheck className="w-3.5 h-3.5 text-blue-300" />
+                                      ) : (
+                                        <Check className="w-3.5 h-3.5 text-purple-200" />
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))}
                       <div ref={messagesEndRef} />
                     </div>
                   )}
@@ -746,6 +1113,16 @@ export default function AdminMessagesPage() {
 
                 {/* Message Input */}
                 <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                  {replyToMessage && (
+                    <div className="mb-2 p-2 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-between">
+                      <div className="text-xs text-gray-600 dark:text-gray-300 truncate">
+                        Replying to: {parseMessageContent(replyToMessage.message).bodyText || replyToMessage.attachment_name || 'Media'}
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => setReplyToMessage(null)}>
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
                   <div className="flex items-end space-x-2">
                     <input
                       ref={fileInputRef}
@@ -824,6 +1201,22 @@ export default function AdminMessagesPage() {
           </div>
         </div>
       </div>
+      <AlertDialog open={!!deleteConfirmMessage} onOpenChange={(open) => !open && setDeleteConfirmMessage(null)}>
+        <AlertDialogContent className="border-plp-purple/20">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-plp-purple">Delete Message</AlertDialogTitle>
+            <AlertDialogDescription>
+              This message will be removed. You can undo within 5 seconds after confirming.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-plp-pink hover:bg-plp-pink/90" onClick={confirmDeleteMessage}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }
