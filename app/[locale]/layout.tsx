@@ -38,6 +38,7 @@ export const metadata: Metadata = {
 
 import { SupportWidget } from '@/components/support/SupportWidget';
 import { PushNotificationProvider } from '@/components/push-notification-provider';
+import { MaintenanceWrapper } from '@/components/maintenance/maintenance-wrapper';
 
 export default async function RootLayout({
                                              children,
@@ -61,7 +62,9 @@ export default async function RootLayout({
         >
             <TranslationProvider messages={messages}>
                 <PushNotificationProvider>
-                    {children}
+                    <MaintenanceWrapper>
+                        {children}
+                    </MaintenanceWrapper>
                 </PushNotificationProvider>
                 <SupportWidget />
             </TranslationProvider>

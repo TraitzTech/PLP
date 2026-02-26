@@ -10,6 +10,7 @@ import { MapPin, Search, Home, Building2, Mountain, Hotel, DollarSign, Building,
 import { useTranslations } from '@/components/translation-provider';
 import { cn } from '@/lib/utils';
 import { propertyTypeService } from '@/services/propertyTypeService';
+import { settingsService } from '@/services/settingsService';
 import type { PropertyType as PropertyTypeModel } from '@/services/types';
 
 type ListingPurpose = 'rent' | 'purchase' | '';
@@ -36,23 +37,31 @@ export function SearchForm() {
   const [priceRange, setPriceRange] = useState('');
   const [propertyTypes, setPropertyTypes] = useState<PropertyTypeModel[]>([]);
   const [isLoadingTypes, setIsLoadingTypes] = useState(true);
+  const [launchCities, setLaunchCities] = useState<string[]>([]);
   const t = useTranslations();
 
-  // Fetch property types on mount
+  // Fetch property types and launch cities on mount
   useEffect(() => {
-    const fetchPropertyTypes = async () => {
+    const fetchData = async () => {
       try {
         setIsLoadingTypes(true);
+        
+        // Fetch property types
         const types = await propertyTypeService.getAllPropertyTypes();
-        // Filter only active property types (status === 1)
         setPropertyTypes(types.filter(type => type.status === 1));
+        
+        // Fetch launch cities from settings
+        const cities = await settingsService.getLaunchRolloutCities();
+        setLaunchCities(cities.length > 0 ? cities : ['Douala', 'Yaoundé', 'Bafoussam', 'Kribi']);
       } catch (error) {
-        console.error('Failed to fetch property types:', error);
+        console.error('Failed to fetch data:', error);
+        // Fallback to default cities if fetch fails
+        setLaunchCities(['Douala', 'Yaoundé', 'Bafoussam', 'Kribi']);
       } finally {
         setIsLoadingTypes(false);
       }
     };
-    fetchPropertyTypes();
+    fetchData();
   }, []);
 
   const priceRanges = [
@@ -201,7 +210,7 @@ export function SearchForm() {
         <span className="text-white/60 text-xs">
           {t('search.popular', 'Popular:')}
         </span>
-        {['Douala', 'Yaoundé', 'Bafoussam', 'Kribi'].map((city) => (
+        {launchCities.map((city) => (
           <button
             key={city}
             onClick={() => setLocation(city)}

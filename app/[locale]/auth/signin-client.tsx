@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Logo } from '@/components/ui/logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ type ValidationErrors = {
 
 export function SignInClient() {
     const router = useRouter();
+    const pathname = usePathname();
     const searchParams = useSearchParams();
     const userType = searchParams?.get('type') || 'customer';
     const redirectUrl = searchParams?.get('redirect');
@@ -34,6 +35,40 @@ export function SignInClient() {
         rememberMe: false,
     });
 
+    const locale = pathname?.split('/').filter(Boolean)[0] || 'en';
+    const withLocale = (path: string) => `/${locale}${path}`;
+
+    const getDashboardPathByRole = (role?: string | null) => {
+        switch (role) {
+            case 'admin':
+                return withLocale('/admin');
+            case 'agent':
+                return withLocale('/dashboard/agent');
+            default:
+                return withLocale('/dashboard');
+        }
+    };
+
+    const isRedirectAllowedForRole = (path: string, role?: string | null) => {
+        const cleanedPath = path.startsWith('/') ? path : `/${path}`;
+        const segments = cleanedPath.split('/').filter(Boolean);
+        const pathWithoutLocale = segments[0]?.length === 2
+            ? `/${segments.slice(1).join('/')}`
+            : cleanedPath;
+
+        if (role === 'admin') {
+            return pathWithoutLocale.startsWith('/admin');
+        }
+
+        if (role === 'agent') {
+            return pathWithoutLocale.startsWith('/dashboard/agent');
+        }
+
+        return pathWithoutLocale.startsWith('/dashboard')
+            && !pathWithoutLocale.startsWith('/dashboard/agent')
+            && !pathWithoutLocale.startsWith('/dashboard/owner');
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -43,27 +78,26 @@ export function SignInClient() {
         setIsLoading(true);
 
         try {
-            await authService.login(formData);
+            const loginResponse = await authService.login(formData);
+            const currentUser = await authService.getCurrentUser();
+            const resolvedUserType =
+                currentUser?.user_type
+                || (loginResponse as any)?.user?.user_type
+                || (loginResponse as any)?.data?.user?.user_type
+                || null;
 
             toast.success('Welcome back!');
 
-            // Check for redirect URL first
-            if (redirectUrl) {
+            if (redirectUrl && isRedirectAllowedForRole(redirectUrl, resolvedUserType)) {
                 router.push(redirectUrl);
                 return;
             }
 
-            // Redirect based on user type
-            switch (userType) {
-                case 'agent':
-                    router.push('/dashboard/agent');
-                    break;
-                case 'admin':
-                    router.push('/admin');
-                    break;
-                default:
-                    router.push('/dashboard');
+            if (redirectUrl) {
+                toast.info('Redirect updated for your account role.');
             }
+
+            router.push(getDashboardPathByRole(resolvedUserType));
         } catch (error: any) {
             console.error("Login failed:", error);
             const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';

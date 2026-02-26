@@ -939,7 +939,7 @@ export default function CreatePropertyPage() {
 
           <div className="space-y-4 border-t pt-6">
             <h3 className="font-semibold flex items-center gap-2">
-              <span>Property Videos (Optional)</span>
+              <span>Virtual Tour Videos (Optional)</span>
               {videoFiles.length > 0 && (
                 <span className="text-sm bg-purple-100 text-purple-700 px-2 py-1 rounded">
                   {videoFiles.length} video{videoFiles.length !== 1 ? 's' : ''}
@@ -951,8 +951,8 @@ export default function CreatePropertyPage() {
               <Label htmlFor="videos" className="cursor-pointer">
                 <div className="flex flex-col items-center justify-center py-4">
                   <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                  <p className="text-sm font-medium text-gray-700">Click to upload videos</p>
-                  <p className="text-xs text-gray-500">MP4, WebM, or Ogg format</p>
+                  <p className="text-sm font-medium text-gray-700">Click to upload virtual tour videos</p>
+                  <p className="text-xs text-gray-500">Use short walkthrough or aerial clips (MP4, WebM, Ogg)</p>
                 </div>
               </Label>
               <Input

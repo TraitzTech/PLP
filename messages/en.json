@@ -157,5 +157,17 @@
   "pricing": {
     "title": "Plans",
     "subtitle": "for Agents"
+  },
+  "maintenance": {
+    "title": "We'll Be Back Soon",
+    "description": "We're currently performing scheduled maintenance to improve your experience. We'll be back online shortly!",
+    "emailUs": "Email us",
+    "callUs": "Call us",
+    "whatWeDoing": "What we're doing",
+    "improvingPerformance": "Improving platform performance",
+    "enhancingFeatures": "Enhancing key features",
+    "ensuringSecurity": "Ensuring security & reliability",
+    "progress": "Maintenance in progress",
+    "thankYou": "Thank you for your patience. We appreciate your understanding!"
   }
 }

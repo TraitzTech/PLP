@@ -110,8 +110,40 @@ export default function AgentMessagesPage() {
   const touchStartXRef = useRef<number | null>(null);
   const messageRefsRef = useRef<Record<number, HTMLDivElement | null>>({});
   const pendingDeletesRef = useRef<Record<number, { message: Message; index: number; timeoutId: ReturnType<typeof setTimeout> }>>({});
+  const accessErrorRef = useRef<string | null>(null);
   
   const { toast } = useToast();
+
+  const extractApiErrorMessage = useCallback((error: any, fallback: string) => {
+    return (
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.message ||
+      fallback
+    );
+  }, []);
+
+  const notifyApiError = useCallback((error: any, fallback: string, onlyOnce = false) => {
+    const message = extractApiErrorMessage(error, fallback);
+    const status = Number(error?.response?.status || 0);
+
+    if (onlyOnce && accessErrorRef.current === message) {
+      return;
+    }
+
+    if (onlyOnce) {
+      accessErrorRef.current = message;
+    }
+
+    const shouldShowToast = status === 401 || status === 403 || status === 422 || !onlyOnce;
+    if (shouldShowToast) {
+      toast({
+        title: 'Action blocked',
+        description: message,
+        variant: 'destructive',
+      });
+    }
+  }, [extractApiErrorMessage, toast]);
 
   const parseMessageContent = (rawMessage?: string) => {
     const original = rawMessage || '';
@@ -251,12 +283,15 @@ export default function AgentMessagesPage() {
     try {
       const response = await messageService.getConversations();
       setConversations(response.data.conversations);
+      accessErrorRef.current = null;
     } catch (error) {
       console.error('Error fetching conversations:', error);
+      setConversations([]);
+      notifyApiError(error, 'Failed to load conversations', true);
     } finally {
       setLoadingConversations(false);
     }
-  }, []);
+  }, [notifyApiError]);
 
   // Fetch messages for a conversation
   const fetchMessages = useCallback(async (userId: number, showLoading = true) => {
@@ -284,15 +319,18 @@ export default function AgentMessagesPage() {
       }
       
       setMessages(newMessages);
+      accessErrorRef.current = null;
       
       // Mark conversation as read
       await messageService.markConversationAsRead(userId);
     } catch (error) {
       console.error('Error fetching messages:', error);
+      setMessages([]);
+      notifyApiError(error, 'Failed to load messages', true);
     } finally {
       setLoadingMessages(false);
     }
-  }, [currentUserId, playIncomingSound, showWebNotification]);
+  }, [currentUserId, playIncomingSound, showWebNotification, notifyApiError]);
 
   // Fetch unread count
   const fetchUnreadCount = useCallback(async () => {
@@ -309,8 +347,9 @@ export default function AgentMessagesPage() {
       setUnreadCount(newCount);
     } catch (error) {
       console.error('Error fetching unread count:', error);
+      notifyApiError(error, 'Failed to load unread message count', true);
     }
-  }, [unreadCount, notificationsEnabled, selectedConversation, playIncomingSound, showWebNotification]);
+  }, [unreadCount, notificationsEnabled, selectedConversation, playIncomingSound, showWebNotification, notifyApiError]);
 
   // Initial load
   useEffect(() => {
@@ -414,11 +453,7 @@ export default function AgentMessagesPage() {
       // Scroll to bottom
       setTimeout(scrollToBottom, 100);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to send message',
-        variant: 'destructive',
-      });
+      notifyApiError(error, 'Failed to send message');
     } finally {
       setSendingMessage(false);
     }
@@ -535,12 +570,14 @@ export default function AgentMessagesPage() {
     try {
       const response = await messageService.searchUsers('');
       setSearchedUsers(response.data.users);
+      accessErrorRef.current = null;
     } catch (error) {
       console.error('Error loading initial users:', error);
+      notifyApiError(error, 'Failed to load users');
     } finally {
       setSearchingUsers(false);
     }
-  }, []);
+  }, [notifyApiError]);
 
   // Search users for new conversation
   const handleSearchUsers = async (search: string) => {
@@ -554,8 +591,10 @@ export default function AgentMessagesPage() {
     try {
       const response = await messageService.searchUsers(search);
       setSearchedUsers(response.data.users);
+      accessErrorRef.current = null;
     } catch (error) {
       console.error('Error searching users:', error);
+      notifyApiError(error, 'Failed to search users');
     } finally {
       setSearchingUsers(false);
     }

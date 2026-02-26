@@ -91,8 +91,8 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                     discountPrice: prop?.discount_price ? Number(prop.discount_price) : null,
                     discountPercentage: prop?.discount_percentage ? Number(prop.discount_percentage) : null,
                     priceUnit: getPriceUnit(prop?.property_type?.name),
-                    rating: 4.5,
-                    reviews: 0,
+                    rating: Number((prop as any)?.average_rating ?? (prop as any)?.rating ?? 0),
+                    reviews: Number((prop as any)?.reviews_count ?? (prop as any)?.reviews?.length ?? 0),
                     images: images.length ? images : [getImageUrl()],
                     amenities: (prop?.facilities || []).map((f: any) => f.name).filter(Boolean),
                     facilities: prop?.facilities || [],
@@ -102,6 +102,9 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                     area: 0,
                     description: prop?.description || "",
                     agent: prop?.agent || null,
+                    agent_id: prop?.agent_id || prop?.agent?.id || null,
+                    can_view_agent: Boolean((prop as any)?.can_view_agent),
+                    platform_fee_required: Boolean((prop as any)?.platform_fee_required),
                     region: prop?.region || "",
                     city: prop?.city || "",
                     address: prop?.address || prop?.location || "",
@@ -161,8 +164,8 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                                 location: p.location || `${p.city}, ${p.region}`,
                                 price: Number(p.price),
                                 priceUnit: getPriceUnit(p.property_type?.name),
-                                rating: 4.3,
-                                reviews: 0,
+                                rating: Number((p as any)?.average_rating ?? (p as any)?.rating ?? 0),
+                                reviews: Number((p as any)?.reviews_count ?? (p as any)?.reviews?.length ?? 0),
                                 images: simImages.length > 0 ? simImages : [],
                                 amenities: (p.facilities || []).map((f: any) => f.name).filter(Boolean),
                                 facilities: p.facilities || [],
@@ -188,16 +191,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                 }
 
                 // Placeholder reviews
-                setReviews([
-                    {
-                        id: 1,
-                        user: prop.agent?.user?.name || "Guest",
-                        avatar: "",
-                        rating: 5,
-                        date: new Date().toISOString(),
-                        comment: prop.description,
-                    },
-                ]);
+                setReviews([]);
             } catch (error: any) {
                 console.error("Failed to load property", error);
                 const message = error?.response?.data?.message || "Failed to load property";

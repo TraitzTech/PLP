@@ -943,7 +943,7 @@ export default function EditPropertyPage() {
           {existingVideos.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Current Videos ({existingVideos.length})</CardTitle>
+                <CardTitle>Current Virtual Tour Videos ({existingVideos.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -982,15 +982,15 @@ export default function EditPropertyPage() {
           {/* Upload New Videos */}
           <Card>
             <CardHeader>
-              <CardTitle>Add New Videos</CardTitle>
+              <CardTitle>Add New Virtual Tour Videos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="newVideos" className="cursor-pointer">
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-plp-purple transition-colors">
                     <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-600">Click to upload videos</p>
-                    <p className="text-xs text-gray-400 mt-1">MP4, WebM up to 50MB each</p>
+                    <p className="text-sm text-gray-600">Click to upload virtual tour videos</p>
+                    <p className="text-xs text-gray-400 mt-1">Use walkthrough or aerial clips (MP4, WebM up to 50MB each)</p>
                   </div>
                   <Input
                     id="newVideos"

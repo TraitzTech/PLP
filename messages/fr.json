@@ -157,5 +157,17 @@
   "pricing": {
     "title": "Tarifs",
     "subtitle": "pour Agents"
+  },
+  "maintenance": {
+    "title": "Nous Revenons Bientôt",
+    "description": "Nous effectuons actuellement une maintenance programmée pour améliorer votre expérience. Nous serons en ligne sous peu !",
+    "emailUs": "Écrivez-nous",
+    "callUs": "Appelez-nous",
+    "whatWeDoing": "Ce que nous faisons",
+    "improvingPerformance": "Amélioration de la performance de la plate-forme",
+    "enhancingFeatures": "Amélioration des fonctionnalités clés",
+    "ensuringSecurity": "Assurer la sécurité et la fiabilité",
+    "progress": "Maintenance en cours",
+    "thankYou": "Merci de votre patience. Nous apprécions votre compréhension !"
   }
 }

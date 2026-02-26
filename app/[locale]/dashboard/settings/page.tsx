@@ -7,13 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Bell, Shield, CreditCard, Globe, Camera, Save, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { User, CreditCard, Camera, Save, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { profileService, type ProfileData } from '@/services/profileService';
+import { paymentService, type PaymentTransaction } from '@/services/paymentService';
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -40,24 +40,10 @@ export default function SettingsPage() {
     new_password_confirmation: '',
   });
 
-  const [notifications, setNotifications] = useState({
-    emailBookings: true,
-    emailPromotions: false,
-    emailMessages: true,
-    pushBookings: true,
-    pushPromotions: false,
-    pushMessages: true,
-    smsBookings: false,
-    smsPromotions: false,
-  });
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(true);
 
-  const [privacy, setPrivacy] = useState({
-    profileVisibility: 'public',
-    showEmail: false,
-    showPhone: false,
-    allowMessages: true,
-    allowReviews: true,
-  });
+  const txList = Array.isArray(transactions) ? transactions : [];
 
   // Load profile on mount
   useEffect(() => {
@@ -71,10 +57,17 @@ export default function SettingsPage() {
           bio: data.bio || '',
           avatar: data.avatar,
         });
+        try {
+          const tx = await paymentService.getTransactions();
+          setTransactions(Array.isArray(tx) ? tx : []);
+        } catch (err) {
+          console.error('Failed to load transactions', err);
+        }
       } catch (err) {
         toast.error('Failed to load profile');
       } finally {
         setLoading(false);
+        setTransactionsLoading(false);
       }
     };
     loadProfile();
@@ -171,26 +164,14 @@ export default function SettingsPage() {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Profile
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="w-4 h-4" />
-              Notifications
-            </TabsTrigger>
-            <TabsTrigger value="privacy" className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              Privacy
-            </TabsTrigger>
             <TabsTrigger value="billing" className="flex items-center gap-2">
               <CreditCard className="w-4 h-4" />
               Billing
-            </TabsTrigger>
-            <TabsTrigger value="preferences" className="flex items-center gap-2">
-              <Globe className="w-4 h-4" />
-              Preferences
             </TabsTrigger>
           </TabsList>
 
@@ -358,142 +339,6 @@ export default function SettingsPage() {
             </Card>
           </TabsContent>
 
-          {/* Notifications Tab */}
-          <TabsContent value="notifications" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Email Notifications</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Booking Updates</Label>
-                    <p className="text-sm text-gray-500">Get notified about booking confirmations and changes</p>
-                  </div>
-                  <Switch
-                    checked={notifications.emailBookings}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, emailBookings: checked }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Messages</Label>
-                    <p className="text-sm text-gray-500">Receive new messages from property owners</p>
-                  </div>
-                  <Switch
-                    checked={notifications.emailMessages}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, emailMessages: checked }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Promotions & Offers</Label>
-                    <p className="text-sm text-gray-500">Special deals and promotional offers</p>
-                  </div>
-                  <Switch
-                    checked={notifications.emailPromotions}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, emailPromotions: checked }))}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Push Notifications</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Booking Updates</Label>
-                    <p className="text-sm text-gray-500">Instant notifications for booking changes</p>
-                  </div>
-                  <Switch
-                    checked={notifications.pushBookings}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, pushBookings: checked }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Messages</Label>
-                    <p className="text-sm text-gray-500">New message notifications</p>
-                  </div>
-                  <Switch
-                    checked={notifications.pushMessages}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, pushMessages: checked }))}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Button onClick={handleSaveNotifications} className="btn-primary">
-              <Save className="w-4 h-4 mr-2" />
-              Save Notification Preferences
-            </Button>
-          </TabsContent>
-
-          {/* Privacy Tab */}
-          <TabsContent value="privacy" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Privacy</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Profile Visibility</Label>
-                  <Select
-                    value={privacy.profileVisibility}
-                    onValueChange={(value) => setPrivacy(prev => ({ ...prev, profileVisibility: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="public">Public</SelectItem>
-                      <SelectItem value="private">Private</SelectItem>
-                      <SelectItem value="friends">Friends Only</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Show Email Address</Label>
-                    <p className="text-sm text-gray-500">Allow others to see your email</p>
-                  </div>
-                  <Switch
-                    checked={privacy.showEmail}
-                    onCheckedChange={(checked) => setPrivacy(prev => ({ ...prev, showEmail: checked }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Show Phone Number</Label>
-                    <p className="text-sm text-gray-500">Allow others to see your phone number</p>
-                  </div>
-                  <Switch
-                    checked={privacy.showPhone}
-                    onCheckedChange={(checked) => setPrivacy(prev => ({ ...prev, showPhone: checked }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Allow Messages</Label>
-                    <p className="text-sm text-gray-500">Let property owners contact you</p>
-                  </div>
-                  <Switch
-                    checked={privacy.allowMessages}
-                    onCheckedChange={(checked) => setPrivacy(prev => ({ ...prev, allowMessages: checked }))}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Button onClick={handleSavePrivacy} className="btn-primary">
-              <Save className="w-4 h-4 mr-2" />
-              Save Privacy Settings
-            </Button>
-          </TabsContent>
-
           {/* Billing Tab */}
           <TabsContent value="billing" className="space-y-6">
             <Card>
@@ -515,66 +360,32 @@ export default function SettingsPage() {
                 <CardTitle>Billing History</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <p className="text-gray-600">No billing history available</p>
-                </div>
+                {transactionsLoading ? (
+                  <div className="flex items-center justify-center py-6 text-sm text-gray-500">
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Loading transactions...
+                  </div>
+                ) : txList.length === 0 ? (
+                  <p className="text-sm text-gray-500">No billing history available</p>
+                ) : (
+                  <div className="space-y-3">
+                    {txList.map((tx) => (
+                      <div key={tx.id} className="p-3 border rounded-lg flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-gray-900">{tx.reference ?? `Transaction #${tx.id}`}</p>
+                          <p className="text-xs text-gray-500">{tx.created_at}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-plp-purple">
+                            {tx.amount} {tx.currency}
+                          </div>
+                          <Badge variant="outline" className="capitalize">{tx.status}</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Preferences Tab */}
-          <TabsContent value="preferences" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Regional Preferences</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Language</Label>
-                  <Select defaultValue="en">
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="fr">Français</SelectItem>
-                      <SelectItem value="es">Español</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Currency</Label>
-                  <Select defaultValue="XAF">
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="XAF">XAF (Central African CFA Franc)</SelectItem>
-                      <SelectItem value="USD">USD (US Dollar)</SelectItem>
-                      <SelectItem value="EUR">EUR (Euro)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Timezone</Label>
-                  <Select defaultValue="Africa/Douala">
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Africa/Douala">Africa/Douala (WAT)</SelectItem>
-                      <SelectItem value="UTC">UTC</SelectItem>
-                      <SelectItem value="America/New_York">America/New_York (EST)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Button className="btn-primary" onClick={() => toast.success('Preferences saved!')}>
-              <Save className="w-4 h-4 mr-2" />
-              Save Preferences
-            </Button>
           </TabsContent>
         </Tabs>
       </div>

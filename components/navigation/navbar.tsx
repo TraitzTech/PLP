@@ -83,6 +83,7 @@ export function Navbar() {
     };
 
     const accountRoutes = getRoutesByUserType(currentUser?.user_type);
+    const canListProperty = currentUser?.user_type === 'agent' || currentUser?.user_type === 'admin';
 
     // Check authentication status on mount and set up listener
     useEffect(() => {
@@ -253,15 +254,17 @@ export function Navbar() {
 
                         {mounted && isAuthenticated ? (
                             <>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-plp-purple"
-                                    onClick={handleListProperty}
-                                >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    {t('footer.host.list', 'List Property')}
-                                </Button>
+                                {canListProperty && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-plp-purple"
+                                        onClick={handleListProperty}
+                                    >
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        {t('footer.host.list', 'List Property')}
+                                    </Button>
+                                )}
 
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -421,17 +424,19 @@ export function Navbar() {
                             <div className="pt-4 space-y-2">
                                 {mounted && isAuthenticated ? (
                                     <>
-                                        <Button
-                                            variant="ghost"
-                                            className="w-full justify-start text-plp-purple"
-                                            onClick={() => {
-                                                handleListProperty();
-                                                setIsOpen(false);
-                                            }}
-                                        >
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            {t('footer.host.list','List Property')}
-                                        </Button>
+                                        {canListProperty && (
+                                            <Button
+                                                variant="ghost"
+                                                className="w-full justify-start text-plp-purple"
+                                                onClick={() => {
+                                                    handleListProperty();
+                                                    setIsOpen(false);
+                                                }}
+                                            >
+                                                <Plus className="w-4 h-4 mr-2" />
+                                                {t('footer.host.list','List Property')}
+                                            </Button>
+                                        )}
                                         <Button
                                             variant="ghost"
                                             className="w-full justify-start"

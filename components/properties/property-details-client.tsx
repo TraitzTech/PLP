@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { PropertyCard } from '@/components/properties/property-card';
@@ -17,7 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { 
   Star, 
   Heart, 
@@ -53,6 +53,7 @@ import { reviewService, type CreateReviewRequest } from '@/services/reviewServic
 import { Input } from '@/components/ui/input';
 import { authService } from '@/services/authService';
 import { savedPropertyService } from '@/services/savedPropertyService';
+import { platformAccessService } from '@/services/platformAccessService';
 
 interface PropertyDetailsClientProps {
   property: any;
@@ -111,10 +112,24 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
   // Authentication and guest booking state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [bookingMode, setBookingMode] = useState<'choose' | 'guest' | 'login'>('choose');
+  const [currentUserType, setCurrentUserType] = useState<string | null>(null);
+  const [bookingMode, setBookingMode] = useState<'choose' | 'guest' | 'login'>('guest');
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
+  const [platformFeeXaf, setPlatformFeeXaf] = useState(0);
+  const [platformFeeCurrency, setPlatformFeeCurrency] = useState('XAF');
+  const [unlockingAgent, setUnlockingAgent] = useState(false);
+  const [agentUnlockedOverride, setAgentUnlockedOverride] = useState(false);
+  const [agentAccessStatus, setAgentAccessStatus] = useState<{
+    can_contact: boolean;
+    has_booking: boolean;
+    has_paid_access: boolean;
+    reason: string | null;
+  } | null>(null);
+  const [paymentPhone, setPaymentPhone] = useState('');
+  const [paymentChannel, setPaymentChannel] = useState('MTN');
+  const paySectionRef = useRef<HTMLDivElement | null>(null);
   
   // Review state
   const [reviews, setReviews] = useState<ApiReview[]>([]);
@@ -130,6 +145,11 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
   const [reviewGuestEmail, setReviewGuestEmail] = useState('');
   const pathname = usePathname();
   const router = useRouter();
+  const agent = property?.agent;
+  const agentId = Number(property?.agent_id ?? agent?.id ?? 0) || null;
+  const agentUserId = Number(agent?.user?.id ?? 0) || null;
+  const canViewAgent = Boolean(property?.can_view_agent);
+  const hasUnlockedAgent = canViewAgent || agentUnlockedOverride || Boolean(agentAccessStatus?.has_paid_access);
 
   // Fetch reviews on mount
   useEffect(() => {
@@ -163,15 +183,76 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
         setIsAuthenticated(isAuthed);
         if (isAuthed) {
           setBookingMode('guest'); // If authenticated, skip the choose step
+          const user = await authService.getCurrentUser();
+          setCurrentUserType((user as any)?.user_type || null);
+          if ((user as any)?.phone) {
+            setPaymentPhone((user as any).phone);
+          }
+        } else {
+          setCurrentUserType(null);
         }
       } catch (error) {
         setIsAuthenticated(false);
+        setCurrentUserType(null);
       } finally {
         setCheckingAuth(false);
       }
     };
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    const loadPlatformFee = async () => {
+      try {
+        const res = await platformAccessService.getFeeConfig();
+        setPlatformFeeXaf(res.data.platform_fee_xaf || 0);
+        setPlatformFeeCurrency(res.data.currency || 'XAF');
+        if ((res.data.platform_fee_xaf || 0) <= 0) {
+          setAgentUnlockedOverride(true);
+          setAgentAccessStatus((prev) => ({
+            can_contact: true,
+            has_booking: true,
+            has_paid_access: true,
+            reason: null,
+            ...prev,
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to load platform fee config', error);
+      }
+    };
+
+    loadPlatformFee();
+  }, []);
+
+  useEffect(() => {
+    const loadPlatformAccess = async () => {
+      if (!agentId || !isAuthenticated || currentUserType !== 'customer') {
+        return;
+      }
+
+      try {
+        const [feeRes, accessRes] = await Promise.all([
+          platformAccessService.getFeeConfig(),
+          platformAccessService.getStatus(agentId),
+        ]);
+        setPlatformFeeXaf(feeRes.data.platform_fee_xaf || 0);
+        setAgentAccessStatus({
+          can_contact: accessRes.data.can_contact,
+          has_booking: accessRes.data.has_booking,
+          has_paid_access: accessRes.data.has_paid_access,
+          reason: accessRes.data.reason,
+        });
+        if (accessRes.data.has_paid_access) {
+          setAgentUnlockedOverride(true);
+        }
+      } catch (error) {
+        console.error('Failed to load platform access status', error);
+      }
+    };
+
+    loadPlatformAccess();
+  }, [agentId, isAuthenticated, currentUserType]);
 
   useEffect(() => {
     setIsFavorite(Boolean(property?.is_saved));
@@ -222,8 +303,6 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
   const facilities = property?.facilities && Array.isArray(property.facilities) && property.facilities.length > 0
     ? property.facilities
     : (property?.amenities || []).map((name: string) => ({ name }));
-  const agent = property?.agent;
-
   const nextImage = () => {
     setCurrentImageIndex((prev) => 
       prev === images.length - 1 ? 0 : prev + 1
@@ -261,16 +340,55 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
     "Full property:", property
   )
 
-  // Handle booking submission
   const handleBooking = async () => {
-    if (!checkIn || !checkOut) {
+    // Default dates for non-rental (sale/offer) flows so booking can proceed
+    const effectiveCheckIn = checkIn ?? new Date();
+    const effectiveCheckOut = checkOut ?? addDays(new Date(), 1);
+
+    if (!effectiveCheckIn || !effectiveCheckOut) {
       toast.error('Please select check-in and check-out dates');
       return;
     }
 
-    if (checkIn >= checkOut) {
+    if (effectiveCheckIn >= effectiveCheckOut) {
       toast.error('Check-out date must be after check-in date');
       return;
+    }
+
+    // If customer needs to pay the platform fee, trigger payment flow first
+    if (isAuthenticated && currentUserType === 'customer' && !hasUnlockedAgent && (platformFeeXaf ?? 0) > 0) {
+      if (!agentId) {
+        toast.error('Agent information is not available for this listing.');
+        return;
+      }
+      // Ask for payment info then pay before booking
+      if (!paymentPhone.trim()) {
+        toast.error('Enter the mobile money number to pay the platform access fee.');
+        paySectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+      try {
+        setUnlockingAgent(true);
+        const response = await platformAccessService.pay({
+          agent_id: agentId,
+          payment_channel: paymentChannel,
+          phone_number: paymentPhone.trim(),
+        });
+        toast.success(response.message || 'Platform fee paid successfully.');
+        setAgentUnlockedOverride(true);
+        setAgentAccessStatus((prev) => ({
+          can_contact: true,
+          has_booking: true,
+          has_paid_access: true,
+          reason: null,
+          ...prev,
+        }));
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || error?.message || 'Payment failed');
+        return;
+      } finally {
+        setUnlockingAgent(false);
+      }
     }
 
     // If not authenticated, validate guest details
@@ -300,8 +418,8 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
         // Authenticated user booking
         await bookingService.createBooking({
           listing_id: property.id,
-          check_in_date: format(checkIn, 'yyyy-MM-dd'),
-          check_out_date: format(checkOut, 'yyyy-MM-dd'),
+          check_in_date: format(effectiveCheckIn, 'yyyy-MM-dd'),
+          check_out_date: format(effectiveCheckOut, 'yyyy-MM-dd'),
           guest_count: guests,
           special_requests: specialRequests || undefined,
         });
@@ -309,8 +427,8 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
         // Guest booking
         await bookingService.createGuestBooking({
           listing_id: property.id,
-          check_in_date: format(checkIn, 'yyyy-MM-dd'),
-          check_out_date: format(checkOut, 'yyyy-MM-dd'),
+          check_in_date: format(effectiveCheckIn, 'yyyy-MM-dd'),
+          check_out_date: format(effectiveCheckOut, 'yyyy-MM-dd'),
           guest_count: guests,
           guest_name: guestName.trim(),
           guest_email: guestEmail.trim(),
@@ -338,6 +456,82 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
     } finally {
       setIsBooking(false);
     }
+  };
+
+  const handleUnlockAgent = async () => {
+    if (!agentId) {
+      toast.error('Agent information is not available for this listing.');
+      return;
+    }
+
+    if (!isAuthenticated) {
+      const locale = getLocaleFromPath();
+      router.push(`/${locale}/auth/signin?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    if (currentUserType !== 'customer') {
+      toast.error('Only customer accounts can unlock agent contact details.');
+      return;
+    }
+
+    if (!paymentPhone.trim()) {
+      toast.error('Enter the mobile money number to charge for the platform fee.');
+      return;
+    }
+
+    setUnlockingAgent(true);
+    try {
+      const response = await platformAccessService.pay({
+        agent_id: agentId,
+        payment_channel: paymentChannel,
+        phone_number: paymentPhone.trim(),
+      });
+      toast.success(response.message || 'Platform fee paid successfully. A receipt has been emailed to you.');
+      setAgentUnlockedOverride(true);
+      setAgentAccessStatus((prev) => ({
+        can_contact: true,
+        has_booking: prev?.has_booking ?? true,
+        has_paid_access: true,
+        reason: null,
+      }));
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to process platform fee payment.');
+    } finally {
+      setUnlockingAgent(false);
+    }
+  };
+
+  const handleContactAgent = async () => {
+    if (!agentUserId) {
+      toast.error('Agent information is not available for this listing.');
+      return;
+    }
+
+    if (!isAuthenticated) {
+      const locale = getLocaleFromPath();
+      router.push(`/${locale}/auth/signin?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    if (currentUserType === 'customer' && !hasUnlockedAgent) {
+      if (!agentAccessStatus?.has_booking) {
+        toast.error('You need an active booking with this agent before starting a chat.');
+      } else {
+        toast.error('Pay the platform fee to unlock chat with this agent.');
+      }
+      return;
+    }
+
+    const locale = getLocaleFromPath();
+    const inboxPath =
+      currentUserType === 'admin'
+        ? `/${locale}/admin/messages`
+        : currentUserType === 'agent'
+          ? `/${locale}/dashboard/agent/messages`
+          : `/${locale}/dashboard/messages`;
+
+    router.push(inboxPath);
   };
 
   // Handle review submission
@@ -713,28 +907,90 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
                 <CardTitle>Agent Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={agent?.user?.avatar} alt={agent?.user?.name} />
-                    <AvatarFallback>
-                      {(agent?.user?.name || "A").slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-1">
-                    <p className="font-semibold text-gray-900">{agent?.user?.name || 'Agent'}</p>
-                    <p className="text-gray-600 text-sm">Agent Name</p>
-                  </div>
-                </div>
-                {agent?.user?.email && (
-                  <div className="border-t pt-3">
-                    <p className="text-gray-600 text-sm">Agent Email</p>
-                    <p className="font-medium text-gray-900">{agent.user.email}</p>
-                  </div>
-                )}
-                {agent?.user?.phone && (
-                  <div className="border-t pt-3">
-                    <p className="text-gray-600 text-sm">Agent Phone</p>
-                    <p className="font-medium text-gray-900">{agent.user.phone}</p>
+                {hasUnlockedAgent ? (
+                  <>
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={agent?.user?.avatar} alt={agent?.user?.name} />
+                        <AvatarFallback>
+                          {(agent?.user?.name || "A").slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-1">
+                        <p className="font-semibold text-gray-900">{agent?.user?.name || 'Agent'}</p>
+                        <p className="text-gray-600 text-sm">Agent Name</p>
+                      </div>
+                    </div>
+                    {agent?.user?.email && (
+                      <div className="border-t pt-3">
+                        <p className="text-gray-600 text-sm">Agent Email</p>
+                        <p className="font-medium text-gray-900">{agent.user.email}</p>
+                      </div>
+                    )}
+                    {agent?.user?.phone && (
+                      <div className="border-t pt-3">
+                        <p className="text-gray-600 text-sm">Agent Phone</p>
+                        <p className="font-medium text-gray-900">{agent.user.phone}</p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div ref={paySectionRef} className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-2">
+                    <p className="font-semibold text-amber-900">Agent details are locked</p>
+                    <p className="text-sm text-amber-800">
+                      Platform access fee: {new Intl.NumberFormat('fr-CM', { style: 'currency', currency: platformFeeCurrency || 'XAF', minimumFractionDigits: 0 }).format(platformFeeXaf || 0)} (set by admin)
+                    </p>
+                    {agentAccessStatus?.reason && (
+                      <p className="text-xs text-amber-700">{agentAccessStatus.reason}</p>
+                    )}
+                    {!isAuthenticated && (
+                      <p className="text-sm text-amber-800">
+                        Sign in and pay the platform fee after booking to unlock agent contact details.
+                      </p>
+                    )}
+                    {isAuthenticated && currentUserType !== 'customer' && (
+                      <p className="text-sm text-amber-800">
+                        Only customer accounts with paid platform access can view agent contact details.
+                      </p>
+                    )}
+                    {isAuthenticated && currentUserType === 'customer' && !agentAccessStatus?.has_paid_access && (
+                      <div className="space-y-3 mt-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-xs font-medium">Mobile money number</Label>
+                            <Input
+                              value={paymentPhone}
+                              onChange={(e) => setPaymentPhone(e.target.value)}
+                              placeholder="e.g. +237 6XX..."
+                              className="mt-1 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs font-medium">Payment channel</Label>
+                            <select
+                              className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                              value={paymentChannel}
+                              onChange={(e) => setPaymentChannel(e.target.value)}
+                            >
+                              <option value="MTN">MTN MoMo</option>
+                              <option value="ORANGE">Orange Money</option>
+                              <option value="mobile_money">Other Mobile Money</option>
+                            </select>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-600">We will charge this number via {paymentChannel} to unlock the agent contact for this booking.</p>
+                        <Button onClick={handleUnlockAgent} disabled={unlockingAgent} className="w-full">
+                          {unlockingAgent ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>Pay {new Intl.NumberFormat('fr-CM', { style: 'currency', currency: platformFeeCurrency || 'XAF', minimumFractionDigits: 0 }).format(platformFeeXaf || 0)} to unlock</>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -1219,7 +1475,7 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
                       en: review.comment,
                       fr: review.comment,
                     },
-                    helpful: Math.floor(Math.random() * 20),
+                    helpful: (review as any)?.helpful_count ?? 0,
                   }))}
                   language={language}
                   propertyRating={averageRating}
@@ -1265,6 +1521,13 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
             </CardHeader>
             
             <CardContent className="space-y-4 pt-6">
+              <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <p className="text-sm font-semibold text-purple-900">Platform access fee</p>
+                <p className="text-xs text-purple-800">
+                  Pay {new Intl.NumberFormat('fr-CM', { style: 'currency', currency: platformFeeCurrency || 'XAF', minimumFractionDigits: 0 }).format(platformFeeXaf || 0)} after booking to view agent contact details. This fee is set by the admin.
+                </p>
+              </div>
+
               {/* For Rent Booking Section */}
               {isForRent && (
                 <>
@@ -1488,8 +1751,6 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
                     onClick={handleBooking}
                     disabled={
                       isBooking || 
-                      !checkIn || 
-                      !checkOut || 
                       checkingAuth ||
                       (!isAuthenticated && bookingMode === 'choose')
                     }
@@ -1551,9 +1812,9 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
                     </div>
                   </div>
                   
-                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 font-semibold text-base">
+                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 font-semibold text-base" onClick={handleBooking}>
                     <Building2 className="w-4 h-4 mr-2" />
-                    Make an Offer
+                    Book / Make an Offer
                   </Button>
                 </>
               )}
@@ -1566,9 +1827,18 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
                 </div>
               )}
               
-              <Button variant="outline" className="w-full h-10 font-semibold">
+              <Button
+                variant="outline"
+                className="w-full h-10 font-semibold"
+                onClick={hasUnlockedAgent || !isAuthenticated || currentUserType !== 'customer' ? handleContactAgent : handleUnlockAgent}
+                disabled={unlockingAgent}
+              >
                 <MessageSquare className="w-4 h-4 mr-2" />
-                Contact Agent
+                {unlockingAgent
+                  ? 'Processing...'
+                  : isAuthenticated && currentUserType === 'customer' && !hasUnlockedAgent && agentAccessStatus?.has_booking
+                    ? `Pay ${new Intl.NumberFormat('fr-CM', { style: 'currency', currency: platformFeeCurrency || 'XAF', minimumFractionDigits: 0 }).format(platformFeeXaf || 0)} & Contact Agent`
+                    : 'Contact Agent'}
               </Button>
               
               {agent && (

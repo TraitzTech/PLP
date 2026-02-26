@@ -16,6 +16,8 @@ export interface Booking {
   total_price: number;
   currency: string;
   payment_status: 'pending' | 'paid' | 'refunded' | 'failed';
+  can_chat_with_agent?: boolean;
+  requires_platform_fee?: boolean;
   special_requests: string | null;
   discount_code: string | null;
   created_at: string;

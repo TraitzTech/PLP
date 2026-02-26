@@ -14,14 +14,20 @@ import { bookingService, Booking } from '@/services/bookingService';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { platformAccessService } from '@/services/platformAccessService';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function BookingsPage() {
+  const pathname = usePathname();
+  const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [payingAccessBookingId, setPayingAccessBookingId] = useState<number | null>(null);
+  const [platformFeeXaf, setPlatformFeeXaf] = useState(1000);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
 
@@ -36,8 +42,12 @@ export default function BookingsPage() {
   const loadBookings = async () => {
     setIsLoading(true);
     try {
-      const response = await bookingService.getMyBookings();
+      const [response, feeResponse] = await Promise.all([
+        bookingService.getMyBookings(),
+        platformAccessService.getFeeConfig(),
+      ]);
       setBookings(response.data || []);
+      setPlatformFeeXaf(feeResponse.data.platform_fee_xaf || 0);
     } catch (error) {
       console.error('Failed to load bookings:', error);
       toast.error('Failed to load bookings');
@@ -133,6 +143,56 @@ export default function BookingsPage() {
     const start = new Date(checkIn);
     const end = new Date(checkOut);
     return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  const getLocalePrefix = () => {
+    const locale = pathname.split('/').filter(Boolean)[0];
+    return locale === 'en' || locale === 'fr' ? `/${locale}` : '';
+  };
+
+  const handleContactAgent = async (booking: Booking) => {
+    const agentId = Number(booking.listing?.agent?.id ?? 0) || null;
+    const agentUserId = Number(booking.listing?.agent?.user?.id ?? 0) || null;
+
+    if (!agentId || !agentUserId) {
+      toast.error('Agent information is not available for this booking.');
+      return;
+    }
+
+    if (booking.can_chat_with_agent) {
+      router.push(`${getLocalePrefix()}/dashboard/messages`);
+      return;
+    }
+
+    if (!booking.requires_platform_fee) {
+      toast.error('Chat is currently unavailable for this booking.');
+      return;
+    }
+
+    setPayingAccessBookingId(booking.id);
+    try {
+      const payment = await platformAccessService.pay({
+        agent_id: agentId,
+        booking_id: booking.id,
+        payment_channel: 'MTN',
+      });
+
+      toast.success(payment.message || 'Platform fee paid. You can now contact this agent.');
+
+      setBookings((prev) =>
+        prev.map((item) =>
+          item.id === booking.id
+            ? { ...item, can_chat_with_agent: true, requires_platform_fee: false }
+            : item
+        )
+      );
+
+      router.push(`${getLocalePrefix()}/dashboard/messages`);
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to process platform fee payment.');
+    } finally {
+      setPayingAccessBookingId(null);
+    }
   };
 
   return (
@@ -278,9 +338,25 @@ export default function BookingsPage() {
                           </div>
                           <div className="flex gap-2 flex-wrap justify-end">
                             {booking.listing?.agent?.user && (
-                              <Button variant="outline" size="sm">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleContactAgent(booking)}
+                                disabled={payingAccessBookingId === booking.id}
+                              >
                                 <MessageSquare className="w-4 h-4 mr-2" />
-                                Contact
+                                {payingAccessBookingId === booking.id ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Processing...
+                                  </>
+                                ) : booking.can_chat_with_agent ? (
+                                  'Contact'
+                                ) : booking.requires_platform_fee ? (
+                                  `Pay ${formatCurrency(platformFeeXaf, 'XAF')} & Contact`
+                                ) : (
+                                  'Contact unavailable'
+                                )}
                               </Button>
                             )}
                             {booking.status === 'completed' && (
@@ -329,7 +405,7 @@ export default function BookingsPage() {
           <DialogHeader>
             <DialogTitle>Cancel Booking</DialogTitle>
             <DialogDescription>
-              Are you sure you want to cancel your booking for "{bookingToCancel?.listing?.title}"?
+              Are you sure you want to cancel your booking for &quot;{bookingToCancel?.listing?.title}&quot;?
               This action cannot be undone.
             </DialogDescription>
           </DialogHeader>

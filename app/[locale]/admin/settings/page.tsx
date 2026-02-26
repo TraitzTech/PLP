@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,10 +11,25 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Globe, DollarSign, Shield, Mail, Bell, Save, Database, Users, Building2, User, Camera, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { Calendar } from 'lucide-react';
+import { Save, Settings, DollarSign, FileText, User, Camera, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { profileService } from '@/services/profileService';
+import apiClient from '@/lib/apiClient';
+
+type SettingType = 'string' | 'boolean' | 'integer' | 'float' | 'json';
+
+const toBool = (value: unknown, fallback = false): boolean => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value.toLowerCase() === 'true' || value === '1';
+  if (typeof value === 'number') return value !== 0;
+  return fallback;
+};
+
+const ensureDate = (value: unknown): string => {
+  const str = String(value || '').trim();
+  if (!str) return new Date().toISOString().slice(0, 10);
+  return str.slice(0, 10);
+};
 
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -39,96 +54,233 @@ export default function AdminSettingsPage() {
     new_password: '',
     new_password_confirmation: '',
   });
-  
+
   const [platformSettings, setPlatformSettings] = useState({
-    siteName: 'Property Listing Portal',
-    siteDescription: 'The trusted bridge for seamless property listing, booking, and discovery.',
+    siteName: 'PLP Listings',
+    siteDescription: 'Find your perfect property with PLP Listings',
     defaultCurrency: 'XAF',
     defaultLanguage: 'en',
-    timezone: 'Africa/Douala',
-    commissionRate: 10,
     maintenanceMode: false,
     allowRegistration: true,
-    requireEmailVerification: true,
     autoApproveProperties: false,
+    enableLandlordListing: true,
+    enableVirtualTours: true,
   });
 
-  const [emailSettings, setEmailSettings] = useState({
-    smtpHost: 'smtp.gmail.com',
-    smtpPort: '587',
-    smtpUsername: 'noreply@propertylistingportal.com',
-    smtpPassword: '••••••••',
-    fromEmail: 'noreply@propertylistingportal.com',
-    fromName: 'Property Listing Portal',
+  const [rolloutSettings, setRolloutSettings] = useState({
+    enforceCityScope: true,
+    rolloutCities: 'Douala, Bamenda',
+    rentalsOnly: true,
+    hotelEnabled: false,
+    salesEnabled: false,
   });
 
   const [paymentSettings, setPaymentSettings] = useState({
-    stripePublishableKey: 'pk_test_••••••••',
-    stripeSecretKey: 'sk_test_••••••••',
-    paypalClientId: '••••••••',
-    paypalClientSecret: '••••••••',
-    enableStripe: true,
-    enablePaypal: true,
-    enableBankTransfer: true,
+    platformFeeXaf: '1000',
+    customerBookingFreeMode: true,
+    customerPlatformAccessFeeEnabled: false,
+    mesombAccessKey: '',
+    mesombApplicationKey: '',
+    mesombSecretKey: '',
+    mesombLiveMode: false,
+    mesombDefaultService: 'MTN',
+    mesombDefaultCountry: 'CM',
   });
 
-  const [securitySettings, setSecuritySettings] = useState({
-    maxLoginAttempts: 5,
-    sessionTimeout: 30,
-    requireTwoFactor: false,
-    passwordMinLength: 8,
-    enableCaptcha: true,
-    allowGuestBooking: false,
+  const [legalSettings, setLegalSettings] = useState({
+    termsEn: '',
+    termsFr: '',
+    termsLastUpdated: new Date().toISOString().slice(0, 10),
+    privacyEn: '',
+    privacyFr: '',
+    privacyLastUpdated: new Date().toISOString().slice(0, 10),
   });
 
-  const handleSavePlatformSettings = () => {
-    toast.success('Platform settings updated successfully!');
+  const previewLegal = useMemo(
+    () => ({
+      terms: legalSettings.termsEn || '<p>No terms content yet.</p>',
+      privacy: legalSettings.privacyEn || '<p>No privacy content yet.</p>',
+    }),
+    [legalSettings.termsEn, legalSettings.privacyEn]
+  );
+
+  const saveSetting = async (
+    key: string,
+    value: unknown,
+    type: SettingType,
+    group: string,
+    description?: string
+  ) => {
+    await apiClient.patch(`/settings/key/${key}`, {
+      value,
+      type,
+      group,
+      description,
+    });
   };
 
-  const handleSaveEmailSettings = () => {
-    toast.success('Email settings updated successfully!');
+  const handleSaveGeneralSettings = async () => {
+    try {
+      setSaving(true);
+      const rolloutCities = rolloutSettings.rolloutCities
+        .split(',')
+        .map((city) => city.trim())
+        .filter(Boolean);
+
+      await Promise.all([
+        saveSetting('site_name', platformSettings.siteName, 'string', 'general'),
+        saveSetting('site_description', platformSettings.siteDescription, 'string', 'general'),
+        saveSetting('default_currency', platformSettings.defaultCurrency, 'string', 'general'),
+        saveSetting('default_language', platformSettings.defaultLanguage, 'string', 'general'),
+        saveSetting('maintenance_mode', platformSettings.maintenanceMode, 'boolean', 'features'),
+        saveSetting('enable_registration', platformSettings.allowRegistration, 'boolean', 'features'),
+        saveSetting('auto_approve_properties', platformSettings.autoApproveProperties, 'boolean', 'features'),
+        saveSetting('enable_landlord_listing', platformSettings.enableLandlordListing, 'boolean', 'features'),
+        saveSetting('enable_virtual_tours', platformSettings.enableVirtualTours, 'boolean', 'features'),
+        saveSetting('launch_enforce_city_scope', rolloutSettings.enforceCityScope, 'boolean', 'rollout'),
+        saveSetting('launch_rollout_cities', rolloutCities, 'json', 'rollout'),
+        saveSetting('launch_rentals_only', rolloutSettings.rentalsOnly, 'boolean', 'rollout'),
+        saveSetting('launch_hotel_enabled', rolloutSettings.hotelEnabled, 'boolean', 'rollout'),
+        saveSetting('launch_sales_enabled', rolloutSettings.salesEnabled, 'boolean', 'rollout'),
+      ]);
+
+      toast.success('General and rollout settings updated.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save general settings');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSavePaymentSettings = () => {
-    toast.success('Payment settings updated successfully!');
+  const handleSavePaymentSettings = async () => {
+    try {
+      setSaving(true);
+      await Promise.all([
+        saveSetting('platform_fee_xaf', paymentSettings.platformFeeXaf, 'integer', 'payments'),
+        saveSetting('customer_booking_free_mode', paymentSettings.customerBookingFreeMode, 'boolean', 'payments'),
+        saveSetting('customer_platform_access_fee_enabled', paymentSettings.customerPlatformAccessFeeEnabled, 'boolean', 'payments'),
+        saveSetting('mesomb_access_key', paymentSettings.mesombAccessKey, 'string', 'payments'),
+        saveSetting('mesomb_application_key', paymentSettings.mesombApplicationKey, 'string', 'payments'),
+        saveSetting('mesomb_secret_key', paymentSettings.mesombSecretKey, 'string', 'payments'),
+        saveSetting('mesomb_live_mode', paymentSettings.mesombLiveMode, 'boolean', 'payments'),
+        saveSetting('mesomb_default_service', paymentSettings.mesombDefaultService, 'string', 'payments'),
+        saveSetting('mesomb_default_country', paymentSettings.mesombDefaultCountry, 'string', 'payments'),
+      ]);
+
+      toast.success('Payment settings updated.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save payment settings');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSaveSecuritySettings = () => {
-    toast.success('Security settings updated successfully!');
+  const handleSaveLegalSettings = async () => {
+    try {
+      setSaving(true);
+      await Promise.all([
+        saveSetting('legal_terms_content_en', legalSettings.termsEn, 'string', 'legal'),
+        saveSetting('legal_terms_content_fr', legalSettings.termsFr, 'string', 'legal'),
+        saveSetting('legal_terms_last_updated', legalSettings.termsLastUpdated, 'string', 'legal'),
+        saveSetting('legal_privacy_content_en', legalSettings.privacyEn, 'string', 'legal'),
+        saveSetting('legal_privacy_content_fr', legalSettings.privacyFr, 'string', 'legal'),
+        saveSetting('legal_privacy_last_updated', legalSettings.privacyLastUpdated, 'string', 'legal'),
+      ]);
+
+      toast.success('Legal pages updated and published.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save legal settings');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Load profile on mount
   useEffect(() => {
-    const loadProfile = async () => {
+    const loadProfileAndSettings = async () => {
       try {
-        const data = await profileService.getProfile();
+        const [data, settingsRes] = await Promise.all([
+          profileService.getProfile(),
+          apiClient.get('/settings/key-value'),
+        ]);
+
         setProfileData({
           name: data.name || '',
           email: data.email || '',
           phone: data.phone || '',
           avatar: data.avatar,
         });
-      } catch (err) {
-        toast.error('Failed to load profile');
+
+        const settings = (settingsRes.data as any)?.data || {};
+
+        setPlatformSettings((prev) => ({
+          ...prev,
+          siteName: String(settings.site_name ?? prev.siteName),
+          siteDescription: String(settings.site_description ?? prev.siteDescription),
+          defaultCurrency: String(settings.default_currency ?? prev.defaultCurrency),
+          defaultLanguage: String(settings.default_language ?? prev.defaultLanguage),
+          maintenanceMode: toBool(settings.maintenance_mode, prev.maintenanceMode),
+          allowRegistration: toBool(settings.enable_registration, prev.allowRegistration),
+          autoApproveProperties: toBool(settings.auto_approve_properties, prev.autoApproveProperties),
+          enableLandlordListing: toBool(settings.enable_landlord_listing, prev.enableLandlordListing),
+          enableVirtualTours: toBool(settings.enable_virtual_tours, prev.enableVirtualTours),
+        }));
+
+        setRolloutSettings((prev) => ({
+          ...prev,
+          enforceCityScope: toBool(settings.launch_enforce_city_scope, prev.enforceCityScope),
+          rolloutCities: Array.isArray(settings.launch_rollout_cities)
+            ? settings.launch_rollout_cities.join(', ')
+            : prev.rolloutCities,
+          rentalsOnly: toBool(settings.launch_rentals_only, prev.rentalsOnly),
+          hotelEnabled: toBool(settings.launch_hotel_enabled, prev.hotelEnabled),
+          salesEnabled: toBool(settings.launch_sales_enabled, prev.salesEnabled),
+        }));
+
+        setPaymentSettings((prev) => ({
+          ...prev,
+          platformFeeXaf: String(settings.platform_fee_xaf ?? prev.platformFeeXaf),
+          customerBookingFreeMode: toBool(settings.customer_booking_free_mode, prev.customerBookingFreeMode),
+          customerPlatformAccessFeeEnabled: toBool(settings.customer_platform_access_fee_enabled, prev.customerPlatformAccessFeeEnabled),
+          mesombAccessKey: String(settings.mesomb_access_key ?? prev.mesombAccessKey),
+          mesombApplicationKey: String(settings.mesomb_application_key ?? prev.mesombApplicationKey),
+          mesombSecretKey: String(settings.mesomb_secret_key ?? prev.mesombSecretKey),
+          mesombLiveMode: toBool(settings.mesomb_live_mode, prev.mesombLiveMode),
+          mesombDefaultService: String(settings.mesomb_default_service ?? prev.mesombDefaultService),
+          mesombDefaultCountry: String(settings.mesomb_default_country ?? prev.mesombDefaultCountry),
+        }));
+
+        setLegalSettings((prev) => ({
+          ...prev,
+          termsEn: String(settings.legal_terms_content_en ?? prev.termsEn),
+          termsFr: String(settings.legal_terms_content_fr ?? prev.termsFr),
+          termsLastUpdated: ensureDate(settings.legal_terms_last_updated ?? prev.termsLastUpdated),
+          privacyEn: String(settings.legal_privacy_content_en ?? prev.privacyEn),
+          privacyFr: String(settings.legal_privacy_content_fr ?? prev.privacyFr),
+          privacyLastUpdated: ensureDate(settings.legal_privacy_last_updated ?? prev.privacyLastUpdated),
+        }));
+      } catch {
+        toast.error('Failed to load profile/settings');
       } finally {
         setLoading(false);
       }
     };
-    loadProfile();
+
+    loadProfileAndSettings();
   }, []);
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error('Photo must be less than 2MB');
-        return;
-      }
-      setSelectedPhoto(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setPhotoPreview(reader.result as string);
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Photo must be less than 2MB');
+      return;
     }
+
+    setSelectedPhoto(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setPhotoPreview(reader.result as string);
+    reader.readAsDataURL(file);
   };
 
   const handleSaveProfile = async () => {
@@ -139,21 +291,13 @@ export default function AdminSettingsPage() {
         phone: profileData.phone,
         profile_photo: selectedPhoto || undefined,
       });
-      setProfileData(prev => ({ ...prev, avatar: updated.avatar }));
+
+      setProfileData((prev) => ({ ...prev, avatar: updated.avatar }));
       setSelectedPhoto(null);
       setPhotoPreview(null);
-      try {
-        const stored = localStorage.getItem('user');
-        if (stored) {
-          const user = JSON.parse(stored);
-          user.name = updated.name || profileData.name;
-          user.avatar = updated.avatar;
-          localStorage.setItem('user', JSON.stringify(user));
-        }
-      } catch {}
-      toast.success('Profile updated successfully!');
-    } catch (err: any) {
-      toast.error(err?.message || 'Failed to update profile');
+      toast.success('Profile updated successfully.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to update profile');
     } finally {
       setSaving(false);
     }
@@ -172,60 +316,49 @@ export default function AdminSettingsPage() {
       toast.error('New password must be at least 8 characters');
       return;
     }
+
     setChangingPassword(true);
     try {
       await profileService.changePassword(passwordData);
       setPasswordData({ current_password: '', new_password: '', new_password_confirmation: '' });
-      toast.success('Password changed successfully!');
-    } catch (err: any) {
-      toast.error(err?.message || 'Failed to change password');
+      toast.success('Password changed successfully.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to change password');
     } finally {
       setChangingPassword(false);
     }
   };
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  };
+  const getInitials = (name: string) => name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
     <DashboardLayout userType="admin">
       <div className="space-y-8">
-        {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Platform Settings</h1>
-          <p className="text-gray-600 mt-2">Configure platform-wide settings and preferences.</p>
+          <p className="text-gray-600 mt-2">Centralize payments, rollout strategy, legal pages, and platform behavior.</p>
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
-              My Profile
+              Profile
             </TabsTrigger>
             <TabsTrigger value="general" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
               General
             </TabsTrigger>
-            <TabsTrigger value="email" className="flex items-center gap-2">
-              <Mail className="w-4 h-4" />
-              Email
-            </TabsTrigger>
             <TabsTrigger value="payments" className="flex items-center gap-2">
               <DollarSign className="w-4 h-4" />
               Payments
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              Security
-            </TabsTrigger>
-            <TabsTrigger value="database" className="flex items-center gap-2">
-              <Database className="w-4 h-4" />
-              Database
+            <TabsTrigger value="legal" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Legal Content
             </TabsTrigger>
           </TabsList>
 
-          {/* My Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
             <Card>
               <CardHeader>
@@ -247,7 +380,7 @@ export default function AdminSettingsPage() {
                         <input
                           ref={fileInputRef}
                           type="file"
-                          accept="image/jpeg,image/png,image/gif,image/webp"
+                          accept="image/jpeg,image/png,image/webp"
                           className="hidden"
                           onChange={handlePhotoSelect}
                         />
@@ -255,10 +388,7 @@ export default function AdminSettingsPage() {
                           <Camera className="w-4 h-4 mr-2" />
                           Change Photo
                         </Button>
-                        <p className="text-sm text-gray-500">JPG, GIF or PNG. 2MB max.</p>
-                        {selectedPhoto && (
-                          <p className="text-sm text-green-600 mt-1">New photo selected: {selectedPhoto.name}</p>
-                        )}
+                        <p className="text-sm text-gray-500">JPG, PNG, WEBP. 2MB max.</p>
                       </div>
                     </div>
 
@@ -268,33 +398,26 @@ export default function AdminSettingsPage() {
                         <Input
                           id="profileName"
                           value={profileData.name}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                          onChange={(e) => setProfileData((prev) => ({ ...prev, name: e.target.value }))}
                         />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="profileEmail">Email</Label>
-                        <Input
-                          id="profileEmail"
-                          type="email"
-                          value={profileData.email}
-                          disabled
-                          className="bg-gray-50 dark:bg-gray-800"
-                        />
-                        <p className="text-xs text-gray-500">Email cannot be changed</p>
+                        <Input id="profileEmail" type="email" value={profileData.email} disabled className="bg-gray-50" />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="profilePhone">Phone</Label>
                         <Input
                           id="profilePhone"
                           value={profileData.phone}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                          onChange={(e) => setProfileData((prev) => ({ ...prev, phone: e.target.value }))}
                         />
                       </div>
                     </div>
 
                     <Button onClick={handleSaveProfile} className="btn-primary" disabled={saving}>
                       {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                      {saving ? 'Saving...' : 'Save Changes'}
+                      Save Profile
                     </Button>
                   </>
                 )}
@@ -314,19 +437,14 @@ export default function AdminSettingsPage() {
                       type={showCurrentPassword ? 'text' : 'password'}
                       className="pr-10"
                       value={passwordData.current_password}
-                      onChange={(e) => setPasswordData(prev => ({ ...prev, current_password: e.target.value }))}
+                      onChange={(e) => setPasswordData((prev) => ({ ...prev, current_password: e.target.value }))}
                     />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-0 top-0 h-full px-3"
-                    >
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-0 top-0 h-full px-3">
                       {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
                   </div>
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="newPassword">New Password</Label>
                   <div className="relative">
@@ -335,19 +453,14 @@ export default function AdminSettingsPage() {
                       type={showNewPassword ? 'text' : 'password'}
                       className="pr-10"
                       value={passwordData.new_password}
-                      onChange={(e) => setPasswordData(prev => ({ ...prev, new_password: e.target.value }))}
+                      onChange={(e) => setPasswordData((prev) => ({ ...prev, new_password: e.target.value }))}
                     />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-0 top-0 h-full px-3"
-                    >
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-0 top-0 h-full px-3">
                       {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
                   </div>
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm New Password</Label>
                   <div className="relative">
@@ -356,19 +469,14 @@ export default function AdminSettingsPage() {
                       type={showConfirmPassword ? 'text' : 'password'}
                       className="pr-10"
                       value={passwordData.new_password_confirmation}
-                      onChange={(e) => setPasswordData(prev => ({ ...prev, new_password_confirmation: e.target.value }))}
+                      onChange={(e) => setPasswordData((prev) => ({ ...prev, new_password_confirmation: e.target.value }))}
                     />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-0 top-0 h-full px-3"
-                    >
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-0 top-0 h-full px-3">
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
                   </div>
                 </div>
+
                 <Button onClick={handleChangePassword} className="btn-primary" disabled={changingPassword}>
                   {changingPassword ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                   {changingPassword ? 'Changing...' : 'Change Password'}
@@ -377,420 +485,235 @@ export default function AdminSettingsPage() {
             </Card>
           </TabsContent>
 
-          {/* General Settings */}
           <TabsContent value="general" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Platform Configuration</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="siteName">Site Name</Label>
-                    <Input
-                      id="siteName"
-                      value={platformSettings.siteName}
-                      onChange={(e) => setPlatformSettings(prev => ({ ...prev, siteName: e.target.value }))}
-                    />
+                    <Label>Site Name</Label>
+                    <Input value={platformSettings.siteName} onChange={(e) => setPlatformSettings((prev) => ({ ...prev, siteName: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="defaultCurrency">Default Currency</Label>
-                    <Select
-                      value={platformSettings.defaultCurrency}
-                      onValueChange={(value) => setPlatformSettings(prev => ({ ...prev, defaultCurrency: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                    <Label>Default Currency</Label>
+                    <Select value={platformSettings.defaultCurrency} onValueChange={(value) => setPlatformSettings((prev) => ({ ...prev, defaultCurrency: value }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="XAF">XAF (Central African CFA Franc)</SelectItem>
-                        <SelectItem value="USD">USD (US Dollar)</SelectItem>
-                        <SelectItem value="EUR">EUR (Euro)</SelectItem>
+                        <SelectItem value="XAF">XAF</SelectItem>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="EUR">EUR</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="defaultLanguage">Default Language</Label>
-                    <Select
-                      value={platformSettings.defaultLanguage}
-                      onValueChange={(value) => setPlatformSettings(prev => ({ ...prev, defaultLanguage: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                    <Label>Default Language</Label>
+                    <Select value={platformSettings.defaultLanguage} onValueChange={(value) => setPlatformSettings((prev) => ({ ...prev, defaultLanguage: value }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="fr">Français</SelectItem>
-                        <SelectItem value="es">Español</SelectItem>
+                        <SelectItem value="fr">Francais</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="commissionRate">Commission Rate (%)</Label>
-                    <Input
-                      id="commissionRate"
-                      type="number"
-                      value={platformSettings.commissionRate}
-                      onChange={(e) => setPlatformSettings(prev => ({ ...prev, commissionRate: parseInt(e.target.value) }))}
-                    />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="siteDescription">Site Description</Label>
-                  <Textarea
-                    id="siteDescription"
-                    value={platformSettings.siteDescription}
-                    onChange={(e) => setPlatformSettings(prev => ({ ...prev, siteDescription: e.target.value }))}
-                  />
+                  <Label>Site Description</Label>
+                  <Textarea value={platformSettings.siteDescription} onChange={(e) => setPlatformSettings((prev) => ({ ...prev, siteDescription: e.target.value }))} />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between border rounded-lg p-3">
+                    <div>
+                      <Label>Maintenance Mode</Label>
+                    </div>
+                    <Switch checked={platformSettings.maintenanceMode} onCheckedChange={(checked) => setPlatformSettings((prev) => ({ ...prev, maintenanceMode: checked }))} />
+                  </div>
+                  <div className="flex items-center justify-between border rounded-lg p-3">
+                    <div>
+                      <Label>Allow Registration</Label>
+                    </div>
+                    <Switch checked={platformSettings.allowRegistration} onCheckedChange={(checked) => setPlatformSettings((prev) => ({ ...prev, allowRegistration: checked }))} />
+                  </div>
+                  <div className="flex items-center justify-between border rounded-lg p-3">
+                    <div>
+                      <Label>Enable Landlord Listing</Label>
+                    </div>
+                    <Switch checked={platformSettings.enableLandlordListing} onCheckedChange={(checked) => setPlatformSettings((prev) => ({ ...prev, enableLandlordListing: checked }))} />
+                  </div>
+                  <div className="flex items-center justify-between border rounded-lg p-3">
+                    <div>
+                      <Label>Enable Virtual Tours</Label>
+                    </div>
+                    <Switch checked={platformSettings.enableVirtualTours} onCheckedChange={(checked) => setPlatformSettings((prev) => ({ ...prev, enableVirtualTours: checked }))} />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Platform Controls</CardTitle>
+                <CardTitle>Go-To-Market Rollout</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Maintenance Mode</Label>
-                    <p className="text-sm text-gray-500">Temporarily disable the platform for maintenance</p>
-                  </div>
-                  <Switch
-                    checked={platformSettings.maintenanceMode}
-                    onCheckedChange={(checked) => setPlatformSettings(prev => ({ ...prev, maintenanceMode: checked }))}
+                <div className="space-y-2">
+                  <Label>Launch Cities (comma separated)</Label>
+                  <Input
+                    value={rolloutSettings.rolloutCities}
+                    onChange={(e) => setRolloutSettings((prev) => ({ ...prev, rolloutCities: e.target.value }))}
+                    placeholder="Douala, Bamenda"
                   />
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Allow User Registration</Label>
-                    <p className="text-sm text-gray-500">Enable new user signups</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between border rounded-lg p-3">
+                    <Label>Enforce City Scope</Label>
+                    <Switch checked={rolloutSettings.enforceCityScope} onCheckedChange={(checked) => setRolloutSettings((prev) => ({ ...prev, enforceCityScope: checked }))} />
                   </div>
-                  <Switch
-                    checked={platformSettings.allowRegistration}
-                    onCheckedChange={(checked) => setPlatformSettings(prev => ({ ...prev, allowRegistration: checked }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Auto-approve Properties</Label>
-                    <p className="text-sm text-gray-500">Automatically approve new property listings</p>
+                  <div className="flex items-center justify-between border rounded-lg p-3">
+                    <Label>Rentals Only</Label>
+                    <Switch checked={rolloutSettings.rentalsOnly} onCheckedChange={(checked) => setRolloutSettings((prev) => ({ ...prev, rentalsOnly: checked }))} />
                   </div>
-                  <Switch
-                    checked={platformSettings.autoApproveProperties}
-                    onCheckedChange={(checked) => setPlatformSettings(prev => ({ ...prev, autoApproveProperties: checked }))}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Button onClick={handleSavePlatformSettings} className="btn-primary">
-              <Save className="w-4 h-4 mr-2" />
-              Save Platform Settings
-            </Button>
-          </TabsContent>
-
-          {/* Email Settings */}
-          <TabsContent value="email" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>SMTP Configuration</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="smtpHost">SMTP Host</Label>
-                    <Input
-                      id="smtpHost"
-                      value={emailSettings.smtpHost}
-                      onChange={(e) => setEmailSettings(prev => ({ ...prev, smtpHost: e.target.value }))}
-                    />
+                  <div className="flex items-center justify-between border rounded-lg p-3">
+                    <Label>Enable Hotels</Label>
+                    <Switch checked={rolloutSettings.hotelEnabled} onCheckedChange={(checked) => setRolloutSettings((prev) => ({ ...prev, hotelEnabled: checked }))} />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="smtpPort">SMTP Port</Label>
-                    <Input
-                      id="smtpPort"
-                      value={emailSettings.smtpPort}
-                      onChange={(e) => setEmailSettings(prev => ({ ...prev, smtpPort: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="smtpUsername">SMTP Username</Label>
-                    <Input
-                      id="smtpUsername"
-                      value={emailSettings.smtpUsername}
-                      onChange={(e) => setEmailSettings(prev => ({ ...prev, smtpUsername: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="smtpPassword">SMTP Password</Label>
-                    <Input
-                      id="smtpPassword"
-                      type="password"
-                      value={emailSettings.smtpPassword}
-                      onChange={(e) => setEmailSettings(prev => ({ ...prev, smtpPassword: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="fromEmail">From Email</Label>
-                    <Input
-                      id="fromEmail"
-                      type="email"
-                      value={emailSettings.fromEmail}
-                      onChange={(e) => setEmailSettings(prev => ({ ...prev, fromEmail: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="fromName">From Name</Label>
-                    <Input
-                      id="fromName"
-                      value={emailSettings.fromName}
-                      onChange={(e) => setEmailSettings(prev => ({ ...prev, fromName: e.target.value }))}
-                    />
+                  <div className="flex items-center justify-between border rounded-lg p-3">
+                    <Label>Enable Property Sales</Label>
+                    <Switch checked={rolloutSettings.salesEnabled} onCheckedChange={(checked) => setRolloutSettings((prev) => ({ ...prev, salesEnabled: checked }))} />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Button onClick={handleSaveEmailSettings} className="btn-primary">
-              <Save className="w-4 h-4 mr-2" />
-              Save Email Settings
+            <Button onClick={handleSaveGeneralSettings} className="btn-primary" disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Save General Settings
             </Button>
           </TabsContent>
 
-          {/* Payment Settings */}
           <TabsContent value="payments" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Payment Gateway Configuration</CardTitle>
+                <CardTitle>Payment & Access Rules</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Enable Stripe</Label>
-                      <p className="text-sm text-gray-500">Accept credit card payments via Stripe</p>
-                    </div>
-                    <Switch
-                      checked={paymentSettings.enableStripe}
-                      onCheckedChange={(checked) => setPaymentSettings(prev => ({ ...prev, enableStripe: checked }))}
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Platform Fee (XAF)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={paymentSettings.platformFeeXaf}
+                      onChange={(e) => setPaymentSettings((prev) => ({ ...prev, platformFeeXaf: e.target.value }))}
                     />
                   </div>
-                  
-                  {paymentSettings.enableStripe && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2 border-gray-200">
-                      <div className="space-y-2">
-                        <Label htmlFor="stripePublishableKey">Stripe Publishable Key</Label>
-                        <Input
-                          id="stripePublishableKey"
-                          value={paymentSettings.stripePublishableKey}
-                          onChange={(e) => setPaymentSettings(prev => ({ ...prev, stripePublishableKey: e.target.value }))}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="stripeSecretKey">Stripe Secret Key</Label>
-                        <Input
-                          id="stripeSecretKey"
-                          type="password"
-                          value={paymentSettings.stripeSecretKey}
-                          onChange={(e) => setPaymentSettings(prev => ({ ...prev, stripeSecretKey: e.target.value }))}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Enable PayPal</Label>
-                      <p className="text-sm text-gray-500">Accept payments via PayPal</p>
-                    </div>
-                    <Switch
-                      checked={paymentSettings.enablePaypal}
-                      onCheckedChange={(checked) => setPaymentSettings(prev => ({ ...prev, enablePaypal: checked }))}
+                  <div className="space-y-2">
+                    <Label>Default Mobile Service</Label>
+                    <Input
+                      value={paymentSettings.mesombDefaultService}
+                      onChange={(e) => setPaymentSettings((prev) => ({ ...prev, mesombDefaultService: e.target.value }))}
                     />
                   </div>
-                  
-                  {paymentSettings.enablePaypal && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2 border-gray-200">
-                      <div className="space-y-2">
-                        <Label htmlFor="paypalClientId">PayPal Client ID</Label>
-                        <Input
-                          id="paypalClientId"
-                          value={paymentSettings.paypalClientId}
-                          onChange={(e) => setPaymentSettings(prev => ({ ...prev, paypalClientId: e.target.value }))}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="paypalClientSecret">PayPal Client Secret</Label>
-                        <Input
-                          id="paypalClientSecret"
-                          type="password"
-                          value={paymentSettings.paypalClientSecret}
-                          onChange={(e) => setPaymentSettings(prev => ({ ...prev, paypalClientSecret: e.target.value }))}
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Enable Bank Transfer</Label>
-                    <p className="text-sm text-gray-500">Allow direct bank transfers</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center justify-between border rounded-lg p-3">
+                    <Label>Customer Booking Free Mode</Label>
+                    <Switch checked={paymentSettings.customerBookingFreeMode} onCheckedChange={(checked) => setPaymentSettings((prev) => ({ ...prev, customerBookingFreeMode: checked }))} />
                   </div>
-                  <Switch
-                    checked={paymentSettings.enableBankTransfer}
-                    onCheckedChange={(checked) => setPaymentSettings(prev => ({ ...prev, enableBankTransfer: checked }))}
-                  />
+                  <div className="flex items-center justify-between border rounded-lg p-3">
+                    <Label>Enable Platform Access Fee</Label>
+                    <Switch checked={paymentSettings.customerPlatformAccessFeeEnabled} onCheckedChange={(checked) => setPaymentSettings((prev) => ({ ...prev, customerPlatformAccessFeeEnabled: checked }))} />
+                  </div>
+                  <div className="flex items-center justify-between border rounded-lg p-3">
+                    <Label>MeSomb Live Mode</Label>
+                    <Switch checked={paymentSettings.mesombLiveMode} onCheckedChange={(checked) => setPaymentSettings((prev) => ({ ...prev, mesombLiveMode: checked }))} />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>MeSomb Access Key</Label>
+                  <Input value={paymentSettings.mesombAccessKey} onChange={(e) => setPaymentSettings((prev) => ({ ...prev, mesombAccessKey: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label>MeSomb Application Key</Label>
+                  <Input value={paymentSettings.mesombApplicationKey} onChange={(e) => setPaymentSettings((prev) => ({ ...prev, mesombApplicationKey: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label>MeSomb Secret Key</Label>
+                  <Input type="password" value={paymentSettings.mesombSecretKey} onChange={(e) => setPaymentSettings((prev) => ({ ...prev, mesombSecretKey: e.target.value }))} />
                 </div>
               </CardContent>
             </Card>
 
-            <Button onClick={handleSavePaymentSettings} className="btn-primary">
-              <Save className="w-4 h-4 mr-2" />
+            <Button onClick={handleSavePaymentSettings} className="btn-primary" disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
               Save Payment Settings
             </Button>
           </TabsContent>
 
-          {/* Security Settings */}
-          <TabsContent value="security" className="space-y-6">
+          <TabsContent value="legal" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Security Configuration</CardTitle>
+                <CardTitle>Terms & Privacy (Dynamic)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <p className="text-sm text-gray-600">
+                  These fields publish directly to `/terms` and `/privacy`. HTML formatting is supported.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="maxLoginAttempts">Max Login Attempts</Label>
-                    <Input
-                      id="maxLoginAttempts"
-                      type="number"
-                      value={securitySettings.maxLoginAttempts}
-                      onChange={(e) => setSecuritySettings(prev => ({ ...prev, maxLoginAttempts: parseInt(e.target.value) }))}
-                    />
+                    <Label>Terms (English)</Label>
+                    <Textarea rows={10} value={legalSettings.termsEn} onChange={(e) => setLegalSettings((prev) => ({ ...prev, termsEn: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="sessionTimeout">Session Timeout (minutes)</Label>
-                    <Input
-                      id="sessionTimeout"
-                      type="number"
-                      value={securitySettings.sessionTimeout}
-                      onChange={(e) => setSecuritySettings(prev => ({ ...prev, sessionTimeout: parseInt(e.target.value) }))}
-                    />
+                    <Label>Terms (French)</Label>
+                    <Textarea rows={10} value={legalSettings.termsFr} onChange={(e) => setLegalSettings((prev) => ({ ...prev, termsFr: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="passwordMinLength">Minimum Password Length</Label>
-                    <Input
-                      id="passwordMinLength"
-                      type="number"
-                      value={securitySettings.passwordMinLength}
-                      onChange={(e) => setSecuritySettings(prev => ({ ...prev, passwordMinLength: parseInt(e.target.value) }))}
-                    />
+                    <Label>Privacy (English)</Label>
+                    <Textarea rows={10} value={legalSettings.privacyEn} onChange={(e) => setLegalSettings((prev) => ({ ...prev, privacyEn: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Privacy (French)</Label>
+                    <Textarea rows={10} value={legalSettings.privacyFr} onChange={(e) => setLegalSettings((prev) => ({ ...prev, privacyFr: e.target.value }))} />
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Require Two-Factor Authentication</Label>
-                      <p className="text-sm text-gray-500">Force 2FA for all admin accounts</p>
-                    </div>
-                    <Switch
-                      checked={securitySettings.requireTwoFactor}
-                      onCheckedChange={(checked) => setSecuritySettings(prev => ({ ...prev, requireTwoFactor: checked }))}
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Terms Last Updated</Label>
+                    <Input type="date" value={legalSettings.termsLastUpdated} onChange={(e) => setLegalSettings((prev) => ({ ...prev, termsLastUpdated: e.target.value }))} />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Enable CAPTCHA</Label>
-                      <p className="text-sm text-gray-500">Require CAPTCHA for login and registration</p>
-                    </div>
-                    <Switch
-                      checked={securitySettings.enableCaptcha}
-                      onCheckedChange={(checked) => setSecuritySettings(prev => ({ ...prev, enableCaptcha: checked }))}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Allow Guest Booking</Label>
-                      <p className="text-sm text-gray-500">Allow bookings without registration</p>
-                    </div>
-                    <Switch
-                      checked={securitySettings.allowGuestBooking}
-                      onCheckedChange={(checked) => setSecuritySettings(prev => ({ ...prev, allowGuestBooking: checked }))}
-                    />
+                  <div className="space-y-2">
+                    <Label>Privacy Last Updated</Label>
+                    <Input type="date" value={legalSettings.privacyLastUpdated} onChange={(e) => setLegalSettings((prev) => ({ ...prev, privacyLastUpdated: e.target.value }))} />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Button onClick={handleSaveSecuritySettings} className="btn-primary">
-              <Save className="w-4 h-4 mr-2" />
-              Save Security Settings
-            </Button>
-          </TabsContent>
-
-          {/* Database Settings */}
-          <TabsContent value="database" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Database Management</CardTitle>
+                <CardTitle>Preview (English)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <Users className="w-12 h-12 text-plp-purple mx-auto mb-4" />
-                      <h3 className="font-semibold text-gray-900 mb-2">Users</h3>
-                      <p className="text-2xl font-bold text-gray-900">12,450</p>
-                      <p className="text-sm text-gray-500">Total registered users</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <Building2 className="w-12 h-12 text-plp-pink mx-auto mb-4" />
-                      <h3 className="font-semibold text-gray-900 mb-2">Properties</h3>
-                      <p className="text-2xl font-bold text-gray-900">3,280</p>
-                      <p className="text-sm text-gray-500">Total property listings</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <Calendar className="w-12 h-12 text-plp-yellow mx-auto mb-4" />
-                      <h3 className="font-semibold text-gray-900 mb-2">Bookings</h3>
-                      <p className="text-2xl font-bold text-gray-900">8,920</p>
-                      <p className="text-sm text-gray-500">Total bookings made</p>
-                    </CardContent>
-                  </Card>
+                <div>
+                  <h4 className="font-semibold mb-2">Terms Preview</h4>
+                  <div className="prose prose-gray max-w-none border rounded-lg p-4" dangerouslySetInnerHTML={{ __html: previewLegal.terms }} />
                 </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium text-gray-900">Database Backup</h4>
-                      <p className="text-sm text-gray-500">Last backup: 2 hours ago</p>
-                    </div>
-                    <Button variant="outline">Create Backup</Button>
-                  </div>
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium text-gray-900">Database Optimization</h4>
-                      <p className="text-sm text-gray-500">Optimize database performance</p>
-                    </div>
-                    <Button variant="outline">Optimize Now</Button>
-                  </div>
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium text-gray-900">Clear Cache</h4>
-                      <p className="text-sm text-gray-500">Clear application cache</p>
-                    </div>
-                    <Button variant="outline">Clear Cache</Button>
-                  </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Privacy Preview</h4>
+                  <div className="prose prose-gray max-w-none border rounded-lg p-4" dangerouslySetInnerHTML={{ __html: previewLegal.privacy }} />
                 </div>
               </CardContent>
             </Card>
+
+            <Button onClick={handleSaveLegalSettings} className="btn-primary" disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Publish Legal Content
+            </Button>
           </TabsContent>
         </Tabs>
       </div>
