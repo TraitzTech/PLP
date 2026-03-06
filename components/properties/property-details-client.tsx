@@ -9,6 +9,8 @@ import { PropertyMap } from '@/components/properties/property-map';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { BookingPaymentModal } from './booking-payment-modal';
+import apiClient from "@/lib/apiClient";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
@@ -18,13 +20,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { format, addDays } from 'date-fns';
-import { 
-  Star, 
-  Heart, 
-  Share2, 
-  Bed, 
-  Bath, 
-  Square, 
+import {
+  Star,
+  Heart,
+  Share2,
+  Bed,
+  Bath,
+  Square,
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
@@ -36,7 +38,7 @@ import {
   Zap,
   Loader2,
   Send,
-  CheckCircle
+  CheckCircle, ShieldCheck
 } from 'lucide-react';
 import { 
   getPropertyTypeSummary, 
@@ -129,6 +131,8 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
   } | null>(null);
   const [paymentPhone, setPaymentPhone] = useState('');
   const [paymentChannel, setPaymentChannel] = useState('MTN');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [publicSettings, setPublicSettings] = useState<any>(null);
   const paySectionRef = useRef<HTMLDivElement | null>(null);
   
   // Review state
@@ -340,6 +344,18 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
     "Full property:", property
   )
 
+  useEffect(() => {
+    const fetchPublicSettings = async () => {
+      try {
+        const response = await apiClient.get('/public/settings');
+        setPublicSettings(response.data.data);
+      } catch (error) {
+        console.error('Failed to fetch public settings:', error);
+      }
+    };
+    fetchPublicSettings();
+  }, []);
+
   const handleBooking = async () => {
     // Default dates for non-rental (sale/offer) flows so booking can proceed
     const effectiveCheckIn = checkIn ?? new Date();
@@ -355,43 +371,7 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
       return;
     }
 
-    // If customer needs to pay the platform fee, trigger payment flow first
-    if (isAuthenticated && currentUserType === 'customer' && !hasUnlockedAgent && (platformFeeXaf ?? 0) > 0) {
-      if (!agentId) {
-        toast.error('Agent information is not available for this listing.');
-        return;
-      }
-      // Ask for payment info then pay before booking
-      if (!paymentPhone.trim()) {
-        toast.error('Enter the mobile money number to pay the platform access fee.');
-        paySectionRef.current?.scrollIntoView({ behavior: 'smooth' });
-        return;
-      }
-      try {
-        setUnlockingAgent(true);
-        const response = await platformAccessService.pay({
-          agent_id: agentId,
-          payment_channel: paymentChannel,
-          phone_number: paymentPhone.trim(),
-        });
-        toast.success(response.message || 'Platform fee paid successfully.');
-        setAgentUnlockedOverride(true);
-        setAgentAccessStatus((prev) => ({
-          can_contact: true,
-          has_booking: true,
-          has_paid_access: true,
-          reason: null,
-          ...prev,
-        }));
-      } catch (error: any) {
-        toast.error(error?.response?.data?.message || error?.message || 'Payment failed');
-        return;
-      } finally {
-        setUnlockingAgent(false);
-      }
-    }
-
-    // If not authenticated, validate guest details
+    // Validate guest details if not authenticated
     if (!isAuthenticated) {
       if (!guestName.trim()) {
         toast.error('Please enter your name');
@@ -401,7 +381,6 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
         toast.error('Please enter your email');
         return;
       }
-      // Simple email validation
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
         toast.error('Please enter a valid email address');
         return;
@@ -411,6 +390,26 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
         return;
       }
     }
+
+    // Check if payment is required
+    const isFreeMode = publicSettings?.customer_booking_free_mode === true;
+    const feeEnabled = publicSettings?.customer_platform_access_fee_enabled === true;
+    const feeAmount = publicSettings?.platform_fee_xaf || 0;
+
+    const paymentRequired = !isFreeMode && feeEnabled && feeAmount > 0 && !hasUnlockedAgent;
+
+    if (paymentRequired) {
+      setShowPaymentModal(true);
+      return;
+    }
+
+    // If no payment required, proceed with booking
+    await executeBooking();
+  };
+
+  const executeBooking = async (paymentDetails?: any) => {
+    const effectiveCheckIn = checkIn ?? new Date();
+    const effectiveCheckOut = checkOut ?? addDays(new Date(), 1);
 
     setIsBooking(true);
     try {
@@ -422,6 +421,7 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
           check_out_date: format(effectiveCheckOut, 'yyyy-MM-dd'),
           guest_count: guests,
           special_requests: specialRequests || undefined,
+          payment_id: paymentDetails?.id,
         });
       } else {
         // Guest booking
@@ -434,6 +434,7 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
           guest_email: guestEmail.trim(),
           guest_phone: guestPhone.trim(),
           special_requests: specialRequests || undefined,
+          payment_id: paymentDetails?.id,
         });
       }
 
@@ -604,6 +605,20 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
 
   return (
     <>
+      <BookingPaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        amount={publicSettings?.platform_fee_xaf || 0}
+        currency={publicSettings?.default_currency || "XAF"}
+        guestInfo={!isAuthenticated ? {
+          name: guestName,
+          email: guestEmail,
+          phone: guestPhone,
+        } : undefined}
+        onSuccess={(paymentDetails) => {
+          executeBooking(paymentDetails);
+        }}
+      />
       {/* Header */}
       <div className="mb-6">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
@@ -1521,95 +1536,107 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
             </CardHeader>
             
             <CardContent className="space-y-4 pt-6">
-              <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                <p className="text-sm font-semibold text-purple-900">Platform access fee</p>
-                <p className="text-xs text-purple-800">
-                  Pay {new Intl.NumberFormat('fr-CM', { style: 'currency', currency: platformFeeCurrency || 'XAF', minimumFractionDigits: 0 }).format(platformFeeXaf || 0)} after booking to view agent contact details. This fee is set by the admin.
-                </p>
-              </div>
+              {/* Platform Fee Notice */}
+              {(publicSettings?.platform_fee_xaf || 0) > 0 && (
+                <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                  <p className="text-sm font-semibold text-purple-900 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4" /> Platform Access Fee
+                  </p>
+                  <p className="text-xs text-purple-800 mt-1">
+                    {publicSettings?.customer_booking_free_mode === true ? (
+                      "Free for a limited time! Book now without any platform fees."
+                    ) : (
+                      <>
+                        A platform fee of <span className="font-bold">{new Intl.NumberFormat('fr-CM', { style: 'currency', currency: publicSettings?.default_currency || 'XAF', minimumFractionDigits: 0 }).format(publicSettings?.platform_fee_xaf || 0)}</span> is required to secure this booking and access agent contact details.
+                      </>
+                    )}
+                  </p>
+                </div>
+              )}
 
-              {/* For Rent Booking Section */}
-              {isForRent && (
-                <>
-                  <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-                      <CalendarIcon className="h-4 w-4 text-blue-600" />
-                      Booking Details
-                    </h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label htmlFor="checkin" className="text-xs font-medium">Check-in</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start text-left font-normal text-sm mt-1"
-                            >
-                              <CalendarIcon className="mr-2 h-3 w-3" />
-                              {checkIn ? format(checkIn, 'MMM dd, yyyy') : 'Select'}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={checkIn}
-                              onSelect={setCheckIn}
-                              disabled={(date) => date < new Date()}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+              {/* Booking Section */}
+              <div className="space-y-4">
+                  {isForRent && (
+                    <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4 text-blue-600" />
+                        Booking Details
+                      </h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label htmlFor="checkin" className="text-xs font-medium">Check-in</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start text-left font-normal text-sm mt-1"
+                              >
+                                <CalendarIcon className="mr-2 h-3 w-3" />
+                                {checkIn ? format(checkIn, 'MMM dd, yyyy') : 'Select'}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={checkIn}
+                                onSelect={setCheckIn}
+                                disabled={(date) => date < new Date()}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div>
+                          <Label htmlFor="checkout" className="text-xs font-medium">Check-out</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start text-left font-normal text-sm mt-1"
+                              >
+                                <CalendarIcon className="mr-2 h-3 w-3" />
+                                {checkOut ? format(checkOut, 'MMM dd, yyyy') : 'Select'}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={checkOut}
+                                onSelect={setCheckOut}
+                                disabled={(date) => date <= (checkIn || new Date())}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                       </div>
+                      
                       <div>
-                        <Label htmlFor="checkout" className="text-xs font-medium">Check-out</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start text-left font-normal text-sm mt-1"
-                            >
-                              <CalendarIcon className="mr-2 h-3 w-3" />
-                              {checkOut ? format(checkOut, 'MMM dd, yyyy') : 'Select'}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={checkOut}
-                              onSelect={setCheckOut}
-                              disabled={(date) => date <= (checkIn || new Date())}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <Label htmlFor="guests" className="text-xs font-medium">Guests</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setGuests(Math.max(1, guests - 1))}
+                            className="px-2"
+                          >
+                            −
+                          </Button>
+                          <span className="flex-1 text-center font-medium">{guests}</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setGuests(guests + 1)}
+                            className="px-2"
+                          >
+                            +
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                    
-                    <div>
-                      <Label htmlFor="guests" className="text-xs font-medium">Guests</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setGuests(Math.max(1, guests - 1))}
-                          className="px-2"
-                        >
-                          −
-                        </Button>
-                        <span className="flex-1 text-center font-medium">{guests}</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setGuests(guests + 1)}
-                          className="px-2"
-                        >
-                          +
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {checkIn && checkOut && (
+                  )}
+
+                  {isForRent && checkIn && checkOut && (
                     <div className="border-t pt-4 bg-gray-50 p-3 rounded-lg">
                       <div className="flex justify-between text-sm mb-3">
                         <span className="text-gray-600">Nights:</span>
@@ -1777,46 +1804,38 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
                       </>
                     )}
                   </Button>
-                </>
-              )}
+              </div>
 
-              {/* For Sale Section */}
+              {/* Purchase Details for Sale Properties */}
               {isForSale && (
-                <>
-                  <div className="space-y-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                    <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-emerald-600" />
-                      Purchase Details
-                    </h4>
-                    <p className="text-sm text-gray-700">Ready to invest in this property?</p>
-                    
-                    <div className="space-y-3 pt-2 border-t border-emerald-200">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-700 font-medium">Listed Price</span>
-                        <span className="font-bold text-lg text-plp-purple">{new Intl.NumberFormat('fr-CM', {
-                          style: 'currency',
-                          currency: 'XAF',
-                          minimumFractionDigits: 0,
-                        }).format(property.price || 0)}</span>
-                      </div>
-                      
-                      {property.is_negotiable && (
-                        <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                          <span className="text-2xl mt-0.5">💰</span>
-                          <div>
-                            <p className="font-semibold text-sm text-amber-900">Price is Negotiable</p>
-                            <p className="text-xs text-amber-800 mt-0.5">Contact the agent to discuss offers</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                <div className="space-y-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                  <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-emerald-600" />
+                    Purchase Details
+                  </h4>
+                  <p className="text-sm text-gray-700">Ready to invest in this property?</p>
                   
-                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 font-semibold text-base" onClick={handleBooking}>
-                    <Building2 className="w-4 h-4 mr-2" />
-                    Book / Make an Offer
-                  </Button>
-                </>
+                  <div className="space-y-3 pt-2 border-t border-emerald-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700 font-medium">Listed Price</span>
+                      <span className="font-bold text-lg text-plp-purple">{new Intl.NumberFormat('fr-CM', {
+                        style: 'currency',
+                        currency: 'XAF',
+                        minimumFractionDigits: 0,
+                      }).format(property.price || 0)}</span>
+                    </div>
+                    
+                    {property.is_negotiable && (
+                      <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                        <span className="text-2xl mt-0.5">💰</span>
+                        <div>
+                          <p className="font-semibold text-sm text-amber-900">Price is Negotiable</p>
+                          <p className="text-xs text-amber-800 mt-0.5">Contact the agent to discuss offers</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
               {/* Both Rent and Sale */}

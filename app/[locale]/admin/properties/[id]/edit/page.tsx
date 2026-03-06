@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Save, Loader2, Upload, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import apiClient from "@/lib/apiClient";
 import { propertyManagementService } from "@/services/propertyManagementService";
 import { userManagementService } from "@/services/userManagementService";
 import { propertyTypeService } from "@/services/propertyTypeService";
@@ -67,7 +68,10 @@ export default function EditAdminPropertyPage() {
     floor_area_unit: "sqm",
     land_area: 0,
     land_area_unit: "sqm",
+    land_dimensions: "",
+    zoning: "",
     year_built: new Date().getFullYear(),
+    house_type: "",
     rooms_count: 0,
     star_rating: 0,
     // Property purpose
@@ -91,9 +95,9 @@ export default function EditAdminPropertyPage() {
       const propertyData = propertyRes.data;
       setProperty(propertyData);
 
-      // Fetch agents - handle paginated response
-      const agentsRes = await userManagementService.getAllUsers({ user_type: "agent", per_page: 100 });
-      const agentsArray = agentsRes?.data?.data ? agentsRes.data.data : (Array.isArray(agentsRes?.data) ? agentsRes.data : []);
+      // Fetch agents - use manage-agents for correct Agent IDs
+      const agentsRes = await apiClient.get("/manage-agents");
+      const agentsArray = agentsRes?.data?.data || [];
       setAgents(agentsArray);
 
       // Fetch property types
@@ -160,7 +164,10 @@ export default function EditAdminPropertyPage() {
         floor_area_unit: prop.floor_area_unit || "sqm",
         land_area: prop.land_area || 0,
         land_area_unit: prop.land_area_unit || "sqm",
+        land_dimensions: prop.land_dimensions || "",
+        zoning: prop.zoning || "",
         year_built: prop.year_built || new Date().getFullYear(),
+        house_type: prop.house_type || "",
         rooms_count: prop.rooms_count || 0,
         star_rating: prop.star_rating || 0,
         for_rent: normalizeBoolean(prop.for_rent),
@@ -178,10 +185,24 @@ export default function EditAdminPropertyPage() {
   };
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev: any) => {
+      const newData = {
+        ...prev,
+        [field]: value,
+      };
+
+      // Auto-calculate discount percentage if discount price is provided
+      if (field === "discount_price" && value && prev.price > 0) {
+        newData.discount_percentage = Math.round(((prev.price - value) / prev.price) * 100);
+      }
+      
+      // Auto-calculate discount price if discount percentage is provided
+      if (field === "discount_percentage" && value && prev.price > 0) {
+        newData.discount_price = Math.round(prev.price * (1 - value / 100));
+      }
+
+      return newData;
+    });
   };
 
   const handleFacilityToggle = (facilityId: string) => {
@@ -313,7 +334,12 @@ export default function EditAdminPropertyPage() {
       router.push("/admin/properties");
     } catch (error: any) {
       console.error("Error updating property:", error);
-      toast.error(error.response?.data?.message || "Failed to update property");
+      const errors = error.response?.data?.errors;
+      if (Array.isArray(errors) && errors.length > 0) {
+        errors.forEach(err => toast.error(err));
+      } else {
+        toast.error(error.response?.data?.message || "Failed to update property");
+      }
     } finally {
       setIsSaving(false);
     }
@@ -397,9 +423,9 @@ export default function EditAdminPropertyPage() {
                     <SelectValue placeholder="Select agent" />
                   </SelectTrigger>
                   <SelectContent>
-                    {agents.map((agent) => (
+                    {agents.map((agent: any) => (
                       <SelectItem key={agent.id} value={agent.id.toString()}>
-                        {agent.name} ({agent.email})
+                        {agent.user?.name || agent.name} ({agent.user?.email || agent.email})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -761,68 +787,75 @@ export default function EditAdminPropertyPage() {
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Property Purpose */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Property Purpose</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="for_rent"
-                  checked={formData.for_rent}
-                  onCheckedChange={(checked) => handleInputChange("for_rent", checked)}
-                />
-                <Label htmlFor="for_rent" className="cursor-pointer">
-                  Available for Rent
-                </Label>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="for_purchase"
-                  checked={formData.for_purchase}
-                  onCheckedChange={(checked) => handleInputChange("for_purchase", checked)}
-                />
-                <Label htmlFor="for_purchase" className="cursor-pointer">
-                  Available for Purchase
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Availability & Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Availability & Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="number_available">Units Available</Label>
+                  <Label htmlFor="land_dimensions">Land Dimensions</Label>
                   <Input
-                    id="number_available"
-                    type="number"
-                    value={formData.number_available}
-                    onChange={(e) => handleInputChange("number_available", parseInt(e.target.value))}
-                    placeholder="Number of units"
-                    min="1"
+                    id="land_dimensions"
+                    value={formData.land_dimensions || ""}
+                    onChange={(e) => handleInputChange("land_dimensions", e.target.value)}
+                    placeholder="e.g., 20m x 30m"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="zoning">Zoning</Label>
+                  <Input
+                    id="zoning"
+                    value={formData.zoning || ""}
+                    onChange={(e) => handleInputChange("zoning", e.target.value)}
+                    placeholder="e.g., Residential, Commercial"
                   />
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="house_type">House Type</Label>
+                  <Select value={formData.house_type || ""} onValueChange={(value) => handleInputChange("house_type", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select house type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bungalow">Bungalow</SelectItem>
+                      <SelectItem value="duplex">Duplex</SelectItem>
+                      <SelectItem value="apartment">Apartment</SelectItem>
+                      <SelectItem value="villa">Villa</SelectItem>
+                      <SelectItem value="studio">Studio</SelectItem>
+                      <SelectItem value="mansion">Mansion</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Property Purpose & Features */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Property Purpose & Key Features</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="flex items-center gap-2">
                   <Checkbox
-                    id="is_available"
-                    checked={formData.is_available}
-                    onCheckedChange={(checked) => handleInputChange("is_available", checked)}
+                    id="for_rent"
+                    checked={formData.for_rent}
+                    onCheckedChange={(checked) => handleInputChange("for_rent", checked)}
                   />
-                  <Label htmlFor="is_available" className="cursor-pointer">
-                    Available for booking
+                  <Label htmlFor="for_rent" className="cursor-pointer">
+                    For Rent
+                  </Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="for_purchase"
+                    checked={formData.for_purchase}
+                    onCheckedChange={(checked) => handleInputChange("for_purchase", checked)}
+                  />
+                  <Label htmlFor="for_purchase" className="cursor-pointer">
+                    For Purchase
                   </Label>
                 </div>
 
@@ -833,7 +866,7 @@ export default function EditAdminPropertyPage() {
                     onCheckedChange={(checked) => handleInputChange("is_negotiable", checked)}
                   />
                   <Label htmlFor="is_negotiable" className="cursor-pointer">
-                    Price negotiable
+                    Negotiable
                   </Label>
                 </div>
 
@@ -844,19 +877,30 @@ export default function EditAdminPropertyPage() {
                     onCheckedChange={(checked) => handleInputChange("is_featured", checked)}
                   />
                   <Label htmlFor="is_featured" className="cursor-pointer">
-                    Featured property
+                    Featured
                   </Label>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
 
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="is_approved"
-                    checked={formData.is_approved}
-                    onCheckedChange={(checked) => handleInputChange("is_approved", checked)}
+          {/* Availability & Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Availability & Status</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="number_available">Units Available</Label>
+                  <Input
+                    id="number_available"
+                    type="number"
+                    value={formData.number_available}
+                    onChange={(e) => handleInputChange("number_available", parseInt(e.target.value))}
+                    placeholder="Number of units"
+                    min="1"
                   />
-                  <Label htmlFor="is_approved" className="cursor-pointer">
-                    Approved
-                  </Label>
                 </div>
 
                 <div>
@@ -875,6 +919,30 @@ export default function EditAdminPropertyPage() {
                       <SelectItem value="sold">Sold</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="flex items-end gap-6 h-10">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="is_available"
+                      checked={formData.is_available}
+                      onCheckedChange={(checked) => handleInputChange("is_available", checked)}
+                    />
+                    <Label htmlFor="is_available" className="cursor-pointer">
+                      Is Available
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="is_approved"
+                      checked={formData.is_approved}
+                      onCheckedChange={(checked) => handleInputChange("is_approved", checked)}
+                    />
+                    <Label htmlFor="is_approved" className="cursor-pointer">
+                      Approved
+                    </Label>
+                  </div>
                 </div>
               </div>
             </CardContent>

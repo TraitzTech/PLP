@@ -42,7 +42,8 @@ import {
   Check,
   CheckCheck,
   Reply,
-  Trash2
+  Trash2,
+  ArrowLeft
 } from 'lucide-react';
 import messageService, { 
   Conversation, 
@@ -834,10 +835,10 @@ export default function AgentMessagesPage() {
 
   return (
     <DashboardLayout userType="agent">
-      <div className="h-[calc(100vh-200px)]">
+      <div className="h-[calc(100vh-160px)] md:h-[calc(100vh-200px)]">
         <div className="flex h-full bg-white dark:bg-gray-900 rounded-lg shadow-sm border overflow-hidden">
           {/* Conversations List */}
-          <div className="w-80 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+          <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-r border-gray-200 dark:border-gray-700 flex-col`}>
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -1014,34 +1015,43 @@ export default function AgentMessagesPage() {
           </div>
 
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col">
+          <div className={`${selectedConversation ? 'flex' : 'hidden md:flex'} flex-1 flex-col`}>
             {selectedConversation ? (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="w-10 h-10">
+                <div className="p-2 md:p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center space-x-2 md:space-x-3 min-w-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="md:hidden shrink-0 p-1"
+                        onClick={() => setSelectedConversation(null)}
+                      >
+                        <ArrowLeft className="w-5 h-5" />
+                      </Button>
+                      <Avatar className="w-8 h-8 md:w-10 md:h-10 shrink-0">
                         <AvatarImage src={selectedConversation.user.profile_image} />
                         <AvatarFallback>
                           {getInitials(selectedConversation.user.first_name, selectedConversation.user.last_name)}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <h3 className="font-medium text-gray-900 dark:text-white">
+                      <div className="min-w-0">
+                        <h3 className="font-medium text-gray-900 dark:text-white text-sm md:text-base truncate">
                           {selectedConversation.user.first_name} {selectedConversation.user.last_name}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
-                          {selectedConversation.user.user_type} • {selectedConversation.user.email}
+                        <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 capitalize truncate">
+                          <span className="hidden sm:inline">{selectedConversation.user.user_type} • {selectedConversation.user.email}</span>
+                          <span className="sm:hidden">{selectedConversation.user.user_type}</span>
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1 md:space-x-2 shrink-0">
                       <Input
-                        placeholder="Search chat/media..."
+                        placeholder="Search..."
                         value={chatSearchTerm}
                         onChange={(e) => setChatSearchTerm(e.target.value)}
-                        className="w-44 h-8"
+                        className="hidden sm:block w-32 md:w-44 h-8"
                       />
                       <Button
                         variant={showMediaOnly ? 'default' : 'ghost'}
@@ -1075,7 +1085,7 @@ export default function AgentMessagesPage() {
                       >
                         <RefreshCw className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </div>
@@ -1232,7 +1242,7 @@ export default function AgentMessagesPage() {
                 )}
 
                 {/* Message Input */}
-                <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="p-2 md:p-4 border-t border-gray-200 dark:border-gray-700">
                   {replyToMessage && (
                     <div className="mb-2 p-2 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-between">
                       <div className="text-xs text-gray-600 dark:text-gray-300 truncate">
@@ -1243,7 +1253,7 @@ export default function AgentMessagesPage() {
                       </Button>
                     </div>
                   )}
-                  <div className="flex items-end space-x-2">
+                  <div className="flex items-end space-x-1 md:space-x-2">
                     <input
                       ref={fileInputRef}
                       type="file"

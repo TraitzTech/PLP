@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Bell, Check, CheckCheck, Trash2, Star, Calendar, Building2, UserPlus, MessageSquare, Shield, CheckCircle, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,20 +40,86 @@ export function NotificationDropdown({ userType }: NotificationDropdownProps) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hasLoadedRef = useRef(false);
+  const notifiedIdsRef = useRef<Set<string>>(new Set());
 
   // Get locale from pathname
   const segments = pathname.split('/').filter(Boolean);
   const locale = segments[0] || 'en';
 
+  const playNotificationSound = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.play().catch(err => {
+        // Silently catch the "NotAllowedError" which happens if user hasn't interacted with page yet
+        if (err.name !== 'NotAllowedError') {
+          console.error('Error playing sound:', err);
+        }
+      });
+    }
+  }, []);
+
+  const showWebNotification = useCallback((notification: Notification) => {
+    if (!('Notification' in window)) return;
+    
+    // Check if we've already notified for this notification ID to avoid repeats on refresh
+    if (notifiedIdsRef.current.has(notification.id.toString())) return;
+
+    if (Notification.permission === 'granted') {
+      const n = new window.Notification(notification.title, {
+        body: notification.message,
+        icon: '/logo-images/PlpLisitng-Fav-Icon.svg'
+      });
+      
+      // Mark as notified
+      notifiedIdsRef.current.add(notification.id.toString());
+      
+      n.onclick = () => {
+        window.focus();
+        handleNotificationClick(notification);
+        n.close();
+      };
+    }
+  }, []);
+
   const fetchNotifications = useCallback(async () => {
     try {
       const response = await notificationService.getRecentNotifications(7);
-      setNotifications(response.data.notifications);
-      setUnreadCount(response.data.unread_count);
+      const newNotifications = response.data.notifications;
+      const newUnreadCount = response.data.unread_count;
+
+      // Update notified list with current unread notifications so they aren't re-alerted on refresh
+      if (!hasLoadedRef.current) {
+        newNotifications.forEach(n => {
+          if (!n.is_read) notifiedIdsRef.current.add(n.id.toString());
+        });
+        hasLoadedRef.current = true;
+      } else {
+        // If we have more unread notifications than before, play sound and show web notification
+        if (newUnreadCount > unreadCount) {
+          playNotificationSound();
+          
+          // Find the newest unread notification that hasn't been notified yet
+          const latestUnread = newNotifications.find(n => !n.is_read && !notifiedIdsRef.current.has(n.id.toString()));
+          if (latestUnread) {
+            showWebNotification(latestUnread);
+          }
+        }
+      }
+
+      setNotifications(newNotifications);
+      setUnreadCount(newUnreadCount);
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
     } finally {
       setIsLoading(false);
+    }
+  }, [unreadCount, playNotificationSound, showWebNotification]);
+
+  useEffect(() => {
+    // Request notification permission on mount
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
     }
   }, []);
 
@@ -136,7 +202,9 @@ export function NotificationDropdown({ userType }: NotificationDropdownProps) {
   };
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <>
+      <audio ref={audioRef} src="/sounds/notification.mp3" preload="auto" />
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="w-5 h-5" />
@@ -185,7 +253,7 @@ export function NotificationDropdown({ userType }: NotificationDropdownProps) {
             <div className="p-8 text-center text-gray-500">
               <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
               <p className="font-medium">No notifications</p>
-              <p className="text-sm">You're all caught up!</p>
+              <p className="text-sm">You&apos;re all caught up!</p>
             </div>
           ) : (
             <div className="py-1">
@@ -246,5 +314,6 @@ export function NotificationDropdown({ userType }: NotificationDropdownProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </>
   );
 }

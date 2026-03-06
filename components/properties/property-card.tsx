@@ -163,21 +163,21 @@ export function PropertyCard({ property }: PropertyCardProps) {
         )}
       </div>
 
-      <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
+      <CardContent className="p-3 sm:p-4 space-y-2 sm:space-y-3 flex-1 flex flex-col">
         <div className="flex-1">
           <Link href={`/property/${property.id}`}>
-            <h3 className="font-semibold text-base text-gray-900 group-hover:text-plp-purple transition-colors line-clamp-2 mb-2">
+            <h3 className="font-semibold text-sm sm:text-base text-gray-900 group-hover:text-plp-purple transition-colors line-clamp-2 mb-1 sm:mb-2">
               {property.title}
             </h3>
           </Link>
           
-          <div className="flex items-center text-gray-600 text-sm mb-2">
+          <div className="flex items-center text-gray-600 text-sm mb-1">
             <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-            <span className="line-clamp-1">{location}</span>
+            <span className="line-clamp-1 text-xs sm:text-sm">{location}</span>
           </div>
 
           {typeSummary && (
-            <p className="text-xs text-gray-600 mb-2">
+            <p className="text-[10px] sm:text-xs text-gray-600 mb-1 line-clamp-1">
               {typeSummary}
             </p>
           )}
@@ -189,20 +189,20 @@ export function PropertyCard({ property }: PropertyCardProps) {
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t">
+        <div className="flex items-center justify-between pt-2 border-t mt-auto">
           <div className="text-left">
-            <div className="font-bold text-lg text-plp-purple">
+            <div className="font-bold text-base sm:text-lg text-plp-purple whitespace-nowrap">
               {price}
             </div>
             {priceLabel && (
-              <div className="text-xs text-gray-500">
+              <div className="text-[10px] sm:text-xs text-gray-500 line-clamp-1">
                 {priceLabel}
               </div>
             )}
           </div>
           
           <Link href={`/property/${property.id}`}>
-            <Button size="sm" className="bg-plp-purple hover:bg-plp-purple/90">
+            <Button size="sm" className="bg-plp-purple hover:bg-plp-purple/90 text-xs px-2 h-8 sm:h-9 sm:px-3">
               View Details
             </Button>
           </Link>

@@ -120,8 +120,21 @@ export const bookingService = {
   /**
    * Get all bookings for current user
    */
-  async getMyBookings(): Promise<BookingsListResponse> {
-    const response = await apiClient.get<BookingsListResponse>('/bookings');
+  async getMyBookings(params?: {
+    page?: number;
+    per_page?: number;
+    status?: string;
+    search?: string;
+  }): Promise<BookingsListResponse> {
+    const response = await apiClient.get<BookingsListResponse>('/bookings', { params });
+    return response.data;
+  },
+
+  /**
+   * Delete a booking
+   */
+  async deleteBooking(id: number): Promise<{ status: string; message: string }> {
+    const response = await apiClient.delete<{ status: string; message: string }>(`/bookings/${id}`);
     return response.data;
   },
 

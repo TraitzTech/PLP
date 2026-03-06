@@ -208,9 +208,13 @@ export const propertyManagementService = {
   ): Promise<any> {
     try {
       const formData = new FormData();
-      files.forEach((file) => {
-        formData.append("videos", file);
-      });
+      
+      if (files && files.length > 0) {
+        files.forEach((file) => {
+          formData.append("videos[]", file);
+        });
+      }
+      
       if (url) {
         formData.append("url", url);
       }

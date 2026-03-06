@@ -282,7 +282,7 @@ export function SearchClient() {
       type: '',
       location: '',
       priceRangeMin: '0',
-      priceRangeMax: '10000000',
+      priceRangeMax: '1000000000000',
       bedrooms: '',
       bathrooms: '',
       facilities: [],
@@ -371,7 +371,7 @@ export function SearchClient() {
           </div>
 
           {/* Active Filters */}
-          {(filters.type || filters.region || filters.city || filters.priceRangeMin !== '0' || filters.priceRangeMax !== '1000000000000') && (
+          {(filters.type || filters.region || filters.city || filters.priceRangeMin !== '0' || (filters.priceRangeMax !== '1000000000000' && filters.priceRangeMax !== '10000000')) && (
             <div className="flex flex-wrap items-center gap-2 mt-4 p-4 bg-blue-50 rounded-lg">
               <span className="text-sm font-medium text-gray-700">Active filters:</span>
               {filters.type && (
@@ -393,10 +393,10 @@ export function SearchClient() {
                   <X className="w-3 h-3 cursor-pointer" onClick={() => setFilters({...filters, city: ''})} />
                 </Badge>
               )}
-              {(filters.priceRangeMin !== '0' || filters.priceRangeMax !== '1000000000000') && (
+              {(filters.priceRangeMin !== '0' || (filters.priceRangeMax !== '1000000000000' && filters.priceRangeMax !== '10000000')) && (
                 <Badge variant="secondary" className="bg-plp-purple text-white flex items-center gap-1">
                   XAF{filters.priceRangeMin} - XAF{filters.priceRangeMax}
-                  <X className="w-3 h-3 cursor-pointer" onClick={() => setFilters({...filters, priceRangeMin: '0', priceRangeMax: '10000000'})} />
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => setFilters({...filters, priceRangeMin: '0', priceRangeMax: '1000000000000'})} />
                 </Badge>
               )}
               <Button
@@ -427,7 +427,7 @@ export function SearchClient() {
           {/* Main Content */}
           <div className="flex-1">
             {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className={`grid grid-cols-1 md:grid-cols-2 ${showFilters ? 'lg:grid-cols-2 xl:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-6`}>
                 {[...Array(12)].map((_, i) => (
                   <PropertyCardSkeleton key={i} />
                 ))}
@@ -444,7 +444,7 @@ export function SearchClient() {
             ) : viewMode === 'grid' ? (
               <>
                 {/* Properties Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                <div className={`grid grid-cols-1 md:grid-cols-2 ${showFilters ? 'lg:grid-cols-2 xl:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-6 mb-8`}>
                   {currentProperties.map((property) => (
                     <PropertyCard
                       key={property.id}

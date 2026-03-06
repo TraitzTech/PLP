@@ -41,7 +41,8 @@ import {
   Check,
   CheckCheck,
   Reply,
-  Trash2
+  Trash2,
+  ArrowLeft
 } from 'lucide-react';
 import messageService, { 
   Conversation, 
@@ -50,6 +51,7 @@ import messageService, {
   SendMessageData 
 } from '@/services/messageService';
 import { authService } from '@/services/authService';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const SWIPE_THRESHOLD_PX = 70;
 const REPLY_META_REGEX = /^\[\[reply:(\d+)\]\]\n?/;
@@ -111,6 +113,8 @@ export default function MessagesPage() {
   const accessErrorRef = useRef<string | null>(null);
   
   const { toast } = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const extractApiErrorMessage = useCallback((error: any, fallback: string) => {
     return (
@@ -344,6 +348,53 @@ export default function MessagesPage() {
     fetchConversations();
     fetchUnreadCount();
   }, []);
+
+  // Handle userId query param to open specific chat
+  useEffect(() => {
+    const userIdStr = searchParams.get('userId');
+    if (!userIdStr || loadingConversations) return;
+
+    const userId = Number(userIdStr);
+    if (!Number.isFinite(userId) || userId <= 0) return;
+
+    // Check if we already have this conversation
+    const existingConv = conversations.find(c => c.user.id === userId);
+    
+    // If it's already selected, don't do anything
+    if (selectedConversation && selectedConversation.user.id === userId) {
+      return;
+    }
+
+    if (existingConv) {
+      handleSelectConversation(existingConv);
+      return;
+    }
+
+    // Otherwise, try to find the user via search to start a new conversation
+    const searchAndStart = async () => {
+      try {
+        setSearchingUsers(true);
+        const response = await messageService.searchUsers(userIdStr);
+        const user = response.data.users.find(u => u.id === userId);
+        
+        if (user) {
+          handleStartConversation(user);
+        } else {
+          toast({
+            title: "User not found",
+            description: "Could not find the user you're trying to chat with.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('Error finding user for direct chat:', error);
+      } finally {
+        setSearchingUsers(false);
+      }
+    };
+
+    searchAndStart();
+  }, [searchParams, conversations, loadingConversations, selectedConversation]);
 
   useEffect(() => {
     return () => {
@@ -784,10 +835,10 @@ export default function MessagesPage() {
 
   return (
     <DashboardLayout userType="customer">
-      <div className="h-[calc(100vh-200px)]">
+      <div className="h-[calc(100vh-160px)] md:h-[calc(100vh-200px)]">
         <div className="flex h-full bg-white dark:bg-gray-900 rounded-lg shadow-sm border overflow-hidden">
           {/* Conversations List */}
-          <div className="w-80 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+          <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-r border-gray-200 dark:border-gray-700 flex-col`}>
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -950,34 +1001,42 @@ export default function MessagesPage() {
           </div>
 
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col">
+          <div className={`${selectedConversation ? 'flex' : 'hidden md:flex'} flex-1 flex-col`}>
             {selectedConversation ? (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="w-10 h-10">
+                <div className="p-2 md:p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center space-x-2 md:space-x-3 min-w-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="md:hidden shrink-0 p-1"
+                        onClick={() => setSelectedConversation(null)}
+                      >
+                        <ArrowLeft className="w-5 h-5" />
+                      </Button>
+                      <Avatar className="w-8 h-8 md:w-10 md:h-10 shrink-0">
                         <AvatarImage src={selectedConversation.user.profile_image} />
                         <AvatarFallback>
                           {getInitials(selectedConversation.user.first_name, selectedConversation.user.last_name)}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <h3 className="font-medium text-gray-900 dark:text-white">
+                      <div className="min-w-0">
+                        <h3 className="font-medium text-gray-900 dark:text-white text-sm md:text-base truncate">
                           {selectedConversation.user.first_name} {selectedConversation.user.last_name}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                        <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 capitalize truncate">
                           {selectedConversation.user.user_type}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1 md:space-x-2 shrink-0">
                       <Input
-                        placeholder="Search chat/media..."
+                        placeholder="Search..."
                         value={chatSearchTerm}
                         onChange={(e) => setChatSearchTerm(e.target.value)}
-                        className="w-44 h-8"
+                        className="hidden sm:block w-32 md:w-44 h-8"
                       />
                       <Button
                         variant={showMediaOnly ? 'default' : 'ghost'}
@@ -1000,7 +1059,7 @@ export default function MessagesPage() {
                       >
                         <RefreshCw className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </div>
@@ -1157,7 +1216,7 @@ export default function MessagesPage() {
                 )}
 
                 {/* Message Input */}
-                <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="p-2 md:p-4 border-t border-gray-200 dark:border-gray-700">
                   {replyToMessage && (
                     <div className="mb-2 p-2 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-between">
                       <div className="text-xs text-gray-600 dark:text-gray-300 truncate">
@@ -1168,7 +1227,7 @@ export default function MessagesPage() {
                       </Button>
                     </div>
                   )}
-                  <div className="flex items-end space-x-2">
+                  <div className="flex items-end space-x-1 md:space-x-2">
                     <input
                       ref={fileInputRef}
                       type="file"

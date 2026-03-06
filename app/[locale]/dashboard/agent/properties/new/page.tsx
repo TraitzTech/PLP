@@ -259,7 +259,12 @@ export default function CreatePropertyPage() {
       router.push("/dashboard/agent/properties");
     } catch (error: any) {
       console.error("Error creating property:", error);
-      toast.error(error.response?.data?.message || "Failed to create property");
+      const errors = error.response?.data?.errors;
+      if (Array.isArray(errors) && errors.length > 0) {
+        errors.forEach(err => toast.error(err));
+      } else {
+        toast.error(error.response?.data?.message || "Failed to create property");
+      }
     } finally {
       setIsLoading(false);
     }

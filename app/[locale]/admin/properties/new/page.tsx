@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MultiStepForm, type FormStep } from "@/components/ui/multi-step-form";
 import { LocationPicker } from "@/components/properties/location-picker";
+import apiClient from "@/lib/apiClient";
 import { userManagementService } from "@/services/userManagementService";
 import { facilitiesService } from "@/services/facilitiesService";
 import { propertyTypeService } from "@/services/propertyTypeService";
@@ -86,13 +87,13 @@ export default function AdminCreatePropertyPage() {
     try {
       setIsDataLoading(true);
       const [agentsData, facilitiesData, propertyTypesData] = await Promise.all([
-        userManagementService.getAllUsers({ user_type: "agent" }),
+        apiClient.get("/manage-agents"),
         facilitiesService.getAllFacilities(),
         propertyTypeService.getAllPropertyTypes(),
       ]);
 
-      // Extract agents array from paginated response
-      const agentsArray = agentsData?.data?.data ? agentsData.data.data : (Array.isArray(agentsData?.data) ? agentsData.data : []);
+      // Extract agents array - ManageAgentController returns {status: 'success', data: agents[]}
+      const agentsArray = agentsData?.data?.data || [];
       setAgents(agentsArray);
       setFacilities(Array.isArray(facilitiesData) ? facilitiesData : []);
       setPropertyTypes(Array.isArray(propertyTypesData) ? propertyTypesData : []);
@@ -244,7 +245,7 @@ export default function AdminCreatePropertyPage() {
     }
   };
 
-  const selectedAgent = agents?.find((a) => a.id === formData.agent_id);
+  const selectedAgent: any = agents?.find((a: any) => a.id === formData.agent_id);
 
   const steps: FormStep[] = [
     {
@@ -271,9 +272,9 @@ export default function AdminCreatePropertyPage() {
                 <SelectValue placeholder="Select an agent" />
               </SelectTrigger>
               <SelectContent>
-                {agents.map((agent) => (
+                {agents.map((agent: any) => (
                   <SelectItem key={agent.id} value={agent.id.toString()}>
-                    {agent.name} ({agent.email})
+                    {agent.user?.name || agent.name} ({agent.user?.email || agent.email})
                   </SelectItem>
                 ))}
               </SelectContent>

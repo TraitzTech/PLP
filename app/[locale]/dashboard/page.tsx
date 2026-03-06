@@ -235,7 +235,7 @@ export default function CustomerDashboard() {
                   <div className="text-center py-8">
                     <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                     <p className="text-gray-600">No bookings yet</p>
-                    <Link href="/properties">
+                    <Link href="/search">
                       <Button className="mt-4" variant="outline">
                         Browse Properties
                       </Button>

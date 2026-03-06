@@ -328,9 +328,9 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
             }`}>
                 <div className="flex flex-col h-full">
                     {/* Logo - Fixed at top */}
-                    <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
+                    <div className="flex items-center justify-between p-2 border-b flex-shrink-0">
                         <div onClick={() => setSidebarOpen(false)}>
-                            <Logo />
+                            <Logo showText={false} />
                         </div>
                         <Button
                             variant="ghost"

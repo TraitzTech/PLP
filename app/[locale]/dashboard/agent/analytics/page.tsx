@@ -1,47 +1,43 @@
 'use client'
 
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, TrendingDown, Building2, Calendar, DollarSign, Users, Download, Filter, Star, Award } from 'lucide-react';
-
-// Mock analytics data for agent
-const revenueData = [
-  { month: 'Jan', revenue: 12000000, bookings: 25, occupancy: 75 },
-  { month: 'Fév', revenue: 15000000, bookings: 32, occupancy: 82 },
-  { month: 'Mar', revenue: 18000000, bookings: 38, occupancy: 85 },
-  { month: 'Avr', revenue: 22000000, bookings: 45, occupancy: 88 },
-  { month: 'Mai', revenue: 19000000, bookings: 40, occupancy: 80 },
-  { month: 'Juin', revenue: 25000000, bookings: 52, occupancy: 92 },
-];
-
-const propertyPerformanceData = [
-  { name: 'Villa Bastos', revenue: 8500000, bookings: 18, rating: 4.9 },
-  { name: 'Apt Bonanjo', revenue: 6200000, bookings: 22, rating: 4.7 },
-  { name: 'Suite Akwa', revenue: 7800000, bookings: 16, rating: 4.8 },
-  { name: 'Maison Biyem', revenue: 4500000, bookings: 12, rating: 4.6 },
-];
-
-const clientSourceData = [
-  { name: 'Référencement Direct', value: 35, count: 28, color: '#390058' },
-  { name: 'Recommandations', value: 30, count: 24, color: '#FF4672' },
-  { name: 'Réseaux Sociaux', value: 20, count: 16, color: '#FFB43B' },
-  { name: 'Partenaires', value: 15, count: 12, color: '#831597' },
-];
-
-const monthlyMetrics = [
-  { month: 'Jan', clients: 15, newClients: 8, retention: 85 },
-  { month: 'Fév', clients: 18, newClients: 10, retention: 88 },
-  { month: 'Mar', clients: 22, newClients: 12, retention: 90 },
-  { month: 'Avr', clients: 28, newClients: 15, retention: 92 },
-  { month: 'Mai', clients: 25, newClients: 11, retention: 89 },
-  { month: 'Juin', clients: 32, newClients: 18, retention: 94 },
-];
+import { TrendingUp, TrendingDown, Building2, Calendar, DollarSign, Users, Download, Filter, Star } from 'lucide-react';
+import agentDashboardService, {
+  AgentAnalyticsData,
+} from '@/services/agentDashboardService';
+import { getToken } from '@/lib/authToken';
 
 export default function AgentAnalyticsPage() {
+  const [period, setPeriod] = useState('6months');
+  const [data, setData] = useState<AgentAnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const fetchAnalytics = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await agentDashboardService.getAnalytics(period);
+      setData(response.data);
+    } catch (err: any) {
+      console.error('Failed to fetch analytics:', err);
+      setError(err?.message || 'Failed to load analytics');
+    } finally {
+      setLoading(false);
+    }
+  }, [period]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-CM', {
       style: 'currency',
@@ -50,10 +46,82 @@ export default function AgentAnalyticsPage() {
     }).format(amount);
   };
 
-  const totalRevenue = revenueData.reduce((sum, item) => sum + item.revenue, 0);
-  const totalBookings = revenueData.reduce((sum, item) => sum + item.bookings, 0);
-  const averageOccupancy = revenueData.reduce((sum, item) => sum + item.occupancy, 0) / revenueData.length;
-  const totalCommission = totalRevenue * 0.15; // 15% agent commission
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      const url = agentDashboardService.getExportUrl(period);
+      const token = getToken();
+      const response = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!response.ok) throw new Error('Export failed');
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `analytics-report-${period}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error('Export failed:', err);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const ChangeIndicator = ({ value }: { value: number }) => {
+    if (value >= 0) {
+      return (
+        <div className="flex items-center text-green-600 text-sm mt-1">
+          <TrendingUp className="w-4 h-4 mr-1" />
+          +{value.toFixed(1)}%
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center text-red-500 text-sm mt-1">
+        <TrendingDown className="w-4 h-4 mr-1" />
+        {value.toFixed(1)}%
+      </div>
+    );
+  };
+
+  const MetricSkeleton = () => (
+    <Card>
+      <CardContent className="p-4 md:p-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-7 w-32" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+          <Skeleton className="w-8 h-8 rounded" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const ChartSkeleton = () => (
+    <Card>
+      <CardHeader><Skeleton className="h-5 w-40" /></CardHeader>
+      <CardContent><Skeleton className="h-[300px] w-full" /></CardContent>
+    </Card>
+  );
+
+  if (error && !data) {
+    return (
+      <DashboardLayout userType="agent">
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <p className="text-red-500 text-lg mb-4">{error}</p>
+          <Button onClick={fetchAnalytics}>Retry</Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const metrics = data?.key_metrics;
 
   return (
     <DashboardLayout userType="agent">
@@ -61,280 +129,286 @@ export default function AgentAnalyticsPage() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Analytics & Rapports</h1>
-            <p className="text-gray-600 mt-2">Analysez les performances de vos propriétés et clients.</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Analytics & Reports</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">Analyze the performance of your properties and clients.</p>
           </div>
-          
-          <div className="flex items-center gap-3">
-            <Select defaultValue="6months">
-              <SelectTrigger className="w-40">
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger className="w-full sm:w-40">
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1month">Dernier Mois</SelectItem>
-                <SelectItem value="3months">3 Derniers Mois</SelectItem>
-                <SelectItem value="6months">6 Derniers Mois</SelectItem>
-                <SelectItem value="1year">Dernière Année</SelectItem>
+                <SelectItem value="1month">Last Month</SelectItem>
+                <SelectItem value="3months">Last 3 Months</SelectItem>
+                <SelectItem value="6months">Last 6 Months</SelectItem>
+                <SelectItem value="1year">Last Year</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="btn-primary">
+            <Button className="btn-primary" onClick={handleExport} disabled={exporting || loading}>
               <Download className="w-4 h-4 mr-2" />
-              Exporter Rapport
+              {exporting ? 'Exporting...' : 'Export Report'}
             </Button>
           </div>
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Revenus Totaux</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(totalRevenue)}
-                  </p>
-                  <div className="flex items-center text-green-600 text-sm mt-1">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    +18.5%
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          {loading ? (
+            <>
+              <MetricSkeleton /><MetricSkeleton /><MetricSkeleton /><MetricSkeleton />
+            </>
+          ) : (
+            <>
+              <Card>
+                <CardContent className="p-4 md:p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
+                      <p className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">
+                        {formatCurrency(metrics?.total_revenue ?? 0)}
+                      </p>
+                      <ChangeIndicator value={metrics?.revenue_change ?? 0} />
+                    </div>
+                    <DollarSign className="w-7 h-7 md:w-8 md:h-8 text-plp-purple" />
                   </div>
-                </div>
-                <DollarSign className="w-8 h-8 text-plp-purple" />
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Commissions</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(totalCommission)}
-                  </p>
-                  <div className="flex items-center text-green-600 text-sm mt-1">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    +15.2%
+              <Card>
+                <CardContent className="p-4 md:p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">Commission</p>
+                      <p className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">
+                        {formatCurrency(metrics?.total_commission ?? 0)}
+                      </p>
+                    </div>
+                    <Star className="w-7 h-7 md:w-8 md:h-8 text-plp-pink" />
                   </div>
-                </div>
-                <Star className="w-8 h-8 text-plp-pink" />
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Réservations</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalBookings}</p>
-                  <div className="flex items-center text-green-600 text-sm mt-1">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    +22.3%
+              <Card>
+                <CardContent className="p-4 md:p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">Bookings</p>
+                      <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{metrics?.total_bookings ?? 0}</p>
+                      <p className="text-xs text-gray-500 mt-1">{metrics?.completed_bookings ?? 0} completed</p>
+                    </div>
+                    <Calendar className="w-7 h-7 md:w-8 md:h-8 text-plp-yellow" />
                   </div>
-                </div>
-                <Calendar className="w-8 h-8 text-plp-yellow" />
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Taux d'Occupation</p>
-                  <p className="text-2xl font-bold text-gray-900">{Math.round(averageOccupancy)}%</p>
-                  <div className="flex items-center text-green-600 text-sm mt-1">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    +5.8%
+              <Card>
+                <CardContent className="p-4 md:p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">Occupancy Rate</p>
+                      <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{metrics?.occupancy_rate ?? 0}%</p>
+                      <p className="text-xs text-gray-500 mt-1">{metrics?.active_listings ?? 0}/{metrics?.total_listings ?? 0} active</p>
+                    </div>
+                    <Building2 className="w-7 h-7 md:w-8 md:h-8 text-green-500" />
                   </div>
-                </div>
-                <Building2 className="w-8 h-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Revenue Trend */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Évolution des Revenus</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Area type="monotone" dataKey="revenue" stroke="#390058" fill="#390058" fillOpacity={0.1} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+          {loading ? (
+            <>
+              <ChartSkeleton /><ChartSkeleton /><ChartSkeleton /><ChartSkeleton />
+            </>
+          ) : (
+            <>
+              {/* Revenue Trend */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Revenue Trend</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={data?.revenue_trend ?? []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
+                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                      <Area type="monotone" dataKey="revenue" stroke="#390058" fill="#390058" fillOpacity={0.1} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
 
-          {/* Client Sources */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Sources de Clients</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={clientSourceData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}%`}
-                  >
-                    {clientSourceData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+              {/* Booking Status Breakdown */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Booking Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={data?.booking_status_breakdown ?? []}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        dataKey="value"
+                        label={({ name, value }) => `${name}: ${value}`}
+                      >
+                        {(data?.booking_status_breakdown ?? []).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
 
-          {/* Property Performance */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Performance des Propriétés</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={propertyPerformanceData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
-                  <Tooltip formatter={(value, name) => 
-                    name === 'revenue' ? formatCurrency(value as number) : value
-                  } />
-                  <Bar dataKey="revenue" fill="#FF4672" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+              {/* Property Performance */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Property Performance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={data?.property_performance ?? []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
+                      <Tooltip formatter={(value, name) =>
+                        name === 'revenue' ? formatCurrency(value as number) : value
+                      } />
+                      <Bar dataKey="revenue" fill="#FF4672" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
 
-          {/* Client Growth */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Croissance Clientèle</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={monthlyMetrics}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="clients" stroke="#390058" strokeWidth={2} name="Total Clients" />
-                  <Line type="monotone" dataKey="newClients" stroke="#FFB43B" strokeWidth={2} name="Nouveaux Clients" />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+              {/* Client Growth */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Client Growth</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={data?.client_growth ?? []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="clients" stroke="#390058" strokeWidth={2} name="Total Clients" />
+                      <Line type="monotone" dataKey="new_clients" stroke="#FFB43B" strokeWidth={2} name="New Clients" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         {/* Detailed Performance Tables */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Top Properties */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Propriétés les Plus Rentables</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {propertyPerformanceData.map((property, index) => (
-                  <div key={property.name} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 bg-plp-purple text-white rounded-full flex items-center justify-center text-sm font-bold">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900">{property.name}</h4>
-                        <p className="text-sm text-gray-600">{property.bookings} réservations</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-plp-purple">
-                        {formatCurrency(property.revenue)}
-                      </p>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Star className="w-3 h-3 text-yellow-400 fill-current mr-1" />
-                        {property.rating}
-                      </div>
-                    </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+          {loading ? (
+            <>
+              <ChartSkeleton /><ChartSkeleton />
+            </>
+          ) : (
+            <>
+              {/* Top Properties */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Top Properties</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {(data?.property_performance ?? []).length === 0 ? (
+                      <p className="text-gray-500 text-center py-6">No property data yet.</p>
+                    ) : (
+                      (data?.property_performance ?? []).map((property, index) => (
+                        <div key={property.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 bg-plp-purple text-white rounded-full flex items-center justify-center text-sm font-bold">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900 dark:text-white">{property.name}</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">{property.bookings} bookings</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-plp-purple">
+                              {formatCurrency(property.revenue)}
+                            </p>
+                            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                              <Star className="w-3 h-3 text-yellow-400 fill-current mr-1" />
+                              {property.rating.toFixed(1)}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
-          {/* Monthly Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Résumé Mensuel</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div className="p-3 bg-green-50 rounded-lg">
-                    <p className="text-2xl font-bold text-green-600">94%</p>
-                    <p className="text-sm text-gray-600">Taux de Satisfaction</p>
-                  </div>
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <p className="text-2xl font-bold text-blue-600">32</p>
-                    <p className="text-sm text-gray-600">Clients Actifs</p>
-                  </div>
-                  <div className="p-3 bg-purple-50 rounded-lg">
-                    <p className="text-2xl font-bold text-purple-600">4.8</p>
-                    <p className="text-sm text-gray-600">Note Moyenne</p>
-                  </div>
-                </div>
-                
-                <div className="border-t pt-4">
-                  <h4 className="font-semibold text-gray-900 mb-3">Objectifs du Mois</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Revenus</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div className="bg-green-500 h-2 rounded-full" style={{ width: '85%' }}></div>
-                        </div>
-                        <span className="text-sm font-medium">85%</span>
+              {/* Monthly Summary */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <p className="text-2xl font-bold text-blue-600">{data?.monthly_summary?.active_clients ?? 0}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Active Clients</p>
+                      </div>
+                      <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                        <p className="text-2xl font-bold text-purple-600">
+                          {(data?.monthly_summary?.average_rating ?? 0).toFixed(1)}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Avg Rating</p>
+                      </div>
+                      <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg col-span-2 sm:col-span-1">
+                        <p className="text-2xl font-bold text-green-600">{data?.monthly_summary?.total_reviews ?? 0}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Reviews</p>
                       </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Nouveaux Clients</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div className="bg-blue-500 h-2 rounded-full" style={{ width: '72%' }}></div>
+
+                    <div className="border-t pt-4">
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Listings Overview</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Total Listings</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">{metrics?.total_listings ?? 0}</span>
                         </div>
-                        <span className="text-sm font-medium">72%</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Taux d'Occupation</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div className="bg-purple-500 h-2 rounded-full" style={{ width: '92%' }}></div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Active Listings</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">{metrics?.active_listings ?? 0}</span>
                         </div>
-                        <span className="text-sm font-medium">92%</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Total Bookings</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">{metrics?.total_bookings ?? 0}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Completed</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">{metrics?.completed_bookings ?? 0}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
       </div>
     </DashboardLayout>
