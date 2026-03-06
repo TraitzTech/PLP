@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,7 +56,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 const SWIPE_THRESHOLD_PX = 70;
 const REPLY_META_REGEX = /^\[\[reply:(\d+)\]\]\n?/;
 
-export default function MessagesPage() {
+function MessagesPageContent() {
   const resolveUserId = (value: any): number | null => {
     const candidates = [value?.id, value?.user_id, value?.data?.id, value?.user?.id];
     for (const candidate of candidates) {
@@ -1322,5 +1322,19 @@ export default function MessagesPage() {
         </AlertDialogContent>
       </AlertDialog>
     </DashboardLayout>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout userType="customer">
+        <div className="flex items-center justify-center h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-plp-purple" />
+        </div>
+      </DashboardLayout>
+    }>
+      <MessagesPageContent />
+    </Suspense>
   );
 }
