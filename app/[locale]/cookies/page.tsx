@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useTranslations } from '@/components/translation-provider';
 import { Navbar } from '@/components/navigation/navbar';
 import { Footer } from '@/components/navigation/footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,8 +11,11 @@ import { Badge } from '@/components/ui/badge';
 import { Cookie, Settings, Shield, ChartBar as BarChart3, Target, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
+const cookieTypeIcons = [Shield, BarChart3, Target, Settings];
+const cookieTypeRequired = [true, false, false, false];
+
 export default function CookiesPage() {
-  const [language, setLanguage] = useState('en');
+  const t = useTranslations();
   const [cookiePreferences, setCookiePreferences] = useState({
     essential: true, // Always required
     analytics: true,
@@ -19,144 +23,10 @@ export default function CookiesPage() {
     personalization: true,
   });
 
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('language') || 'en';
-    setLanguage(savedLanguage);
-
-    const handleLanguageChange = () => {
-      const currentLanguage = localStorage.getItem('language') || 'en';
-      setLanguage(currentLanguage);
-    };
-
-    window.addEventListener('languageChanged', handleLanguageChange);
-    return () => window.removeEventListener('languageChanged', handleLanguageChange);
-  }, []);
-
-  const content = {
-    en: {
-      title: "Cookie Policy",
-      subtitle: "Learn how we use cookies to improve your experience on our platform",
-      lastUpdated: "Last updated: February 15, 2024",
-      intro: {
-        title: "What are Cookies?",
-        description: "Cookies are small text files that are stored on your device when you visit our website. They help us provide you with a better experience by remembering your preferences and analyzing how you use our platform."
-      },
-      types: {
-        title: "Types of Cookies We Use",
-        items: [
-          {
-            icon: Shield,
-            title: "Essential Cookies",
-            description: "These cookies are necessary for the website to function properly. They enable core functionality such as security, network management, and accessibility.",
-            required: true,
-            examples: "Login sessions, security tokens, load balancing"
-          },
-          {
-            icon: BarChart3,
-            title: "Analytics Cookies",
-            description: "These cookies help us understand how visitors interact with our website by collecting and reporting information anonymously.",
-            required: false,
-            examples: "Google Analytics, page views, user behavior"
-          },
-          {
-            icon: Target,
-            title: "Marketing Cookies",
-            description: "These cookies are used to track visitors across websites to display relevant advertisements and measure campaign effectiveness.",
-            required: false,
-            examples: "Ad targeting, conversion tracking, retargeting"
-          },
-          {
-            icon: Settings,
-            title: "Personalization Cookies",
-            description: "These cookies allow us to remember your preferences and provide customized content and features.",
-            required: false,
-            examples: "Language preferences, saved searches, recommendations"
-          }
-        ]
-      },
-      preferences: {
-        title: "Cookie Preferences",
-        description: "You can control which cookies we use. Essential cookies cannot be disabled as they are required for the website to function.",
-        save: "Save Preferences",
-        success: "Cookie preferences updated successfully!"
-      },
-      manage: {
-        title: "Managing Cookies",
-        description: "You can also manage cookies through your browser settings:",
-        browsers: [
-          "Chrome: Settings > Privacy and Security > Cookies",
-          "Firefox: Options > Privacy & Security > Cookies",
-          "Safari: Preferences > Privacy > Cookies",
-          "Edge: Settings > Cookies and Site Permissions"
-        ]
-      }
-    },
-    fr: {
-      title: "Politique des Cookies",
-      subtitle: "Découvrez comment nous utilisons les cookies pour améliorer votre expérience sur notre plateforme",
-      lastUpdated: "Dernière mise à jour: 15 février 2024",
-      intro: {
-        title: "Que sont les Cookies?",
-        description: "Les cookies sont de petits fichiers texte stockés sur votre appareil lorsque vous visitez notre site web. Ils nous aident à vous offrir une meilleure expérience en mémorisant vos préférences et en analysant comment vous utilisez notre plateforme."
-      },
-      types: {
-        title: "Types de Cookies que Nous Utilisons",
-        items: [
-          {
-            icon: Shield,
-            title: "Cookies Essentiels",
-            description: "Ces cookies sont nécessaires au bon fonctionnement du site web. Ils permettent des fonctionnalités de base comme la sécurité, la gestion réseau et l'accessibilité.",
-            required: true,
-            examples: "Sessions de connexion, jetons de sécurité, équilibrage de charge"
-          },
-          {
-            icon: BarChart3,
-            title: "Cookies d'Analyse",
-            description: "Ces cookies nous aident à comprendre comment les visiteurs interagissent avec notre site web en collectant et rapportant des informations de manière anonyme.",
-            required: false,
-            examples: "Google Analytics, vues de page, comportement utilisateur"
-          },
-          {
-            icon: Target,
-            title: "Cookies Marketing",
-            description: "Ces cookies sont utilisés pour suivre les visiteurs sur les sites web afin d'afficher des publicités pertinentes et mesurer l'efficacité des campagnes.",
-            required: false,
-            examples: "Ciblage publicitaire, suivi de conversion, reciblage"
-          },
-          {
-            icon: Settings,
-            title: "Cookies de Personnalisation",
-            description: "Ces cookies nous permettent de mémoriser vos préférences et de fournir du contenu et des fonctionnalités personnalisés.",
-            required: false,
-            examples: "Préférences linguistiques, recherches sauvegardées, recommandations"
-          }
-        ]
-      },
-      preferences: {
-        title: "Préférences des Cookies",
-        description: "Vous pouvez contrôler quels cookies nous utilisons. Les cookies essentiels ne peuvent pas être désactivés car ils sont requis pour le fonctionnement du site web.",
-        save: "Sauvegarder les Préférences",
-        success: "Préférences des cookies mises à jour avec succès!"
-      },
-      manage: {
-        title: "Gestion des Cookies",
-        description: "Vous pouvez également gérer les cookies via les paramètres de votre navigateur:",
-        browsers: [
-          "Chrome: Paramètres > Confidentialité et Sécurité > Cookies",
-          "Firefox: Options > Confidentialité et Sécurité > Cookies",
-          "Safari: Préférences > Confidentialité > Cookies",
-          "Edge: Paramètres > Cookies et Autorisations de Site"
-        ]
-      }
-    }
-  };
-
-  const currentContent = content[language as keyof typeof content];
-
   const handleSavePreferences = () => {
     // Save preferences to localStorage
     localStorage.setItem('cookiePreferences', JSON.stringify(cookiePreferences));
-    toast.success(currentContent.preferences.success);
+    toast.success(t('cookies.preferences.success'));
   };
 
   const handlePreferenceChange = (type: string, value: boolean) => {
@@ -176,13 +46,13 @@ export default function CookiesPage() {
                 <Cookie className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl sm:text-6xl font-bold text-white">
-                {currentContent.title}
+                {t('cookies.title')}
               </h1>
               <p className="text-xl text-white/90 max-w-3xl mx-auto">
-                {currentContent.subtitle}
+                {t('cookies.subtitle')}
               </p>
               <Badge className="bg-white/20 text-white border-white/30">
-                {currentContent.lastUpdated}
+                {t('cookies.lastUpdated')}
               </Badge>
             </div>
           </div>
@@ -194,12 +64,12 @@ export default function CookiesPage() {
             <Card className="shadow-xl">
               <CardHeader>
                 <CardTitle className="text-2xl font-bold text-gray-900">
-                  {currentContent.intro.title}
+                  {t('cookies.intro.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 leading-relaxed">
-                  {currentContent.intro.description}
+                  {t('cookies.intro.description')}
                 </p>
               </CardContent>
             </Card>
@@ -212,35 +82,35 @@ export default function CookiesPage() {
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-16">
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  {currentContent.types.title}
+                  {t('cookies.types.title')}
                 </h2>
               </div>
 
               <div className="space-y-8">
-                {currentContent.types.items.map((type, index) => {
-                  const IconComponent = type.icon;
+                {[0, 1, 2, 3].map((i) => {
+                  const IconComponent = cookieTypeIcons[i];
                   return (
-                    <Card key={index} className="shadow-lg">
+                    <Card key={i} className="shadow-lg">
                       <CardHeader>
                         <CardTitle className="flex items-center gap-3 text-xl font-bold text-gray-900">
                           <div className="p-2 bg-plp-purple/10 rounded-lg">
                             <IconComponent className="w-5 h-5 text-plp-purple" />
                           </div>
-                          {type.title}
-                          {type.required && (
+                          {t(`cookies.types.${i}.title`)}
+                          {cookieTypeRequired[i] && (
                             <Badge className="bg-red-100 text-red-800">
-                              {language === 'fr' ? 'Requis' : 'Required'}
+                              {t('cookies.required')}
                             </Badge>
                           )}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <p className="text-gray-700 mb-4">
-                          {type.description}
+                          {t(`cookies.types.${i}.description`)}
                         </p>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <p className="text-sm text-gray-600">
-                            <strong>{language === 'fr' ? 'Exemples:' : 'Examples:'}</strong> {type.examples}
+                            <strong>{t('cookies.examples')}</strong> {t(`cookies.types.${i}.examples`)}
                           </p>
                         </div>
                       </CardContent>
@@ -258,22 +128,22 @@ export default function CookiesPage() {
             <Card className="max-w-2xl mx-auto shadow-xl">
               <CardHeader>
                 <CardTitle className="text-2xl font-bold text-gray-900">
-                  {currentContent.preferences.title}
+                  {t('cookies.preferences.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 mb-6">
-                  {currentContent.preferences.description}
+                  {t('cookies.preferences.description')}
                 </p>
 
                 <div className="space-y-6">
                   <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
                     <div>
                       <h4 className="font-medium text-gray-900">
-                        {language === 'fr' ? 'Cookies Essentiels' : 'Essential Cookies'}
+                        {t('cookies.preferences.essential')}
                       </h4>
                       <p className="text-sm text-gray-600">
-                        {language === 'fr' ? 'Requis pour le fonctionnement du site' : 'Required for website functionality'}
+                        {t('cookies.preferences.essentialDesc')}
                       </p>
                     </div>
                     <Switch checked={true} disabled />
@@ -282,10 +152,10 @@ export default function CookiesPage() {
                   <div className="flex items-center justify-between p-4 border rounded-lg">
                     <div>
                       <h4 className="font-medium text-gray-900">
-                        {language === 'fr' ? 'Cookies d\'Analyse' : 'Analytics Cookies'}
+                        {t('cookies.preferences.analytics')}
                       </h4>
                       <p className="text-sm text-gray-600">
-                        {language === 'fr' ? 'Nous aident à améliorer notre site' : 'Help us improve our website'}
+                        {t('cookies.preferences.analyticsDesc')}
                       </p>
                     </div>
                     <Switch 
@@ -297,10 +167,10 @@ export default function CookiesPage() {
                   <div className="flex items-center justify-between p-4 border rounded-lg">
                     <div>
                       <h4 className="font-medium text-gray-900">
-                        {language === 'fr' ? 'Cookies Marketing' : 'Marketing Cookies'}
+                        {t('cookies.preferences.marketing')}
                       </h4>
                       <p className="text-sm text-gray-600">
-                        {language === 'fr' ? 'Pour des publicités personnalisées' : 'For personalized advertisements'}
+                        {t('cookies.preferences.marketingDesc')}
                       </p>
                     </div>
                     <Switch 
@@ -312,10 +182,10 @@ export default function CookiesPage() {
                   <div className="flex items-center justify-between p-4 border rounded-lg">
                     <div>
                       <h4 className="font-medium text-gray-900">
-                        {language === 'fr' ? 'Cookies de Personnalisation' : 'Personalization Cookies'}
+                        {t('cookies.preferences.personalization')}
                       </h4>
                       <p className="text-sm text-gray-600">
-                        {language === 'fr' ? 'Pour une expérience personnalisée' : 'For a personalized experience'}
+                        {t('cookies.preferences.personalizationDesc')}
                       </p>
                     </div>
                     <Switch 
@@ -327,7 +197,7 @@ export default function CookiesPage() {
 
                 <Button onClick={handleSavePreferences} className="w-full btn-primary mt-6">
                   <Save className="w-4 h-4 mr-2" />
-                  {currentContent.preferences.save}
+                  {t('cookies.preferences.save')}
                 </Button>
               </CardContent>
             </Card>
@@ -340,18 +210,18 @@ export default function CookiesPage() {
             <Card className="max-w-4xl mx-auto shadow-xl">
               <CardHeader>
                 <CardTitle className="text-2xl font-bold text-gray-900">
-                  {currentContent.manage.title}
+                  {t('cookies.manage.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 mb-6">
-                  {currentContent.manage.description}
+                  {t('cookies.manage.description')}
                 </p>
                 <ul className="space-y-3">
-                  {currentContent.manage.browsers.map((browser, index) => (
-                    <li key={index} className="flex items-start gap-3">
+                  {[0, 1, 2, 3].map((i) => (
+                    <li key={i} className="flex items-start gap-3">
                       <div className="w-2 h-2 bg-plp-purple rounded-full mt-2 flex-shrink-0"></div>
-                      <span className="text-gray-700">{browser}</span>
+                      <span className="text-gray-700">{t(`cookies.manage.${i}`)}</span>
                     </li>
                   ))}
                 </ul>

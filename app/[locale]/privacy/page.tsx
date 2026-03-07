@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Shield, Mail } from 'lucide-react';
 import { publicSettingsService } from '@/services/publicSettingsService';
+import { useTranslations } from '@/components/translation-provider';
 
 const fallbackPrivacy = {
   en: '<h2>Privacy Policy</h2><p>Our latest privacy policy is being updated. Please check back shortly.</p>',
@@ -17,6 +18,7 @@ const fallbackPrivacy = {
 export default function PrivacyPage() {
   const params = useParams<{ locale: string }>();
   const locale = (params?.locale || 'en').toLowerCase() === 'fr' ? 'fr' : 'en';
+  const t = useTranslations();
   const [contentEn, setContentEn] = useState(fallbackPrivacy.en);
   const [contentFr, setContentFr] = useState(fallbackPrivacy.fr);
   const [lastUpdated, setLastUpdated] = useState('');
@@ -52,19 +54,15 @@ export default function PrivacyPage() {
                 <Shield className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl sm:text-6xl font-bold text-white">
-                {locale === 'fr' ? 'Politique de confidentialite' : 'Privacy Policy'}
+                {t('privacy.title')}
               </h1>
               <p className="text-xl text-white/90 max-w-3xl mx-auto">
-                {locale === 'fr'
-                  ? 'Comprenez comment nous collectons, utilisons et protegeons vos donnees.'
-                  : 'Understand how we collect, use, and protect your data.'}
+                {t('privacy.subtitle')}
               </p>
               <Badge className="bg-white/20 text-white border-white/30">
                 {lastUpdated
-                  ? `${locale === 'fr' ? 'Derniere mise a jour' : 'Last updated'}: ${lastUpdated}`
-                  : locale === 'fr'
-                    ? 'Mise a jour dynamique'
-                    : 'Dynamic update enabled'}
+                  ? `${t('privacy.lastUpdated')}: ${lastUpdated}`
+                  : t('privacy.dynamicUpdate')}
               </Badge>
             </div>
           </div>
@@ -74,7 +72,7 @@ export default function PrivacyPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle>{locale === 'fr' ? 'Version publiee par l\'administration' : 'Admin Published Version'}</CardTitle>
+                <CardTitle>{t('privacy.cardTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div
@@ -91,7 +89,7 @@ export default function PrivacyPage() {
             <Card className="max-w-2xl mx-auto shadow-xl">
               <CardContent className="p-8 text-center">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  {locale === 'fr' ? 'Questions sur vos donnees ?' : 'Questions About Your Data?'}
+                  {t('privacy.dataQuestions')}
                 </h3>
                 <a
                   href={`mailto:${contactEmail}`}

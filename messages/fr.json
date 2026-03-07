@@ -156,7 +156,57 @@
   },
   "pricing": {
     "title": "Tarifs",
-    "subtitle": "pour Agents"
+    "subtitle": "pour Agents",
+    "heroTitle": "Plans d'Abonnement",
+    "heroTitleAccent": "pour Agents & Propriétaires",
+    "heroSubtitle": "Choisissez le plan parfait pour développer votre activité immobilière. Annonces Basic, Premium, Featured avec limites évolutives selon votre abonnement.",
+    "availablePlans": "Plans Disponibles",
+    "customerSupport": "Support Client",
+    "toGetStarted": "Pour Commencer",
+    "currentPlanBadge": "Plan Actuel",
+    "trialPeriod": "Période d'essai",
+    "active": "Actif",
+    "manageSubscription": "Gérer mon abonnement",
+    "choosePlan": "Choisissez Votre Plan",
+    "choosePlanSub": "Tous les plans incluent l'accès à notre plateforme, la gestion des clients et les outils de base.",
+    "loadingPlans": "Chargement des plans...",
+    "noPlans": "Aucun plan disponible pour le moment.",
+    "tryAgain": "Veuillez réessayer plus tard.",
+    "yourCurrentPlan": "✓ Votre Plan Actuel",
+    "mostPopular": "Plan le Plus Populaire",
+    "free": "Gratuit",
+    "month": "mois",
+    "quarter": "trimestre",
+    "year": "an",
+    "freeTrial": "jours d'essai gratuit",
+    "noListings": "Aucune annonce",
+    "upToListings": "Jusqu'à",
+    "listings": "annonces",
+    "unlimitedListings": "Annonces illimitées",
+    "audience": "Audience",
+    "currentPlanManage": "Plan Actuel — Gérer",
+    "startFree": "Commencer Gratuitement",
+    "chooseThisPlan": "Choisir ce Plan",
+    "cancelAnytime": "Annulation possible à tout moment",
+    "paymentMethods": "Méthodes de Paiement",
+    "paymentMethodsSub": "Payez facilement avec vos méthodes préférées",
+    "mostPopularBadge": "Plus Populaire",
+    "faqTitle": "Questions Fréquentes",
+    "ctaTitle": "Prêt à Commencer?",
+    "ctaSub": "Rejoignez des centaines d'agents qui font confiance à notre plateforme pour développer leur activité immobilière.",
+    "becomeAgent": "Devenir Agent",
+    "contactUs": "Nous Contacter",
+    "faqs": {
+      "0": { "question": "Puis-je changer de plan à tout moment?", "answer": "Oui, vous pouvez upgrader ou downgrader votre plan à tout moment. Les changements prennent effet immédiatement." },
+      "1": { "question": "Y a-t-il des frais cachés?", "answer": "Non, tous nos prix sont transparents. Vous ne payez que l'abonnement mensuel et les commissions sur les réservations." },
+      "2": { "question": "Comment fonctionne le paiement mobile money?", "answer": "Nous acceptons MTN Mobile Money et Orange Money. Le paiement est sécurisé et instantané." },
+      "3": { "question": "Que se passe-t-il si j'annule mon abonnement?", "answer": "Vos propriétés restent actives jusqu'à la fin de votre période de facturation, puis elles sont désactivées." }
+    },
+    "paymentMethodItems": {
+      "0": { "name": "Mobile Money", "description": "MTN Mobile Money, Orange Money" },
+      "1": { "name": "Virement Bancaire", "description": "Virement bancaire direct (banques locales)" },
+      "2": { "name": "Carte de Crédit/Débit", "description": "Visa, Mastercard" }
+    }
   },
   "maintenance": {
     "title": "Nous Revenons Bientôt",
@@ -169,5 +219,388 @@
     "ensuringSecurity": "Assurer la sécurité et la fiabilité",
     "progress": "Maintenance en cours",
     "thankYou": "Merci de votre patience. Nous apprécions votre compréhension !"
+  },
+  "about": {
+    "title": "À Propos de PLP",
+    "subtitle": "Révolutionner la façon dont vous trouvez et réservez des propriétés premium dans le monde entier",
+    "mission": {
+      "title": "Notre Mission",
+      "description": "Connecter les voyageurs avec des propriétés exceptionnelles tout en permettant aux hôtes de partager leurs espaces uniques avec le monde."
+    },
+    "vision": {
+      "title": "Notre Vision",
+      "description": "Devenir la plateforme la plus fiable au monde pour les locations de propriétés premium, créant des expériences inoubliables pour les clients et des revenus durables pour les hôtes."
+    },
+    "values": {
+      "title": "Nos Valeurs",
+      "0": { "title": "Confiance & Sécurité", "description": "Nous priorisons la sécurité de notre communauté avant tout." },
+      "1": { "title": "Communauté Mondiale", "description": "Nous célébrons la diversité et favorisons les connexions entre cultures et frontières." },
+      "2": { "title": "Assurance Qualité", "description": "Nous maintenons les plus hauts standards pour les propriétés et expériences utilisateur." },
+      "3": { "title": "Excellence", "description": "Nous visons l'excellence dans tout ce que nous faisons, de la technologie au service client." }
+    },
+    "stats": {
+      "title": "Notre Impact",
+      "0": { "number": "50K+", "label": "Propriétés Listées" },
+      "1": { "number": "2M+", "label": "Clients Satisfaits" },
+      "2": { "number": "100+", "label": "Pays" },
+      "3": { "number": "4.9", "label": "Note Moyenne" }
+    },
+    "team": {
+      "title": "Rencontrez Notre Équipe",
+      "description": "Des professionnels passionnés dédiés à créer des expériences exceptionnelles",
+      "0": { "name": "Sarah Johnson", "role": "PDG & Fondatrice", "bio": "Ancienne dirigeante de l'hôtellerie avec plus de 15 ans d'expérience dans le voyage de luxe." },
+      "1": { "name": "Michael Chen", "role": "Directeur Technique", "bio": "Visionnaire technologique qui a dirigé des équipes d'ingénierie sur de grandes plateformes de voyage." },
+      "2": { "name": "Emma Rodriguez", "role": "Directrice des Opérations", "bio": "Experte en opérations axée sur la mise à l'échelle d'expériences de qualité à l'échelle mondiale." },
+      "3": { "name": "David Kim", "role": "Directeur du Design", "bio": "Designer primé passionné par la création d'expériences utilisateur intuitives." }
+    },
+    "timeline": {
+      "title": "Notre Parcours",
+      "0": { "year": "2020", "title": "Fondation de l'Entreprise", "description": "PLP est né d'une vision de révolutionner les locations de propriétés." },
+      "1": { "year": "2021", "title": "Premières 1 000 Propriétés", "description": "Atteint notre premier jalon avec des propriétés premium dans 20 pays." },
+      "2": { "year": "2022", "title": "Financement Série A", "description": "Sécurisé 50M$ en financement Série A pour accélérer l'expansion mondiale." },
+      "3": { "year": "2023", "title": "Intégration IA", "description": "Lancé un système de correspondance alimenté par l'IA pour des recommandations personnalisées." },
+      "4": { "year": "2024", "title": "Expansion Mondiale", "description": "Maintenant présent dans 100+ pays avec 50 000+ propriétés premium." }
+    },
+    "cta": {
+      "title": "Prêt à Découvrir PLP ?",
+      "description": "Rejoignez des millions de voyageurs qui font confiance à PLP pour leurs besoins d'hébergement.",
+      "button": "Commencez Votre Voyage"
+    }
+  },
+  "contact": {
+    "title": "Nous Contacter",
+    "subtitle": "Contactez notre équipe. Nous sommes là pour vous aider avec toutes vos questions ou préoccupations.",
+    "form": {
+      "title": "Envoyez-nous un Message",
+      "name": "Nom Complet",
+      "email": "Adresse Email",
+      "phone": "Numéro de Téléphone",
+      "subject": "Sujet",
+      "category": "Catégorie",
+      "message": "Message",
+      "submit": "Envoyer le Message",
+      "sending": "Envoi...",
+      "selectCategory": "Sélectionner une catégorie",
+      "categories": {
+        "general": "Demande Générale",
+        "booking": "Support Réservation",
+        "property": "Inscription Propriété",
+        "technical": "Problème Technique",
+        "billing": "Question Facturation",
+        "partnership": "Partenariat"
+      }
+    },
+    "contact": {
+      "title": "Informations de Contact",
+      "phone": { "title": "Support Téléphonique", "description": "Parlez avec notre équipe support", "number": "+1 (555) 123-4567" },
+      "email": { "title": "Support Email", "description": "Envoyez-nous un email à tout moment", "address": "support@propertylistingportal.com" },
+      "address": { "title": "Adresse du Bureau", "description": "Visitez notre siège social", "location": "123 Business Ave, Suite 100\nCity, ST 12345\nÉtats-Unis" }
+    },
+    "hours": {
+      "title": "Heures d'Ouverture",
+      "weekdays": "Lundi - Vendredi: 9h00 - 18h00",
+      "weekend": "Samedi - Dimanche: 10h00 - 16h00",
+      "timezone": "Heure de l'Est (ET)",
+      "emergency": "Support d'Urgence 24h/24 Disponible"
+    },
+    "success": "Merci pour votre message! Nous vous répondrons dans les 24 heures.",
+    "validation": {
+      "nameRequired": "Le nom est requis",
+      "emailRequired": "L'email est requis",
+      "emailInvalid": "Veuillez entrer un email valide",
+      "messageRequired": "Le message est requis"
+    },
+    "faq": {
+      "title": "Questions Fréquentes",
+      "subtitle": "Trouvez des réponses rapides aux questions les plus courantes",
+      "0": { "question": "Comment puis-je réserver une propriété?", "answer": "Utilisez notre formulaire de recherche pour trouver des propriétés, sélectionnez vos dates et suivez le processus de réservation." },
+      "1": { "question": "Quelles sont vos politiques d'annulation?", "answer": "Les politiques d'annulation varient selon la propriété. Consultez les détails spécifiques lors de la réservation." },
+      "2": { "question": "Comment devenir hôte?", "answer": "Cliquez sur 'Devenir Hôte' et suivez notre processus d'inscription simple en 3 étapes." },
+      "3": { "question": "Le support client est-il disponible 24h/24?", "answer": "Oui, notre équipe de support d'urgence est disponible 24h/24 pour les problèmes urgents." }
+    }
+  },
+  "blog": {
+    "title": "Blog Immobilier & Voyage",
+    "subtitle": "Découvrez des conseils d'experts, astuces de voyage et guides d'investissement immobilier",
+    "search": "Rechercher des articles...",
+    "sortBy": "Trier par",
+    "filterBy": "Filtrer par catégorie",
+    "readTime": "min de lecture",
+    "featured": "En Vedette",
+    "noResults": "Aucun article trouvé",
+    "noResultsHint": "Essayez d'ajuster vos critères de recherche.",
+    "articles": "articles",
+    "sortOptions": {
+      "newest": "Plus Récent",
+      "oldest": "Plus Ancien",
+      "popular": "Plus Populaire",
+      "trending": "Tendance"
+    },
+    "categories": {
+      "all": "Toutes les Catégories",
+      "luxury": "Luxe",
+      "investment": "Investissement",
+      "travel": "Voyage",
+      "hosting": "Hébergement",
+      "sustainability": "Durabilité",
+      "general": "Général"
+    }
+  },
+  "press": {
+    "title": "Presse et Médias",
+    "subtitle": "Dernières nouvelles, communiqués de presse et ressources médias de Property Listing Portal",
+    "readMore": "Lire Plus",
+    "releases": {
+      "title": "Communiqués de Presse Récents",
+      "0": { "title": "PLP S'Étend à Plus de 100 Pays dans le Monde", "date": "10 février 2024", "excerpt": "Property Listing Portal annonce une étape majeure d'expansion, desservant maintenant plus de 100 pays avec 50 000+ propriétés premium.", "category": "Expansion" },
+      "1": { "title": "Lancement de la Correspondance de Propriétés Alimentée par l'IA", "date": "25 janvier 2024", "excerpt": "La technologie révolutionnaire d'IA aide les voyageurs à trouver leur propriété parfaite basée sur les préférences et le comportement.", "category": "Technologie" },
+      "2": { "title": "PLP Lève 50M$ en Financement Série B", "date": "15 décembre 2023", "excerpt": "Tour de financement dirigé par des sociétés de capital-risque de premier plan pour accélérer la croissance mondiale et le développement technologique.", "category": "Financement" }
+    },
+    "mediaKit": {
+      "title": "Kit Média",
+      "description": "Téléchargez notre kit média pour les logos, directives de marque et images haute résolution.",
+      "0": { "title": "Directives de Marque", "description": "Utilisation du logo, couleurs et standards de marque", "type": "PDF" },
+      "1": { "title": "Logos de l'Entreprise", "description": "Logos haute résolution en divers formats", "type": "ZIP" },
+      "2": { "title": "Captures d'Écran Produit", "description": "Captures d'écran de plateforme et images produit", "type": "ZIP" },
+      "3": { "title": "Photos des Dirigeants", "description": "Photos haute résolution de l'équipe de direction", "type": "ZIP" }
+    },
+    "contact": {
+      "title": "Contact Média",
+      "description": "Pour les demandes de presse, interviews et demandes médias",
+      "email": "press@propertylistingportal.com",
+      "phone": "+1 (555) 123-PRESS"
+    },
+    "awards": {
+      "title": "Prix et Reconnaissance",
+      "0": "Meilleure Plateforme de Voyage 2024 - Travel Tech Awards",
+      "1": "Innovation en Hôtellerie 2023 - Conseil Mondial du Tourisme",
+      "2": "Top Startup à Surveiller 2023 - Tech Crunch",
+      "3": "Prix du Choix Client 2023 - Travel Weekly"
+    }
+  },
+  "careers": {
+    "title": "Carrières chez PLP",
+    "subtitle": "Rejoignez notre mission de révolutionner l'industrie de la location immobilière",
+    "noOpenings": {
+      "title": "Aucun Poste Actuellement Disponible",
+      "description": "Nous n'avons aucun poste ouvert pour le moment, mais nous recherchons toujours des personnes talentueuses pour rejoindre notre équipe.",
+      "futureTitle": "Opportunités Futures",
+      "futureDescription": "Laissez vos informations ci-dessous et nous vous contacterons lorsque des postes correspondant à vos compétences seront disponibles."
+    },
+    "culture": {
+      "title": "Pourquoi Travailler Avec Nous?",
+      "0": { "title": "Passion", "description": "Nous sommes passionnés par la création d'expériences exceptionnelles pour les voyageurs et hôtes du monde entier." },
+      "1": { "title": "Équipe Collaborative", "description": "Travaillez avec des personnes talentueuses de divers horizons dans un environnement de soutien." },
+      "2": { "title": "Opportunités de Croissance", "description": "Faites progresser votre carrière avec des opportunités d'apprentissage et des programmes de développement professionnel." },
+      "3": { "title": "Impact Mondial", "description": "Faites une différence dans la vie de millions de voyageurs et propriétaires dans le monde entier." }
+    },
+    "benefits": {
+      "title": "Avantages et Bénéfices",
+      "0": "Salaire compétitif et packages d'actions",
+      "1": "Assurance santé, dentaire et vision complète",
+      "2": "Arrangements de travail flexibles et options à distance",
+      "3": "Congés généreux et temps personnel",
+      "4": "Budget de développement professionnel",
+      "5": "Crédits de voyage gratuits pour les propriétés de la plateforme",
+      "6": "Programmes de bien-être et soutien en santé mentale",
+      "7": "Repas fournis et commodités de bureau"
+    },
+    "form": {
+      "title": "Rejoignez Notre Réserve de Talents",
+      "name": "Nom Complet",
+      "email": "Adresse Email",
+      "phone": "Numéro de Téléphone",
+      "position": "Poste d'Intérêt",
+      "experience": "Années d'Expérience",
+      "message": "Parlez-nous de vous",
+      "submit": "Soumettre la Candidature",
+      "submitting": "Envoi...",
+      "positionPlaceholder": "ex: Développeur Frontend",
+      "messagePlaceholder": "Parlez-nous de votre expérience et de vos intérêts...",
+      "uploadResume": "Télécharger CV (Optionnel)",
+      "success": "Merci pour votre intérêt! Nous vous contacterons lorsque des postes pertinents seront disponibles."
+    }
+  },
+  "safety": {
+    "title": "Sécurité et Sûreté",
+    "subtitle": "Votre sécurité est notre priorité absolue. Découvrez nos mesures de sécurité complètes.",
+    "features": {
+      "title": "Fonctionnalités de Sécurité",
+      "0": { "title": "Hôtes Vérifiés", "description": "Tous les hôtes subissent une vérification d'identité et des vérifications d'antécédents avant de lister des propriétés." },
+      "1": { "title": "Paiements Sécurisés", "description": "Toutes les transactions sont traitées via des systèmes de paiement cryptés et conformes PCI." },
+      "2": { "title": "Vérification des Propriétés", "description": "Notre équipe vérifie les détails et photos des propriétés pour assurer l'exactitude et l'authenticité." },
+      "3": { "title": "Support 24h/24", "description": "Support d'urgence disponible 24h/24 pour les préoccupations de sécurité urgentes." }
+    },
+    "guidelines": {
+      "title": "Directives de Sécurité",
+      "guest": {
+        "title": "Pour les Clients",
+        "0": "Vérifiez les détails de la propriété et les informations de l'hôte avant de réserver",
+        "1": "Lisez les avis des clients précédents",
+        "2": "Communiquez via notre système de messagerie de plateforme",
+        "3": "Signalez immédiatement toute préoccupation de sécurité",
+        "4": "Gardez les informations de contact d'urgence à portée de main",
+        "5": "Faites confiance à votre instinct et priorisez votre sécurité"
+      },
+      "host": {
+        "title": "Pour les Hôtes",
+        "0": "Vérifiez l'identité des clients avant l'enregistrement",
+        "1": "Fournissez des descriptions et photos précises de la propriété",
+        "2": "Maintenez l'équipement de sécurité (détecteurs de fumée, premiers secours)",
+        "3": "Partagez les procédures d'urgence avec les clients",
+        "4": "Signalez toute activité suspecte à notre équipe",
+        "5": "Gardez l'assurance de propriété à jour"
+      }
+    },
+    "emergency": {
+      "title": "Procédures d'Urgence",
+      "description": "En cas d'urgence, suivez ces étapes:",
+      "0": "Assurez la sécurité immédiate - appelez les services d'urgence locaux si nécessaire",
+      "1": "Contactez le support d'urgence PLP: +1 (555) 911-HELP",
+      "2": "Documentez l'incident avec des photos si c'est sûr de le faire",
+      "3": "Coopérez avec les autorités locales et l'enquête PLP",
+      "4": "Suivez avec notre équipe de sécurité pour la résolution"
+    },
+    "reporting": {
+      "title": "Signaler des Préoccupations de Sécurité",
+      "description": "Aidez-nous à maintenir une communauté sûre en signalant tout problème ou préoccupation de sécurité.",
+      "button": "Signaler un Problème"
+    }
+  },
+  "terms": {
+    "title": "Conditions d'utilisation",
+    "subtitle": "Veuillez lire attentivement nos conditions avant d'utiliser la plateforme.",
+    "lastUpdated": "Dernière mise à jour",
+    "dynamicUpdate": "Mise à jour dynamique",
+    "cardTitle": "Version publiée par l'administration",
+    "legalQuestions": "Une question juridique ?"
+  },
+  "privacy": {
+    "title": "Politique de confidentialité",
+    "subtitle": "Comprenez comment nous collectons, utilisons et protégeons vos données.",
+    "lastUpdated": "Dernière mise à jour",
+    "dynamicUpdate": "Mise à jour dynamique",
+    "cardTitle": "Version publiée par l'administration",
+    "dataQuestions": "Questions sur vos données ?"
+  },
+  "cookies": {
+    "title": "Politique des Cookies",
+    "subtitle": "Découvrez comment nous utilisons les cookies pour améliorer votre expérience sur notre plateforme",
+    "lastUpdated": "Dernière mise à jour: 15 février 2024",
+    "required": "Requis",
+    "examples": "Exemples:",
+    "intro": {
+      "title": "Que sont les Cookies?",
+      "description": "Les cookies sont de petits fichiers texte stockés sur votre appareil lorsque vous visitez notre site web. Ils nous aident à vous offrir une meilleure expérience en mémorisant vos préférences et en analysant comment vous utilisez notre plateforme."
+    },
+    "types": {
+      "title": "Types de Cookies que Nous Utilisons",
+      "0": { "title": "Cookies Essentiels", "description": "Ces cookies sont nécessaires au bon fonctionnement du site web. Ils permettent des fonctionnalités de base comme la sécurité, la gestion réseau et l'accessibilité.", "examples": "Sessions de connexion, jetons de sécurité, équilibrage de charge" },
+      "1": { "title": "Cookies d'Analyse", "description": "Ces cookies nous aident à comprendre comment les visiteurs interagissent avec notre site web en collectant et rapportant des informations de manière anonyme.", "examples": "Google Analytics, vues de page, comportement utilisateur" },
+      "2": { "title": "Cookies Marketing", "description": "Ces cookies sont utilisés pour suivre les visiteurs sur les sites web afin d'afficher des publicités pertinentes et mesurer l'efficacité des campagnes.", "examples": "Ciblage publicitaire, suivi de conversion, reciblage" },
+      "3": { "title": "Cookies de Personnalisation", "description": "Ces cookies nous permettent de mémoriser vos préférences et de fournir du contenu et des fonctionnalités personnalisés.", "examples": "Préférences linguistiques, recherches sauvegardées, recommandations" }
+    },
+    "preferences": {
+      "title": "Préférences des Cookies",
+      "description": "Vous pouvez contrôler quels cookies nous utilisons. Les cookies essentiels ne peuvent pas être désactivés car ils sont requis pour le fonctionnement du site web.",
+      "save": "Sauvegarder les Préférences",
+      "success": "Préférences des cookies mises à jour avec succès!",
+      "essential": "Cookies Essentiels",
+      "essentialDesc": "Requis pour le fonctionnement du site",
+      "analytics": "Cookies d'Analyse",
+      "analyticsDesc": "Nous aident à améliorer notre site",
+      "marketing": "Cookies Marketing",
+      "marketingDesc": "Pour des publicités personnalisées",
+      "personalization": "Cookies de Personnalisation",
+      "personalizationDesc": "Pour une expérience personnalisée"
+    },
+    "manage": {
+      "title": "Gestion des Cookies",
+      "description": "Vous pouvez également gérer les cookies via les paramètres de votre navigateur:",
+      "0": "Chrome: Paramètres > Confidentialité et Sécurité > Cookies",
+      "1": "Firefox: Options > Confidentialité et Sécurité > Cookies",
+      "2": "Safari: Préférences > Confidentialité > Cookies",
+      "3": "Edge: Paramètres > Cookies et Autorisations de Site"
+    }
+  },
+  "accessibility": {
+    "title": "Accessibilité",
+    "subtitle": "Nous nous engageons à rendre notre plateforme accessible à tous",
+    "commitment": {
+      "title": "Notre Engagement",
+      "description": "Property Listing Portal s'engage à assurer l'accessibilité numérique pour les personnes handicapées. Nous améliorons continuellement l'expérience utilisateur pour tous et appliquons les normes d'accessibilité pertinentes."
+    },
+    "features": {
+      "title": "Fonctionnalités d'Accessibilité",
+      "0": { "title": "Accessibilité Visuelle", "description": "Couleurs à contraste élevé, polices évolutives et compatibilité avec les lecteurs d'écran pour les utilisateurs malvoyants." },
+      "1": { "title": "Accessibilité Audio", "description": "Indicateurs visuels pour le contenu audio et sous-titres pour les matériaux vidéo." },
+      "2": { "title": "Accessibilité Motrice", "description": "Support de navigation au clavier et grandes zones cliquables pour les utilisateurs avec des handicaps moteurs." },
+      "3": { "title": "Accessibilité Cognitive", "description": "Navigation claire, mises en page cohérentes et langage simple pour soutenir les utilisateurs avec des handicaps cognitifs." }
+    },
+    "standards": {
+      "title": "Normes d'Accessibilité",
+      "description": "Nous nous efforçons de nous conformer aux normes WCAG 2.1 Niveau AA et auditons régulièrement notre plateforme pour la conformité.",
+      "0": "Conformité WCAG 2.1 Niveau AA",
+      "1": "Adhésion aux normes Section 508",
+      "2": "Conformité ADA (Americans with Disabilities Act)",
+      "3": "Audits et tests d'accessibilité réguliers",
+      "4": "Intégration des commentaires utilisateurs pour les améliorations"
+    },
+    "tools": {
+      "title": "Support de Technologie d'Assistance",
+      "description": "Notre plateforme est conçue pour fonctionner avec diverses technologies d'assistance:",
+      "0": "Lecteurs d'écran (JAWS, NVDA, VoiceOver)",
+      "1": "Logiciel de reconnaissance vocale",
+      "2": "Outils de navigation au clavier",
+      "3": "Zoom et agrandissement du navigateur",
+      "4": "Thèmes à contraste élevé et mode sombre"
+    },
+    "feedback": {
+      "title": "Commentaires d'Accessibilité",
+      "description": "Aidez-nous à nous améliorer en partageant votre expérience d'accessibilité",
+      "name": "Nom",
+      "email": "Email",
+      "assistiveTech": "Technologie d'Assistance Utilisée",
+      "issue": "Problème d'Accessibilité",
+      "suggestion": "Suggestions d'Amélioration",
+      "submit": "Soumettre les Commentaires",
+      "submitting": "Envoi...",
+      "assistiveTechPlaceholder": "ex: Lecteur d'écran NVDA",
+      "issuePlaceholder": "Décrivez tout problème d'accessibilité que vous avez rencontré...",
+      "suggestionPlaceholder": "Partagez vos suggestions pour améliorer l'accessibilité...",
+      "success": "Merci pour vos commentaires! Nous examinerons vos suggestions et travaillerons à améliorer l'accessibilité."
+    }
+  },
+  "help": {
+    "badge": "Centre d'Aide",
+    "title": "Comment pouvons-nous vous aider ?",
+    "subtitle": "Parcourez nos guides et FAQ ou contactez-nous via le bouton de support.",
+    "searchPlaceholder": "Rechercher des articles d'aide",
+    "updated": "Mis à jour",
+    "notFound": "Vous ne trouvez pas ce que vous cherchez ?",
+    "notFoundSub": "Cliquez sur le bouton de support en bas à droite pour nous contacter."
+  },
+  "howItWorks": {
+    "sectionLabel": "Comment fonctionne la réservation PLP",
+    "heading": "Un parcours clair de la recherche à la réservation",
+    "description": "Pas de superflu — chaque étape utilise des données immobilières à jour. Réservez en tant qu'invité, payez les frais de plateforme pour débloquer l'agent, et gardez reçus et messages au même endroit.",
+    "securityBadge": "Paiements sécurisés & vrais contacts d'agents",
+    "steps": {
+      "0": { "accent": "Étape 1", "title": "Trouvez une propriété", "description": "Recherchez de vraies annonces avec de vraies photos, disponibilité et tarifs directement d'agents vérifiés." },
+      "1": { "accent": "Étape 2", "title": "Réservez instantanément", "description": "Choisissez vos dates de séjour, réservez en tant qu'invité ou utilisateur connecté, et recevez un email de confirmation immédiat." },
+      "2": { "accent": "Étape 3", "title": "Payez les frais de plateforme", "description": "Débloquez le contact de l'agent après votre réservation en payant les frais d'accès à la plateforme de manière sécurisée." },
+      "3": { "accent": "Étape 4", "title": "Parlez à l'agent", "description": "Chattez, organisez une visite, et gardez chaque message et reçu dans votre tableau de bord." }
+    }
+  },
+  "notFound": {
+    "error": "Erreur",
+    "title": "Page introuvable",
+    "description": "La page que vous recherchez a peut-être été déplacée, supprimée ou n'a jamais existé.",
+    "goBack": "Page précédente",
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "helpCenter": "Centre d'aide",
+    "tip": "Conseil: utilisez la barre de recherche ou parcourez nos catégories pour trouver ce dont vous avez besoin.",
+    "brand": "Property Listing Portal"
   }
 }

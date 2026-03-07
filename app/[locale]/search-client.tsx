@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/navigation/navbar';
 import { Footer } from '@/components/navigation/footer';
 import { PropertyCard } from '@/components/properties/property-card';
@@ -39,6 +40,51 @@ function PropertyCardSkeleton() {
 
 export function SearchClient() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const language = pathname?.startsWith('/fr') ? 'fr' : 'en';
+
+  const searchContent = {
+    en: {
+      properties: 'Properties',
+      allProperties: 'All Properties',
+      propertiesFound: 'properties found',
+      inRegion: 'in',
+      sortBy: 'Sort by',
+      mostRelevant: 'Most Relevant',
+      priceLowHigh: 'Price: Low to High',
+      priceHighLow: 'Price: High to Low',
+      newest: 'Newest',
+      hideFilters: 'Hide',
+      showFilters: 'Show',
+      filters: 'Filters',
+      activeFilters: 'Active filters:',
+      clearAllFilters: 'Clear all filters',
+      clearFilters: 'Clear Filters',
+      noProperties: 'No properties found',
+      tryAdjusting: 'Try adjusting your filters or search criteria',
+    },
+    fr: {
+      properties: 'Propriétés',
+      allProperties: 'Toutes les Propriétés',
+      propertiesFound: 'propriétés trouvées',
+      inRegion: 'à',
+      sortBy: 'Trier par',
+      mostRelevant: 'Plus Pertinent',
+      priceLowHigh: 'Prix : Croissant',
+      priceHighLow: 'Prix : Décroissant',
+      newest: 'Plus Récent',
+      hideFilters: 'Masquer',
+      showFilters: 'Afficher',
+      filters: 'Filtres',
+      activeFilters: 'Filtres actifs :',
+      clearAllFilters: 'Effacer tous les filtres',
+      clearFilters: 'Effacer les Filtres',
+      noProperties: 'Aucune propriété trouvée',
+      tryAdjusting: 'Essayez de modifier vos filtres ou critères de recherche',
+    },
+  };
+  const t = searchContent[language];
+
   const [allProperties, setAllProperties] = useState<AdminProperty[]>([]);
   const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<AdminProperty[]>([]);
@@ -315,11 +361,11 @@ export function SearchClient() {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {filters.type ? `${filters.type.charAt(0).toUpperCase() + filters.type.slice(1)} Properties` : 'All Properties'}
+                {filters.type ? `${filters.type.charAt(0).toUpperCase() + filters.type.slice(1)} ${t.properties}` : t.allProperties}
               </h1>
               <p className="text-gray-600">
-                {filteredProperties.length} properties found
-                {filters.region && ` in ${filters.region}`}
+                {filteredProperties.length} {t.propertiesFound}
+                {filters.region && ` ${t.inRegion} ${filters.region}`}
                 {filters.city && ` - ${filters.city}`}
               </p>
             </div>
@@ -348,13 +394,13 @@ export function SearchClient() {
               {/* Sort */}
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-48 bg-white">
-                  <SelectValue placeholder="Sort by" />
+                  <SelectValue placeholder={t.sortBy} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="relevance">Most Relevant</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="relevance">{t.mostRelevant}</SelectItem>
+                  <SelectItem value="price-low">{t.priceLowHigh}</SelectItem>
+                  <SelectItem value="price-high">{t.priceHighLow}</SelectItem>
+                  <SelectItem value="newest">{t.newest}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -365,7 +411,7 @@ export function SearchClient() {
                 className="bg-white"
               >
                 <Filter className="w-4 h-4 mr-2" />
-                {showFilters ? 'Hide' : 'Show'} Filters
+                {showFilters ? t.hideFilters : t.showFilters} {t.filters}
               </Button>
             </div>
           </div>
@@ -373,7 +419,7 @@ export function SearchClient() {
           {/* Active Filters */}
           {(filters.type || filters.region || filters.city || filters.priceRangeMin !== '0' || (filters.priceRangeMax !== '1000000000000' && filters.priceRangeMax !== '10000000')) && (
             <div className="flex flex-wrap items-center gap-2 mt-4 p-4 bg-blue-50 rounded-lg">
-              <span className="text-sm font-medium text-gray-700">Active filters:</span>
+              <span className="text-sm font-medium text-gray-700">{t.activeFilters}</span>
               {filters.type && (
                 <Badge variant="secondary" className="bg-plp-purple text-white flex items-center gap-1">
                   {filters.type}
@@ -405,7 +451,7 @@ export function SearchClient() {
                 onClick={clearFilters}
                 className="text-plp-purple hover:text-plp-pink ml-auto"
               >
-                Clear all filters
+                {t.clearAllFilters}
               </Button>
             </div>
           )}
@@ -435,10 +481,10 @@ export function SearchClient() {
             ) : filteredProperties.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-lg">
                 <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No properties found</h3>
-                <p className="text-gray-600 mb-4">Try adjusting your filters or search criteria</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{t.noProperties}</h3>
+                <p className="text-gray-600 mb-4">{t.tryAdjusting}</p>
                 <Button variant="outline" onClick={clearFilters}>
-                  Clear Filters
+                  {t.clearFilters}
                 </Button>
               </div>
             ) : viewMode === 'grid' ? (

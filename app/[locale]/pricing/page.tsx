@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react';
+import { useTranslations } from '@/components/translation-provider';
 import { Navbar } from '@/components/navigation/navbar';
 import { Footer } from '@/components/navigation/footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,46 +11,6 @@ import { Check, Star, Crown, Building2, Phone, CreditCard, Smartphone, Loader2 }
 import Link from 'next/link';
 import { subscriptionService, type SubscriptionPlan, type AgentSubscription } from '@/services/subscriptionService';
 import { authService } from '@/services/authService';
-
-const paymentMethods = [
-	{
-		name: 'Mobile Money',
-		description: 'MTN Mobile Money, Orange Money',
-		icon: Smartphone,
-		popular: true,
-	},
-	{
-		name: 'Bank Transfer',
-		description: 'Direct bank transfer (local banks)',
-		icon: Building2,
-		popular: false,
-	},
-	{
-		name: 'Credit/Debit Card',
-		description: 'Visa, Mastercard',
-		icon: CreditCard,
-		popular: false,
-	},
-];
-
-const faqs = [
-	{
-		question: 'Puis-je changer de plan à tout moment?',
-		answer: 'Oui, vous pouvez upgrader ou downgrader votre plan à tout moment. Les changements prennent effet immédiatement.',
-	},
-	{
-		question: 'Y a-t-il des frais cachés?',
-		answer: "Non, tous nos prix sont transparents. Vous ne payez que l'abonnement mensuel et les commissions sur les réservations.",
-	},
-	{
-		question: 'Comment fonctionne le paiement mobile money?',
-		answer: 'Nous acceptons MTN Mobile Money et Orange Money. Le paiement est sécurisé et instantané.',
-	},
-	{
-		question: "Que se passe-t-il si j'annule mon abonnement?",
-		answer: "Vos propriétés restent actives jusqu'à la fin de votre période de facturation, puis elles sont désactivées.",
-	},
-];
 
 const planIcons: Record<string, React.ElementType> = {
 	free: Building2,
@@ -65,7 +26,11 @@ const planColors: Record<string, string> = {
 	enterprise: 'bg-plp-yellow',
 };
 
+const paymentMethodIcons = [Smartphone, Building2, CreditCard];
+const paymentMethodPopular = [true, false, false];
+
 export default function PricingPage() {
+	const t = useTranslations();
 	const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [isAgent, setIsAgent] = useState(false);
@@ -135,27 +100,26 @@ export default function PricingPage() {
 					<div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
 						<div className="space-y-6">
 							<h1 className="text-4xl sm:text-6xl font-bold text-white">
-								Plans d&#39;Abonnement
-								<span className="block text-plp-yellow">pour Agents & Propriétaires</span>
+								{t('pricing.heroTitle')}
+								<span className="block text-plp-yellow">{t('pricing.heroTitleAccent')}</span>
 							</h1>
 							<p className="text-xl text-white/90 max-w-3xl mx-auto">
-								Choisissez le plan parfait pour développer votre activité immobilière.
-								Annonces Basic, Premium, Featured avec limites évolutives selon votre abonnement.
+								{t('pricing.heroSubtitle')}
 							</p>
 							<div className="flex flex-col sm:flex-row justify-center items-center gap-8 pt-8">
 								<div className="text-center">
 									<div className="text-3xl font-bold text-white">{plans.length}</div>
-									<div className="text-white/80">Plans Disponibles</div>
+									<div className="text-white/80">{t('pricing.availablePlans')}</div>
 								</div>
 								<div className="hidden sm:block w-px h-12 bg-white/30"></div>
 								<div className="text-center">
 									<div className="text-3xl font-bold text-white">24/7</div>
-									<div className="text-white/80">Support Client</div>
+									<div className="text-white/80">{t('pricing.customerSupport')}</div>
 								</div>
 								<div className="hidden sm:block w-px h-12 bg-white/30"></div>
 								<div className="text-center">
 									<div className="text-3xl font-bold text-white">0 XAF</div>
-									<div className="text-white/80">Pour Commencer</div>
+									<div className="text-white/80">{t('pricing.toGetStarted')}</div>
 								</div>
 							</div>
 						</div>
@@ -168,17 +132,17 @@ export default function PricingPage() {
 						<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
 							<div className="flex flex-col sm:flex-row items-center justify-between gap-3">
 								<div className="flex items-center gap-3">
-									<Badge className="bg-green-100 text-green-800 text-sm px-3 py-1">Plan Actuel</Badge>
+									<Badge className="bg-green-100 text-green-800 text-sm px-3 py-1">{t('pricing.currentPlanBadge')}</Badge>
 									<span className="font-semibold text-green-900">
 										{currentSubscription.plan?.name || 'Free'}
 									</span>
 									<span className="text-green-700 text-sm">
-										— {currentSubscription.status === 'trialing' ? 'Période d\'essai' : 'Actif'}
+										— {currentSubscription.status === 'trialing' ? t('pricing.trialPeriod') : t('pricing.active')}
 									</span>
 								</div>
 								<Link href="/dashboard/agent/subscription">
 									<Button variant="outline" size="sm" className="border-green-600 text-green-700 hover:bg-green-100">
-										Gérer mon abonnement
+										{t('pricing.manageSubscription')}
 									</Button>
 								</Link>
 							</div>
@@ -191,23 +155,22 @@ export default function PricingPage() {
 					<div className="container mx-auto px-4 sm:px-6 lg:px-8">
 						<div className="text-center mb-16">
 							<h2 className="text-3xl font-bold text-gray-900 mb-4">
-								Choisissez Votre Plan
+								{t('pricing.choosePlan')}
 							</h2>
 							<p className="text-lg text-gray-600 max-w-2xl mx-auto">
-								Tous les plans incluent l&#39;accès à notre plateforme,
-								la gestion des clients et les outils de base.
+								{t('pricing.choosePlanSub')}
 							</p>
 						</div>
 
 						{loading ? (
 							<div className="flex justify-center items-center py-20">
 								<Loader2 className="w-8 h-8 animate-spin text-plp-purple" />
-								<span className="ml-3 text-gray-500">Chargement des plans...</span>
+								<span className="ml-3 text-gray-500">{t('pricing.loadingPlans')}</span>
 							</div>
 						) : plans.length === 0 ? (
 							<div className="text-center py-20 text-gray-500">
-								<p className="text-lg">Aucun plan disponible pour le moment.</p>
-								<p className="text-sm mt-2">Veuillez réessayer plus tard.</p>
+								<p className="text-lg">{t('pricing.noPlans')}</p>
+								<p className="text-sm mt-2">{t('pricing.tryAgain')}</p>
 							</div>
 						) : (
 							<div className={`grid grid-cols-1 ${plans.length === 1 ? 'max-w-md' : plans.length === 2 ? 'md:grid-cols-2 max-w-4xl' : 'md:grid-cols-3 max-w-6xl'} gap-8 mx-auto`}>
@@ -230,12 +193,12 @@ export default function PricingPage() {
 										>
 											{isCurrent && (
 												<div className="absolute top-0 left-0 right-0 bg-green-600 text-white text-center py-2 text-sm font-medium">
-													✓ Votre Plan Actuel
+													{t('pricing.yourCurrentPlan')}
 												</div>
 											)}
 											{!isCurrent && isPopular && (
 												<div className="absolute top-0 left-0 right-0 bg-plp-pink text-white text-center py-2 text-sm font-medium">
-													Plan le Plus Populaire
+													{t('pricing.mostPopular')}
 												</div>
 											)}
 
@@ -255,16 +218,16 @@ export default function PricingPage() {
 												<div className="pt-4">
 													<div className="text-4xl font-bold text-gray-900">
 														{plan.price === 0 ? (
-															<span className="text-green-600">Gratuit</span>
+															<span className="text-green-600">{t('pricing.free')}</span>
 														) : (
 															<>
 																{formatCurrency(plan.price)}
-																<span className="text-lg text-gray-600 font-normal">/{plan.billing_period === 'monthly' ? 'mois' : plan.billing_period === 'quarterly' ? 'trimestre' : 'an'}</span>
+																<span className="text-lg text-gray-600 font-normal">/{plan.billing_period === 'monthly' ? t('pricing.month') : plan.billing_period === 'quarterly' ? t('pricing.quarter') : t('pricing.year')}</span>
 															</>
 														)}
 													</div>
 													{plan.free_trial_days > 0 && (
-														<p className="text-sm text-plp-pink mt-1">{plan.free_trial_days} jours d&#39;essai gratuit</p>
+														<p className="text-sm text-plp-pink mt-1">{plan.free_trial_days} {t('pricing.freeTrial')}</p>
 													)}
 												</div>
 											</CardHeader>
@@ -281,26 +244,26 @@ export default function PricingPage() {
 														<div className="flex items-start gap-3">
 															<Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
 															<span className="text-gray-700">
-																{plan.property_limit === 0 ? 'Aucune annonce' : `Jusqu'à ${plan.property_limit} annonces`}
-															</span>
-														</div>
-													)}
-													{plan.property_limit === null && (
-														<div className="flex items-start gap-3">
-															<Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-															<span className="text-gray-700">Annonces illimitées</span>
-														</div>
-													)}
+{plan.property_limit === 0 ? t('pricing.noListings') : `${t('pricing.upToListings')} ${plan.property_limit} ${t('pricing.listings')}`}
+														</span>
+													</div>
+												)}
+												{plan.property_limit === null && (
 													<div className="flex items-start gap-3">
 														<Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-														<span className="text-gray-700 capitalize">Audience: {plan.target_audience || 'both'}</span>
+														<span className="text-gray-700">{t('pricing.unlimitedListings')}</span>
+													</div>
+												)}
+												<div className="flex items-start gap-3">
+													<Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+													<span className="text-gray-700 capitalize">{t('pricing.audience')}: {plan.target_audience || 'both'}</span>
 													</div>
 												</div>
 
 												{isCurrent ? (
 													<Link href="/dashboard/agent/subscription">
 														<Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-															Plan Actuel — Gérer
+															{t('pricing.currentPlanManage')}
 														</Button>
 													</Link>
 												) : (
@@ -310,13 +273,13 @@ export default function PricingPage() {
 																isPopular ? 'btn-secondary' : 'btn-primary'
 															}`}
 														>
-															{plan.price === 0 ? 'Commencer Gratuitement' : 'Choisir ce Plan'}
+															{plan.price === 0 ? t('pricing.startFree') : t('pricing.chooseThisPlan')}
 														</Button>
 													</Link>
 												)}
 
 												<p className="text-xs text-gray-500 text-center">
-													Annulation possible à tout moment
+													{t('pricing.cancelAnytime')}
 												</p>
 											</CardContent>
 										</Card>
@@ -332,33 +295,34 @@ export default function PricingPage() {
 					<div className="container mx-auto px-4 sm:px-6 lg:px-8">
 						<div className="text-center mb-16">
 							<h2 className="text-3xl font-bold text-gray-900 mb-4">
-								Méthodes de Paiement
+								{t('pricing.paymentMethods')}
 							</h2>
 							<p className="text-lg text-gray-600">
-								Payez facilement avec vos méthodes préférées
+								{t('pricing.paymentMethodsSub')}
 							</p>
 						</div>
 
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-							{paymentMethods.map((method) => {
-								const Icon = method.icon;
+							{[0, 1, 2].map((i) => {
+								const Icon = paymentMethodIcons[i];
+								const isPopular = paymentMethodPopular[i];
 								return (
-									<Card key={method.name} className="text-center">
+									<Card key={i} className="text-center">
 										<CardContent className="p-8">
 											<div className={`mx-auto w-16 h-16 ${
-												method.popular ? 'bg-plp-pink' : 'bg-gray-100'
+												isPopular ? 'bg-plp-pink' : 'bg-gray-100'
 											} rounded-2xl flex items-center justify-center mb-4`}>
 												<Icon className={`w-8 h-8 ${
-													method.popular ? 'text-white' : 'text-gray-600'
+													isPopular ? 'text-white' : 'text-gray-600'
 												}`} />
 											</div>
 											<h3 className="text-xl font-semibold text-gray-900 mb-2">
-												{method.name}
+												{t(`pricing.paymentMethodItems.${i}.name`)}
 											</h3>
-											<p className="text-gray-600">{method.description}</p>
-											{method.popular && (
+											<p className="text-gray-600">{t(`pricing.paymentMethodItems.${i}.description`)}</p>
+											{isPopular && (
 												<Badge className="mt-3 bg-plp-pink/10 text-plp-pink">
-													Plus Populaire
+													{t('pricing.mostPopularBadge')}
 												</Badge>
 											)}
 										</CardContent>
@@ -374,18 +338,18 @@ export default function PricingPage() {
 					<div className="container mx-auto px-4 sm:px-6 lg:px-8">
 						<div className="text-center mb-16">
 							<h2 className="text-3xl font-bold text-gray-900 mb-4">
-								Questions Fréquentes
+								{t('pricing.faqTitle')}
 							</h2>
 						</div>
 
 						<div className="max-w-3xl mx-auto space-y-6">
-							{faqs.map((faq, index) => (
-								<Card key={index}>
+							{[0, 1, 2, 3].map((i) => (
+								<Card key={i}>
 									<CardContent className="p-6">
 										<h3 className="text-lg font-semibold text-gray-900 mb-2">
-											{faq.question}
+											{t(`pricing.faqs.${i}.question`)}
 										</h3>
-										<p className="text-gray-600">{faq.answer}</p>
+										<p className="text-gray-600">{t(`pricing.faqs.${i}.answer`)}</p>
 									</CardContent>
 								</Card>
 							))}
@@ -398,22 +362,21 @@ export default function PricingPage() {
 					<div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
 						<div className="space-y-6">
 							<h2 className="text-3xl font-bold text-white">
-								Prêt à Commencer?
+								{t('pricing.ctaTitle')}
 							</h2>
 							<p className="text-xl text-white/90 max-w-2xl mx-auto">
-								Rejoignez des centaines d&#39;agents qui font confiance à notre plateforme
-								pour développer leur activité immobilière.
+								{t('pricing.ctaSub')}
 							</p>
 							<div className="flex flex-col sm:flex-row justify-center gap-4">
 								<Link href="/auth/signup?type=agent">
 									<Button className="btn-accent">
-										Devenir Agent
+										{t('pricing.becomeAgent')}
 									</Button>
 								</Link>
 								<Link href="/contact">
 									<Button variant="outline" className="border-white text-white hover:bg-white hover:text-plp-purple">
 										<Phone className="w-4 h-4 mr-2" />
-										Nous Contacter
+										{t('pricing.contactUs')}
 									</Button>
 								</Link>
 							</div>

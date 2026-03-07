@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Scale, Mail } from 'lucide-react';
 import { publicSettingsService } from '@/services/publicSettingsService';
+import { useTranslations } from '@/components/translation-provider';
 
 const fallbackTerms = {
   en: '<h2>Terms of Service</h2><p>Our latest terms are being updated. Please check back shortly.</p>',
@@ -17,6 +18,7 @@ const fallbackTerms = {
 export default function TermsPage() {
   const params = useParams<{ locale: string }>();
   const locale = (params?.locale || 'en').toLowerCase() === 'fr' ? 'fr' : 'en';
+  const t = useTranslations();
   const [contentEn, setContentEn] = useState(fallbackTerms.en);
   const [contentFr, setContentFr] = useState(fallbackTerms.fr);
   const [lastUpdated, setLastUpdated] = useState('');
@@ -52,19 +54,15 @@ export default function TermsPage() {
                 <Scale className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl sm:text-6xl font-bold text-white">
-                {locale === 'fr' ? 'Conditions d\'utilisation' : 'Terms of Service'}
+                {t('terms.title')}
               </h1>
               <p className="text-xl text-white/90 max-w-3xl mx-auto">
-                {locale === 'fr'
-                  ? 'Veuillez lire attentivement nos conditions avant d\'utiliser la plateforme.'
-                  : 'Please read our terms carefully before using the platform.'}
+                {t('terms.subtitle')}
               </p>
               <Badge className="bg-white/20 text-white border-white/30">
                 {lastUpdated
-                  ? `${locale === 'fr' ? 'Derniere mise a jour' : 'Last updated'}: ${lastUpdated}`
-                  : locale === 'fr'
-                    ? 'Mise a jour dynamique'
-                    : 'Dynamic update enabled'}
+                  ? `${t('terms.lastUpdated')}: ${lastUpdated}`
+                  : t('terms.dynamicUpdate')}
               </Badge>
             </div>
           </div>
@@ -74,7 +72,7 @@ export default function TermsPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle>{locale === 'fr' ? 'Version publiee par l\'administration' : 'Admin Published Version'}</CardTitle>
+                <CardTitle>{t('terms.cardTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div
@@ -91,7 +89,7 @@ export default function TermsPage() {
             <Card className="max-w-2xl mx-auto shadow-xl">
               <CardContent className="p-8 text-center">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  {locale === 'fr' ? 'Une question juridique ?' : 'Legal Questions?'}
+                  {t('terms.legalQuestions')}
                 </h3>
                 <a
                   href={`mailto:${contactEmail}`}

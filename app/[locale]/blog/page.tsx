@@ -14,22 +14,15 @@ import {
   Heart, MessageCircle, Eye
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { useTranslations } from '@/components/translation-provider';
 import { blogService, parseTags, type BlogPost } from '@/services/blogService';
 
-const categories = [
-  { value: 'all', label: { en: 'All Categories', fr: 'Toutes les Catégories' } },
-  { value: 'luxury', label: { en: 'Luxury', fr: 'Luxe' } },
-  { value: 'investment', label: { en: 'Investment', fr: 'Investissement' } },
-  { value: 'travel', label: { en: 'Travel', fr: 'Voyage' } },
-  { value: 'hosting', label: { en: 'Hosting', fr: 'Hébergement' } },
-  { value: 'sustainability', label: { en: 'Sustainability', fr: 'Durabilité' } },
-  { value: 'general', label: { en: 'General', fr: 'Général' } },
-];
+const categoryValues = ['all', 'luxury', 'investment', 'travel', 'hosting', 'sustainability', 'general'];
 
 export default function BlogPage() {
-  const pathname = usePathname();
-  const locale = pathname?.startsWith('/fr') ? 'fr' : 'en';
+  const { locale } = useParams();
+  const t = useTranslations();
 
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [featuredPosts, setFeaturedPosts] = useState<BlogPost[]>([]);
@@ -41,46 +34,7 @@ export default function BlogPage() {
   const [lastPage, setLastPage] = useState(1);
   const [total, setTotal] = useState(0);
 
-  const content = {
-    en: {
-      title: "Property Insights & Travel Blog",
-      subtitle: "Discover expert insights, travel tips, and property investment guides",
-      search: "Search articles...",
-      sortBy: "Sort by",
-      filterBy: "Filter by category",
-      readTime: "min read",
-      featured: "Featured",
-      noResults: "No articles found",
-      noResultsHint: "Try adjusting your search criteria.",
-      articles: "articles",
-      sortOptions: {
-        newest: "Newest First",
-        oldest: "Oldest First",
-        popular: "Most Popular",
-        trending: "Trending",
-      },
-    },
-    fr: {
-      title: "Blog Immobilier & Voyage",
-      subtitle: "Découvrez des conseils d'experts, astuces de voyage et guides d'investissement immobilier",
-      search: "Rechercher des articles...",
-      sortBy: "Trier par",
-      filterBy: "Filtrer par catégorie",
-      readTime: "min de lecture",
-      featured: "En Vedette",
-      noResults: "Aucun article trouvé",
-      noResultsHint: "Essayez d'ajuster vos critères de recherche.",
-      articles: "articles",
-      sortOptions: {
-        newest: "Plus Récent",
-        oldest: "Plus Ancien",
-        popular: "Plus Populaire",
-        trending: "Tendance",
-      },
-    },
-  };
 
-  const t = content[locale as keyof typeof content];
 
   const loadPosts = useCallback(async (pageNum = 1) => {
     try {
@@ -169,9 +123,9 @@ export default function BlogPage() {
               <div className="mx-auto w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
                 <FileText className="w-10 h-10 text-white" />
               </div>
-              <h1 className="text-4xl sm:text-6xl font-bold text-white tracking-tight">{t.title}</h1>
-              <p className="text-xl text-white/80 max-w-3xl mx-auto">{t.subtitle}</p>
-              {total > 0 && <p className="text-white/60 text-sm">{total} {t.articles}</p>}
+              <h1 className="text-4xl sm:text-6xl font-bold text-white tracking-tight">{t('blog.title')}</h1>
+              <p className="text-xl text-white/80 max-w-3xl mx-auto">{t('blog.subtitle')}</p>
+              {total > 0 && <p className="text-white/60 text-sm">{total} {t('blog.articles')}</p>}
             </div>
           </div>
         </section>
@@ -182,28 +136,28 @@ export default function BlogPage() {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input placeholder={t.search} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 h-11" />
+                <Input placeholder={t('blog.search')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 h-11" />
               </div>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-full md:w-52 h-11">
                   <Filter className="w-4 h-4 mr-2 text-gray-400" />
-                  <SelectValue placeholder={t.filterBy} />
+                  <SelectValue placeholder={t('blog.filterBy')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>
-                      {c.label[locale as keyof typeof c.label]}
+                  {categoryValues.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {t(`blog.categories.${value}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-full md:w-48 h-11">
-                  <SelectValue placeholder={t.sortBy} />
+                  <SelectValue placeholder={t('blog.sortBy')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(t.sortOptions).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  {['newest', 'oldest', 'popular', 'trending'].map((key) => (
+                    <SelectItem key={key} value={key}>{t(`blog.sortOptions.${key}`)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -228,7 +182,7 @@ export default function BlogPage() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                         <Badge className="absolute top-4 left-4 bg-yellow-500 text-black font-semibold">
                           <Star className="w-3 h-3 mr-1 fill-current" />
-                          {t.featured}
+                          {t('blog.featured')}
                         </Badge>
                         <h3 className="absolute bottom-4 left-4 right-4 text-xl font-bold text-white line-clamp-2">{getTitle(post)}</h3>
                       </div>
@@ -270,7 +224,7 @@ export default function BlogPage() {
                         <div className="relative h-52 overflow-hidden">
                           <img src={post.image_url || 'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg'} alt={getTitle(post)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                           <Badge className="absolute top-4 left-4 bg-plp-purple/90 text-white text-xs">
-                            {categories.find(c => c.value === post.category)?.label[locale as keyof typeof categories[0]['label']] || post.category}
+                            {t(`blog.categories.${post.category}`, post.category)}
                           </Badge>
                           {post.is_featured && <Star className="absolute top-4 right-4 w-5 h-5 text-yellow-400 fill-current drop-shadow" />}
                         </div>
@@ -280,7 +234,7 @@ export default function BlogPage() {
                           <div className="space-y-3">
                             <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                               <span className="flex items-center gap-1"><User className="w-3 h-3" />{post.author?.name}</span>
-                              <span>{post.read_time} {t.readTime}</span>
+                              <span>{post.read_time} {t('blog.readTime')}</span>
                             </div>
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
@@ -320,8 +274,8 @@ export default function BlogPage() {
               <Card>
                 <CardContent className="p-12 text-center">
                   <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{t.noResults}</h3>
-                  <p className="text-gray-500 dark:text-gray-400">{t.noResultsHint}</p>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{t('blog.noResults')}</h3>
+                  <p className="text-gray-500 dark:text-gray-400">{t('blog.noResultsHint')}</p>
                 </CardContent>
               </Card>
             )}

@@ -2,17 +2,17 @@
 
 import React from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Home, LayoutGrid, HelpCircle } from "lucide-react";
+import { useTranslations } from '@/components/translation-provider';
 
 export default function NotFound() {
     const router = useRouter();
-    const pathname = usePathname();
-
-    // Extract locale from pathname
-    const locale = pathname?.startsWith('/fr') ? 'fr' : 'en';
+    const params = useParams<{ locale: string }>();
+    const locale = (params?.locale || 'en').toLowerCase() === 'fr' ? 'fr' : 'en';
+    const t = useTranslations();
 
     return (
         <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-plp-purple via-plp-pink to-plp-yellow p-6">
@@ -35,7 +35,7 @@ export default function NotFound() {
                                 />
                                 {/* Floating badge */}
                                 <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-medium text-gray-700 shadow">
-                                    Property Listing Portal
+                                    {t('notFound.brand')}
                                 </div>
                                 {/* Animated marker */}
                                 <div className="absolute -bottom-4 left-10 w-10 h-10 bg-gradient-to-tr from-plp-purple to-plp-pink rounded-full shadow-lg animate-bounce" />
@@ -46,49 +46,43 @@ export default function NotFound() {
                         <div className="order-1 md:order-2 p-6 md:p-10 flex flex-col justify-center">
                             <p className="inline-flex items-center gap-2 text-xs uppercase tracking-wider text-gray-600 bg-gray-100 rounded-full px-3 py-1 w-max">
                                 <span className="w-2 h-2 rounded-full bg-plp-pink animate-pulse" />
-                                {locale === "fr" ? "Erreur" : "Error"} 404
+                                {t('notFound.error')} 404
                             </p>
                             <h1 className="mt-4 text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
-                                {locale === "fr"
-                                    ? "Page introuvable"
-                                    : "We couldn't find that page"}
+                                {t('notFound.title')}
                             </h1>
                             <p className="mt-3 text-gray-600">
-                                {locale === "fr"
-                                    ? "La page que vous recherchez a peut-être été déplacée, supprimée ou n'a jamais existé."
-                                    : "The page you're looking for may have been moved, deleted, or never existed."}
+                                {t('notFound.description')}
                             </p>
 
                             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <Button onClick={() => router.back()} variant="outline" className="justify-center">
                                     <ArrowLeft className="w-4 h-4 mr-2" />
-                                    {locale === "fr" ? "Page précédente" : "Go Back"}
+                                    {t('notFound.goBack')}
                                 </Button>
                                 <Link href={`/${locale}`}>
                                     <Button className="w-full btn-primary justify-center">
                                         <Home className="w-4 h-4 mr-2" />
-                                        {locale === "fr" ? "Accueil" : "Home"}
+                                        {t('notFound.home')}
                                     </Button>
                                 </Link>
                                 <Link href={`/${locale}/dashboard`}>
                                     <Button variant="secondary" className="w-full justify-center">
                                         <LayoutGrid className="w-4 h-4 mr-2" />
-                                        {locale === "fr" ? "Tableau de bord" : "Dashboard"}
+                                        {t('notFound.dashboard')}
                                     </Button>
                                 </Link>
                                 <Link href={`/${locale}/help`}>
                                     <Button variant="ghost" className="w-full justify-center">
                                         <HelpCircle className="w-4 h-4 mr-2" />
-                                        {locale === "fr" ? "Centre d'aide" : "Help Center"}
+                                        {t('notFound.helpCenter')}
                                     </Button>
                                 </Link>
                             </div>
 
                             {/* Tips / links */}
                             <div className="mt-6 text-sm text-gray-500">
-                                {locale === "fr"
-                                    ? "Conseil: utilisez la barre de recherche ou parcourez nos catégories pour trouver ce dont vous avez besoin."
-                                    : "Tip: try the search bar or browse our categories to find what you need."}
+                                {t('notFound.tip')}
                             </div>
                         </div>
                     </div>

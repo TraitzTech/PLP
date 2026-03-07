@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link';
+import { useTranslations } from '@/components/translation-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { helpArticles } from '@/lib/help/articles';
@@ -9,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import React, { useMemo, useState } from 'react';
 
 export default function HelpCenterPage() {
+  const t = useTranslations();
   const [query, setQuery] = useState('');
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -22,16 +24,16 @@ export default function HelpCenterPage() {
     <div className="max-w-5xl mx-auto px-4 py-10">
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 text-sm text-plp-purple bg-plp-purple/10 px-3 py-1 rounded-full">
-          <HelpCircle className="w-4 h-4" /> Help Center
+          <HelpCircle className="w-4 h-4" /> {t('help.badge')}
         </div>
-        <h1 className="mt-3 text-3xl md:text-4xl font-bold text-gray-900">How can we help you?</h1>
-        <p className="mt-2 text-gray-600">Browse our guides and FAQs or reach out via the support button.</p>
+        <h1 className="mt-3 text-3xl md:text-4xl font-bold text-gray-900">{t('help.title')}</h1>
+        <p className="mt-2 text-gray-600">{t('help.subtitle')}</p>
       </div>
 
       <div className="max-w-2xl mx-auto mb-10">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <Input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search help articles" className="pl-10" />
+          <Input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder={t('help.searchPlaceholder')} className="pl-10" />
         </div>
       </div>
 
@@ -50,7 +52,7 @@ export default function HelpCenterPage() {
                     <Link href={`${a.slug}`} className="font-medium text-gray-900 hover:underline">{a.title}</Link>
                     <p className="text-sm text-gray-600 line-clamp-2">{a.summary}</p>
                   </div>
-                  <Badge className="bg-plp-yellow/20 text-gray-900">Updated {new Date(a.updatedAt).toLocaleDateString()}</Badge>
+                  <Badge className="bg-plp-yellow/20 text-gray-900">{t('help.updated')} {new Date(a.updatedAt).toLocaleDateString()}</Badge>
                 </div>
               ))}
             </CardContent>
@@ -60,8 +62,8 @@ export default function HelpCenterPage() {
 
       <Card>
         <CardContent className="p-6 text-center">
-          <p className="text-gray-900 font-medium">Can’t find what you’re looking for?</p>
-          <p className="text-gray-600">Click the support button at the bottom-right to contact us.</p>
+          <p className="text-gray-900 font-medium">{t('help.notFound')}</p>
+          <p className="text-gray-600">{t('help.notFoundSub')}</p>
         </CardContent>
       </Card>
     </div>

@@ -156,7 +156,57 @@
   },
   "pricing": {
     "title": "Plans",
-    "subtitle": "for Agents"
+    "subtitle": "for Agents",
+    "heroTitle": "Subscription Plans",
+    "heroTitleAccent": "for Agents & Property Owners",
+    "heroSubtitle": "Choose the perfect plan to grow your real estate business. Basic, Premium, Featured listings with scalable limits based on your subscription.",
+    "availablePlans": "Available Plans",
+    "customerSupport": "Customer Support",
+    "toGetStarted": "To Get Started",
+    "currentPlanBadge": "Current Plan",
+    "trialPeriod": "Trial Period",
+    "active": "Active",
+    "manageSubscription": "Manage my subscription",
+    "choosePlan": "Choose Your Plan",
+    "choosePlanSub": "All plans include access to our platform, client management and basic tools.",
+    "loadingPlans": "Loading plans...",
+    "noPlans": "No plans available at the moment.",
+    "tryAgain": "Please try again later.",
+    "yourCurrentPlan": "✓ Your Current Plan",
+    "mostPopular": "Most Popular Plan",
+    "free": "Free",
+    "month": "month",
+    "quarter": "quarter",
+    "year": "year",
+    "freeTrial": "days free trial",
+    "noListings": "No listings",
+    "upToListings": "Up to",
+    "listings": "listings",
+    "unlimitedListings": "Unlimited listings",
+    "audience": "Audience",
+    "currentPlanManage": "Current Plan — Manage",
+    "startFree": "Start for Free",
+    "chooseThisPlan": "Choose this Plan",
+    "cancelAnytime": "Cancel anytime",
+    "paymentMethods": "Payment Methods",
+    "paymentMethodsSub": "Pay easily with your preferred methods",
+    "mostPopularBadge": "Most Popular",
+    "faqTitle": "Frequently Asked Questions",
+    "ctaTitle": "Ready to Get Started?",
+    "ctaSub": "Join hundreds of agents who trust our platform to grow their real estate business.",
+    "becomeAgent": "Become an Agent",
+    "contactUs": "Contact Us",
+    "faqs": {
+      "0": { "question": "Can I change plans at any time?", "answer": "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately." },
+      "1": { "question": "Are there any hidden fees?", "answer": "No, all our prices are transparent. You only pay the monthly subscription and commissions on bookings." },
+      "2": { "question": "How does mobile money payment work?", "answer": "We accept MTN Mobile Money and Orange Money. Payment is secure and instant." },
+      "3": { "question": "What happens if I cancel my subscription?", "answer": "Your properties remain active until the end of your billing period, then they are deactivated." }
+    },
+    "paymentMethodItems": {
+      "0": { "name": "Mobile Money", "description": "MTN Mobile Money, Orange Money" },
+      "1": { "name": "Bank Transfer", "description": "Direct bank transfer (local banks)" },
+      "2": { "name": "Credit/Debit Card", "description": "Visa, Mastercard" }
+    }
   },
   "maintenance": {
     "title": "We'll Be Back Soon",
@@ -169,5 +219,388 @@
     "ensuringSecurity": "Ensuring security & reliability",
     "progress": "Maintenance in progress",
     "thankYou": "Thank you for your patience. We appreciate your understanding!"
+  },
+  "about": {
+    "title": "About PLP",
+    "subtitle": "Revolutionizing the way you find and book premium properties worldwide",
+    "mission": {
+      "title": "Our Mission",
+      "description": "To connect travelers with exceptional properties while empowering hosts to share their unique spaces with the world."
+    },
+    "vision": {
+      "title": "Our Vision",
+      "description": "To become the world's most trusted platform for premium property rentals, creating unforgettable experiences for guests and sustainable income for hosts."
+    },
+    "values": {
+      "title": "Our Values",
+      "0": { "title": "Trust & Safety", "description": "We prioritize the safety and security of our community above all else." },
+      "1": { "title": "Global Community", "description": "We celebrate diversity and foster connections across cultures and borders." },
+      "2": { "title": "Quality Assurance", "description": "We maintain the highest standards for properties and user experiences." },
+      "3": { "title": "Excellence", "description": "We strive for excellence in everything we do, from technology to customer service." }
+    },
+    "stats": {
+      "title": "Our Impact",
+      "0": { "number": "50K+", "label": "Properties Listed" },
+      "1": { "number": "2M+", "label": "Happy Guests" },
+      "2": { "number": "100+", "label": "Countries" },
+      "3": { "number": "4.9", "label": "Average Rating" }
+    },
+    "team": {
+      "title": "Meet Our Team",
+      "description": "Passionate professionals dedicated to creating exceptional experiences",
+      "0": { "name": "Sarah Johnson", "role": "CEO & Founder", "bio": "Former hospitality executive with 15+ years of experience in luxury travel." },
+      "1": { "name": "Michael Chen", "role": "CTO", "bio": "Tech visionary who previously led engineering teams at major travel platforms." },
+      "2": { "name": "Emma Rodriguez", "role": "Head of Operations", "bio": "Operations expert focused on scaling quality experiences globally." },
+      "3": { "name": "David Kim", "role": "Head of Design", "bio": "Award-winning designer passionate about creating intuitive user experiences." }
+    },
+    "timeline": {
+      "title": "Our Journey",
+      "0": { "year": "2020", "title": "Company Founded", "description": "PLP was born from a vision to revolutionize property rentals." },
+      "1": { "year": "2021", "title": "First 1,000 Properties", "description": "Reached our first milestone with premium properties across 20 countries." },
+      "2": { "year": "2022", "title": "Series A Funding", "description": "Secured $50M in Series A funding to accelerate global expansion." },
+      "3": { "year": "2023", "title": "AI Integration", "description": "Launched AI-powered matching system for personalized recommendations." },
+      "4": { "year": "2024", "title": "Global Expansion", "description": "Now serving 100+ countries with 50,000+ premium properties." }
+    },
+    "cta": {
+      "title": "Ready to Experience PLP?",
+      "description": "Join millions of travelers who trust PLP for their accommodation needs.",
+      "button": "Start Your Journey"
+    }
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Get in touch with our team. We're here to help you with any questions or concerns.",
+    "form": {
+      "title": "Send us a Message",
+      "name": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "subject": "Subject",
+      "category": "Category",
+      "message": "Message",
+      "submit": "Send Message",
+      "sending": "Sending...",
+      "selectCategory": "Select category",
+      "categories": {
+        "general": "General Inquiry",
+        "booking": "Booking Support",
+        "property": "Property Listing",
+        "technical": "Technical Issue",
+        "billing": "Billing Question",
+        "partnership": "Partnership"
+      }
+    },
+    "contact": {
+      "title": "Contact Information",
+      "phone": { "title": "Phone Support", "description": "Speak with our support team", "number": "+1 (555) 123-4567" },
+      "email": { "title": "Email Support", "description": "Send us an email anytime", "address": "support@propertylistingportal.com" },
+      "address": { "title": "Office Address", "description": "Visit our headquarters", "location": "123 Business Ave, Suite 100\nCity, ST 12345\nUnited States" }
+    },
+    "hours": {
+      "title": "Business Hours",
+      "weekdays": "Monday - Friday: 9:00 AM - 6:00 PM",
+      "weekend": "Saturday - Sunday: 10:00 AM - 4:00 PM",
+      "timezone": "Eastern Time (ET)",
+      "emergency": "24/7 Emergency Support Available"
+    },
+    "success": "Thank you for your message! We'll get back to you within 24 hours.",
+    "validation": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email",
+      "messageRequired": "Message is required"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Find quick answers to the most common questions",
+      "0": { "question": "How do I book a property?", "answer": "Use our search form to find properties, select your dates, and follow the booking process." },
+      "1": { "question": "What are your cancellation policies?", "answer": "Cancellation policies vary by property. Check the specific details when booking." },
+      "2": { "question": "How do I become a host?", "answer": "Click 'Become a Host' and follow our simple 3-step registration process." },
+      "3": { "question": "Is customer support available 24/7?", "answer": "Yes, our emergency support team is available 24/7 for urgent issues." }
+    }
+  },
+  "blog": {
+    "title": "Property Insights & Travel Blog",
+    "subtitle": "Discover expert insights, travel tips, and property investment guides",
+    "search": "Search articles...",
+    "sortBy": "Sort by",
+    "filterBy": "Filter by category",
+    "readTime": "min read",
+    "featured": "Featured",
+    "noResults": "No articles found",
+    "noResultsHint": "Try adjusting your search criteria.",
+    "articles": "articles",
+    "sortOptions": {
+      "newest": "Newest First",
+      "oldest": "Oldest First",
+      "popular": "Most Popular",
+      "trending": "Trending"
+    },
+    "categories": {
+      "all": "All Categories",
+      "luxury": "Luxury",
+      "investment": "Investment",
+      "travel": "Travel",
+      "hosting": "Hosting",
+      "sustainability": "Sustainability",
+      "general": "General"
+    }
+  },
+  "press": {
+    "title": "Press & Media",
+    "subtitle": "Latest news, press releases, and media resources from Property Listing Portal",
+    "readMore": "Read More",
+    "releases": {
+      "title": "Recent Press Releases",
+      "0": { "title": "PLP Expands to 100+ Countries Worldwide", "date": "February 10, 2024", "excerpt": "Property Listing Portal announces major expansion milestone, now serving over 100 countries with 50,000+ premium properties.", "category": "Expansion" },
+      "1": { "title": "AI-Powered Property Matching Launches", "date": "January 25, 2024", "excerpt": "Revolutionary AI technology helps travelers find their perfect property match based on preferences and behavior.", "category": "Technology" },
+      "2": { "title": "PLP Raises $50M Series B Funding", "date": "December 15, 2023", "excerpt": "Funding round led by top venture capital firms to accelerate global growth and technology development.", "category": "Funding" }
+    },
+    "mediaKit": {
+      "title": "Media Kit",
+      "description": "Download our media kit for logos, brand guidelines, and high-resolution images.",
+      "0": { "title": "Brand Guidelines", "description": "Logo usage, colors, and brand standards", "type": "PDF" },
+      "1": { "title": "Company Logos", "description": "High-resolution logos in various formats", "type": "ZIP" },
+      "2": { "title": "Product Screenshots", "description": "Platform screenshots and product images", "type": "ZIP" },
+      "3": { "title": "Executive Photos", "description": "High-resolution photos of leadership team", "type": "ZIP" }
+    },
+    "contact": {
+      "title": "Media Contact",
+      "description": "For press inquiries, interviews, and media requests",
+      "email": "press@propertylistingportal.com",
+      "phone": "+1 (555) 123-PRESS"
+    },
+    "awards": {
+      "title": "Awards & Recognition",
+      "0": "Best Travel Platform 2024 - Travel Tech Awards",
+      "1": "Innovation in Hospitality 2023 - Global Tourism Board",
+      "2": "Top Startup to Watch 2023 - Tech Crunch",
+      "3": "Customer Choice Award 2023 - Travel Weekly"
+    }
+  },
+  "careers": {
+    "title": "Careers at PLP",
+    "subtitle": "Join our mission to revolutionize the property rental industry",
+    "noOpenings": {
+      "title": "No Current Openings",
+      "description": "We don't have any open positions at the moment, but we're always looking for talented individuals to join our team.",
+      "futureTitle": "Future Opportunities",
+      "futureDescription": "Leave your information below and we'll reach out when positions that match your skills become available."
+    },
+    "culture": {
+      "title": "Why Work With Us?",
+      "0": { "title": "Passion-Driven", "description": "We're passionate about creating exceptional experiences for travelers and hosts worldwide." },
+      "1": { "title": "Collaborative Team", "description": "Work with talented individuals from diverse backgrounds in a supportive environment." },
+      "2": { "title": "Growth Opportunities", "description": "Advance your career with learning opportunities and professional development programs." },
+      "3": { "title": "Global Impact", "description": "Make a difference in the lives of millions of travelers and property owners worldwide." }
+    },
+    "benefits": {
+      "title": "Benefits & Perks",
+      "0": "Competitive salary and equity packages",
+      "1": "Comprehensive health, dental, and vision insurance",
+      "2": "Flexible work arrangements and remote options",
+      "3": "Generous vacation and personal time off",
+      "4": "Professional development budget",
+      "5": "Free travel credits for platform properties",
+      "6": "Wellness programs and mental health support",
+      "7": "Catered meals and office amenities"
+    },
+    "form": {
+      "title": "Join Our Talent Pool",
+      "name": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "position": "Position of Interest",
+      "experience": "Years of Experience",
+      "message": "Tell us about yourself",
+      "submit": "Submit Application",
+      "submitting": "Submitting...",
+      "positionPlaceholder": "e.g. Frontend Developer",
+      "messagePlaceholder": "Tell us about your experience and interests...",
+      "uploadResume": "Upload Resume (Optional)",
+      "success": "Thank you for your interest! We'll contact you when relevant positions become available."
+    }
+  },
+  "safety": {
+    "title": "Safety & Security",
+    "subtitle": "Your safety is our top priority. Learn about our comprehensive safety measures.",
+    "features": {
+      "title": "Safety Features",
+      "0": { "title": "Verified Hosts", "description": "All hosts undergo identity verification and background checks before listing properties." },
+      "1": { "title": "Secure Payments", "description": "All transactions are processed through encrypted, PCI-compliant payment systems." },
+      "2": { "title": "Property Verification", "description": "Our team verifies property details and photos to ensure accuracy and authenticity." },
+      "3": { "title": "24/7 Support", "description": "Round-the-clock emergency support available for urgent safety concerns." }
+    },
+    "guidelines": {
+      "title": "Safety Guidelines",
+      "guest": {
+        "title": "For Guests",
+        "0": "Verify property details and host information before booking",
+        "1": "Read reviews from previous guests",
+        "2": "Communicate through our platform messaging system",
+        "3": "Report any safety concerns immediately",
+        "4": "Keep emergency contact information handy",
+        "5": "Trust your instincts and prioritize your safety"
+      },
+      "host": {
+        "title": "For Hosts",
+        "0": "Verify guest identity before check-in",
+        "1": "Provide accurate property descriptions and photos",
+        "2": "Maintain safety equipment (smoke detectors, first aid)",
+        "3": "Share emergency procedures with guests",
+        "4": "Report suspicious activity to our team",
+        "5": "Keep property insurance up to date"
+      }
+    },
+    "emergency": {
+      "title": "Emergency Procedures",
+      "description": "In case of emergency, follow these steps:",
+      "0": "Ensure immediate safety - call local emergency services if needed",
+      "1": "Contact PLP emergency support: +1 (555) 911-HELP",
+      "2": "Document the incident with photos if safe to do so",
+      "3": "Cooperate with local authorities and PLP investigation",
+      "4": "Follow up with our safety team for resolution"
+    },
+    "reporting": {
+      "title": "Report Safety Concerns",
+      "description": "Help us maintain a safe community by reporting any safety issues or concerns.",
+      "button": "Report an Issue"
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "subtitle": "Please read our terms carefully before using the platform.",
+    "lastUpdated": "Last updated",
+    "dynamicUpdate": "Dynamic update enabled",
+    "cardTitle": "Admin Published Version",
+    "legalQuestions": "Legal Questions?"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "subtitle": "Understand how we collect, use, and protect your data.",
+    "lastUpdated": "Last updated",
+    "dynamicUpdate": "Dynamic update enabled",
+    "cardTitle": "Admin Published Version",
+    "dataQuestions": "Questions About Your Data?"
+  },
+  "cookies": {
+    "title": "Cookie Policy",
+    "subtitle": "Learn how we use cookies to improve your experience on our platform",
+    "lastUpdated": "Last updated: February 15, 2024",
+    "required": "Required",
+    "examples": "Examples:",
+    "intro": {
+      "title": "What are Cookies?",
+      "description": "Cookies are small text files that are stored on your device when you visit our website. They help us provide you with a better experience by remembering your preferences and analyzing how you use our platform."
+    },
+    "types": {
+      "title": "Types of Cookies We Use",
+      "0": { "title": "Essential Cookies", "description": "These cookies are necessary for the website to function properly. They enable core functionality such as security, network management, and accessibility.", "examples": "Login sessions, security tokens, load balancing" },
+      "1": { "title": "Analytics Cookies", "description": "These cookies help us understand how visitors interact with our website by collecting and reporting information anonymously.", "examples": "Google Analytics, page views, user behavior" },
+      "2": { "title": "Marketing Cookies", "description": "These cookies are used to track visitors across websites to display relevant advertisements and measure campaign effectiveness.", "examples": "Ad targeting, conversion tracking, retargeting" },
+      "3": { "title": "Personalization Cookies", "description": "These cookies allow us to remember your preferences and provide customized content and features.", "examples": "Language preferences, saved searches, recommendations" }
+    },
+    "preferences": {
+      "title": "Cookie Preferences",
+      "description": "You can control which cookies we use. Essential cookies cannot be disabled as they are required for the website to function.",
+      "save": "Save Preferences",
+      "success": "Cookie preferences updated successfully!",
+      "essential": "Essential Cookies",
+      "essentialDesc": "Required for website functionality",
+      "analytics": "Analytics Cookies",
+      "analyticsDesc": "Help us improve our website",
+      "marketing": "Marketing Cookies",
+      "marketingDesc": "For personalized advertisements",
+      "personalization": "Personalization Cookies",
+      "personalizationDesc": "For a personalized experience"
+    },
+    "manage": {
+      "title": "Managing Cookies",
+      "description": "You can also manage cookies through your browser settings:",
+      "0": "Chrome: Settings > Privacy and Security > Cookies",
+      "1": "Firefox: Options > Privacy & Security > Cookies",
+      "2": "Safari: Preferences > Privacy > Cookies",
+      "3": "Edge: Settings > Cookies and Site Permissions"
+    }
+  },
+  "accessibility": {
+    "title": "Accessibility",
+    "subtitle": "We're committed to making our platform accessible to everyone",
+    "commitment": {
+      "title": "Our Commitment",
+      "description": "Property Listing Portal is committed to ensuring digital accessibility for people with disabilities. We continually improve the user experience for everyone and apply relevant accessibility standards."
+    },
+    "features": {
+      "title": "Accessibility Features",
+      "0": { "title": "Visual Accessibility", "description": "High contrast colors, scalable fonts, and screen reader compatibility for users with visual impairments." },
+      "1": { "title": "Audio Accessibility", "description": "Visual indicators for audio content and closed captions for video materials." },
+      "2": { "title": "Motor Accessibility", "description": "Keyboard navigation support and large clickable areas for users with motor disabilities." },
+      "3": { "title": "Cognitive Accessibility", "description": "Clear navigation, consistent layouts, and simple language to support users with cognitive disabilities." }
+    },
+    "standards": {
+      "title": "Accessibility Standards",
+      "description": "We strive to conform to WCAG 2.1 Level AA standards and regularly audit our platform for compliance.",
+      "0": "WCAG 2.1 Level AA compliance",
+      "1": "Section 508 standards adherence",
+      "2": "ADA (Americans with Disabilities Act) compliance",
+      "3": "Regular accessibility audits and testing",
+      "4": "User feedback integration for improvements"
+    },
+    "tools": {
+      "title": "Assistive Technology Support",
+      "description": "Our platform is designed to work with various assistive technologies:",
+      "0": "Screen readers (JAWS, NVDA, VoiceOver)",
+      "1": "Voice recognition software",
+      "2": "Keyboard navigation tools",
+      "3": "Browser zoom and magnification",
+      "4": "High contrast and dark mode themes"
+    },
+    "feedback": {
+      "title": "Accessibility Feedback",
+      "description": "Help us improve by sharing your accessibility experience",
+      "name": "Name",
+      "email": "Email",
+      "assistiveTech": "Assistive Technology Used",
+      "issue": "Accessibility Issue",
+      "suggestion": "Suggestions for Improvement",
+      "submit": "Submit Feedback",
+      "submitting": "Submitting...",
+      "assistiveTechPlaceholder": "e.g. NVDA Screen Reader",
+      "issuePlaceholder": "Describe any accessibility issues you encountered...",
+      "suggestionPlaceholder": "Share your suggestions for improving accessibility...",
+      "success": "Thank you for your feedback! We'll review your suggestions and work to improve accessibility."
+    }
+  },
+  "help": {
+    "badge": "Help Center",
+    "title": "How can we help you?",
+    "subtitle": "Browse our guides and FAQs or reach out via the support button.",
+    "searchPlaceholder": "Search help articles",
+    "updated": "Updated",
+    "notFound": "Can't find what you're looking for?",
+    "notFoundSub": "Click the support button at the bottom-right to contact us."
+  },
+  "howItWorks": {
+    "sectionLabel": "How PLP Booking Works",
+    "heading": "A clear path from browsing to booking",
+    "description": "No fluff—every step uses updated property records. Book as a guest, pay the platform fee to unlock the agent, and keep receipts and chats in one place.",
+    "securityBadge": "Secure payments & real agent contacts",
+    "steps": {
+      "0": { "accent": "Step 1", "title": "Find a property", "description": "Search real listings with real photos, availability, and pricing direct from verified agents." },
+      "1": { "accent": "Step 2", "title": "Book instantly", "description": "Pick your stay dates, book as a guest or signed-in user, and get an immediate confirmation email." },
+      "2": { "accent": "Step 3", "title": "Pay platform fee", "description": "Unlock the agent contact after your booking by paying the admin-set platform access fee securely." },
+      "3": { "accent": "Step 4", "title": "Talk to the agent", "description": "Chat, arrange a viewing, and keep every message and receipt inside your dashboard." }
+    }
+  },
+  "notFound": {
+    "error": "Error",
+    "title": "We couldn't find that page",
+    "description": "The page you're looking for may have been moved, deleted, or never existed.",
+    "goBack": "Go Back",
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "helpCenter": "Help Center",
+    "tip": "Tip: try the search bar or browse our categories to find what you need.",
+    "brand": "Property Listing Portal"
   }
 }
