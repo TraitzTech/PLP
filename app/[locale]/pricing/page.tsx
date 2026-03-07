@@ -374,7 +374,7 @@ export default function PricingPage() {
 									</Button>
 								</Link>
 								<Link href="/contact">
-									<Button variant="outline" className="border-white text-white hover:bg-white hover:text-plp-purple">
+									<Button variant="outline" className="border-white text-white hover:bg-white text-plp-purple">
 										<Phone className="w-4 h-4 mr-2" />
 										{t('pricing.contactUs')}
 									</Button>

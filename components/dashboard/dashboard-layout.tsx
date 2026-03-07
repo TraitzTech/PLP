@@ -94,6 +94,7 @@ const adminNavItems = [
     { name: 'Blog', href: '/admin/blog', icon: FileText },
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: Star },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { name: 'Profile', href: '/admin/profile', icon: User },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
