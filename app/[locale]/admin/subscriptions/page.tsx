@@ -9,6 +9,16 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { subscriptionService, type AgentSubscription, type SubscriptionPlan } from '@/services/subscriptionService';
@@ -46,6 +56,8 @@ export default function AdminSubscriptionsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(initialForm);
+  const [planToDelete, setPlanToDelete] = useState<SubscriptionPlan | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadPlans = async () => {
     setLoadingPlans(true);
@@ -164,15 +176,18 @@ export default function AdminSubscriptionsPage() {
     }
   };
 
-  const deletePlan = async (plan: SubscriptionPlan) => {
-    if (!confirm(`Delete plan "${plan.name}"?`)) return;
-
+  const handleDeletePlan = async () => {
+    if (!planToDelete) return;
+    setIsDeleting(true);
     try {
-      await subscriptionService.deletePlan(plan.id);
+      await subscriptionService.deletePlan(planToDelete.id);
       toast.success('Plan deleted/deactivated');
+      setPlanToDelete(null);
       loadPlans();
     } catch (error: any) {
       toast.error(error?.message || 'Failed to delete plan');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -230,90 +245,111 @@ export default function AdminSubscriptionsPage() {
                   New Plan
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
+              <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+                <DialogHeader className="flex-shrink-0">
                   <DialogTitle>{form.id ? 'Edit Plan' : 'Create Plan'}</DialogTitle>
                   <DialogDescription>
                     Configure pricing in XAF, limits, and optional free-trial period.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2 md:col-span-2">
-                    <Label>Name</Label>
-                    <Input value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Tier Category</Label>
-                    <Select value={form.plan_category} onValueChange={(value: any) => setForm((prev) => ({ ...prev, plan_category: value }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="basic">Basic</SelectItem>
-                        <SelectItem value="premium">Premium</SelectItem>
-                        <SelectItem value="featured">Featured</SelectItem>
-                        <SelectItem value="custom">Custom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Audience</Label>
-                    <Select value={form.target_audience} onValueChange={(value: any) => setForm((prev) => ({ ...prev, target_audience: value }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="both">Agents + Landlords</SelectItem>
-                        <SelectItem value="agent">Agents only</SelectItem>
-                        <SelectItem value="landlord">Landlords only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label>Description</Label>
-                    <Textarea value={form.description} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Price (XAF)</Label>
-                    <Input type="number" min="0" value={form.price} onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Billing Period</Label>
-                    <Select value={form.billing_period} onValueChange={(value: any) => setForm((prev) => ({ ...prev, billing_period: value }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="quarterly">Quarterly</SelectItem>
-                        <SelectItem value="yearly">Yearly</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Interval</Label>
-                    <Input type="number" min="1" value={form.billing_interval} onChange={(e) => setForm((prev) => ({ ...prev, billing_interval: e.target.value }))} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Free Trial Days</Label>
-                    <Input type="number" min="0" value={form.free_trial_days} onChange={(e) => setForm((prev) => ({ ...prev, free_trial_days: e.target.value }))} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Property Limit (blank = unlimited)</Label>
-                    <Input type="number" min="0" value={form.property_limit} onChange={(e) => setForm((prev) => ({ ...prev, property_limit: e.target.value }))} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Featured Limit (blank = unlimited)</Label>
-                    <Input type="number" min="0" value={form.featured_limit} onChange={(e) => setForm((prev) => ({ ...prev, featured_limit: e.target.value }))} />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label>Benefits (comma separated)</Label>
-                    <Input value={form.benefits} onChange={(e) => setForm((prev) => ({ ...prev, benefits: e.target.value }))} />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label>Virtual Tour Limit (blank = unlimited)</Label>
-                    <Input type="number" min="0" value={form.virtual_tour_limit} onChange={(e) => setForm((prev) => ({ ...prev, virtual_tour_limit: e.target.value }))} />
+                <div className="flex-1 overflow-y-auto pr-1 -mr-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Name</Label>
+                      <Input value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} placeholder="e.g. Premium Plan" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Tier Category</Label>
+                      <Select value={form.plan_category} onValueChange={(value: any) => setForm((prev) => ({ ...prev, plan_category: value }))}>
+                        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="basic">Basic</SelectItem>
+                          <SelectItem value="premium">Premium</SelectItem>
+                          <SelectItem value="featured">Featured</SelectItem>
+                          <SelectItem value="custom">Custom</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Target Audience</Label>
+                      <Select value={form.target_audience} onValueChange={(value: any) => setForm((prev) => ({ ...prev, target_audience: value }))}>
+                        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="both">Agents + Landlords</SelectItem>
+                          <SelectItem value="agent">Agents only</SelectItem>
+                          <SelectItem value="landlord">Landlords only</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Description</Label>
+                      <Textarea rows={3} value={form.description} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} placeholder="Describe the plan benefits..." />
+                    </div>
+
+                    {/* Pricing section */}
+                    <div className="md:col-span-2">
+                      <p className="text-sm font-medium text-gray-500 mb-3 border-b pb-1">Pricing & Billing</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Price (XAF)</Label>
+                      <Input type="number" min="0" value={form.price} onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))} placeholder="0" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Billing Period</Label>
+                      <Select value={form.billing_period} onValueChange={(value: any) => setForm((prev) => ({ ...prev, billing_period: value }))}>
+                        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="quarterly">Quarterly</SelectItem>
+                          <SelectItem value="yearly">Yearly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Billing Interval</Label>
+                      <Input type="number" min="1" value={form.billing_interval} onChange={(e) => setForm((prev) => ({ ...prev, billing_interval: e.target.value }))} placeholder="1" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Free Trial Days</Label>
+                      <Input type="number" min="0" value={form.free_trial_days} onChange={(e) => setForm((prev) => ({ ...prev, free_trial_days: e.target.value }))} placeholder="0" />
+                    </div>
+
+                    {/* Limits section */}
+                    <div className="md:col-span-2">
+                      <p className="text-sm font-medium text-gray-500 mb-3 border-b pb-1">Limits</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Property Limit</Label>
+                      <Input type="number" min="0" value={form.property_limit} onChange={(e) => setForm((prev) => ({ ...prev, property_limit: e.target.value }))} placeholder="Unlimited" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Featured Limit</Label>
+                      <Input type="number" min="0" value={form.featured_limit} onChange={(e) => setForm((prev) => ({ ...prev, featured_limit: e.target.value }))} placeholder="Unlimited" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Virtual Tour Limit</Label>
+                      <Input type="number" min="0" value={form.virtual_tour_limit} onChange={(e) => setForm((prev) => ({ ...prev, virtual_tour_limit: e.target.value }))} placeholder="Unlimited" />
+                    </div>
+
+                    {/* Benefits section */}
+                    <div className="md:col-span-2">
+                      <p className="text-sm font-medium text-gray-500 mb-3 border-b pb-1">Extras</p>
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Benefits (comma separated)</Label>
+                      <Input value={form.benefits} onChange={(e) => setForm((prev) => ({ ...prev, benefits: e.target.value }))} placeholder="Priority support, Analytics dashboard, ..." />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Sort Order</Label>
+                      <Input type="number" min="0" value={form.sort_order} onChange={(e) => setForm((prev) => ({ ...prev, sort_order: e.target.value }))} placeholder="0" />
+                    </div>
                   </div>
                 </div>
-                <div className="flex justify-end gap-2 pt-2">
+                <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0">
                   <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
                   <Button onClick={savePlan} disabled={saving}>
                     {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                    Save Plan
+                    {form.id ? 'Update Plan' : 'Create Plan'}
                   </Button>
                 </div>
               </DialogContent>
@@ -374,7 +410,7 @@ export default function AdminSubscriptionsPage() {
                     )}
                   </Button>
                   <Button variant="outline" onClick={() => openEdit(plan)}>Edit</Button>
-                  <Button variant="outline" className="text-red-600" onClick={() => deletePlan(plan)}>
+                  <Button variant="outline" className="text-red-600" onClick={() => setPlanToDelete(plan)}>
                     <Trash2 className="w-4 h-4 mr-1" />
                     Delete
                   </Button>
@@ -435,6 +471,38 @@ export default function AdminSubscriptionsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={planToDelete !== null}
+        onOpenChange={(open) => !open && setPlanToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the plan &ldquo;{planToDelete?.name}&rdquo;. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePlan}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }
