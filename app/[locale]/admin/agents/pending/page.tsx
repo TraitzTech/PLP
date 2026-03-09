@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ interface DetailModalData {
   isOpen: boolean;
 }
 
-export default function PendingAgentsPage() {
+function PendingAgentsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [pendingAgents, setPendingAgents] = useState<Agent[]>([]);
@@ -443,5 +443,23 @@ export default function PendingAgentsPage() {
         </DialogContent>
       </Dialog>
     </DashboardLayout>
+  );
+}
+
+function PendingAgentsPageFallback() {
+  return (
+    <DashboardLayout userType="admin">
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    </DashboardLayout>
+  );
+}
+
+export default function PendingAgentsPage() {
+  return (
+    <Suspense fallback={<PendingAgentsPageFallback />}>
+      <PendingAgentsPageContent />
+    </Suspense>
   );
 }
