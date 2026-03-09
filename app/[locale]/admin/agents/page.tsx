@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -91,6 +93,7 @@ export default function AdminAgentsPage() {
     newStatus: "pending",
   });
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [statusReason, setStatusReason] = useState("");
 
   const fetchAgents = async () => {
     try {
@@ -134,15 +137,21 @@ export default function AdminAgentsPage() {
 
   const handleStatusChange = async () => {
     if (!statusChangeData.agentId) return;
+    if (statusChangeData.newStatus === "rejected" && !statusReason.trim()) {
+      toast.error("Please provide a reason for rejection");
+      return;
+    }
 
     try {
       setIsUpdatingStatus(true);
       await agentService.updateAgentStatus(
         statusChangeData.agentId,
-        statusChangeData.newStatus
+        statusChangeData.newStatus,
+        statusReason.trim() || undefined
       );
       toast.success("Agent status updated successfully");
       setStatusDialogOpen(false);
+      setStatusReason("");
       setDetailModal({ agent: null, isOpen: false });
       await fetchAgents();
     } catch (error: any) {
@@ -556,6 +565,7 @@ export default function AdminAgentsPage() {
                           agentId: String(detailModal.agent!.id),
                           newStatus: "rejected",
                         });
+                        setStatusReason("");
                         setStatusDialogOpen(true);
                       }}
                       className="text-red-600"
@@ -568,6 +578,7 @@ export default function AdminAgentsPage() {
                           agentId: String(detailModal.agent!.id),
                           newStatus: "approved",
                         });
+                        setStatusReason("");
                         setStatusDialogOpen(true);
                       }}
                     >
@@ -583,6 +594,7 @@ export default function AdminAgentsPage() {
                         agentId: String(detailModal.agent!.id),
                         newStatus: "pending",
                       });
+                      setStatusReason("");
                       setStatusDialogOpen(true);
                     }}
                   >
@@ -653,6 +665,19 @@ export default function AdminAgentsPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {statusChangeData.newStatus === "rejected" && (
+              <div className="space-y-2">
+                <Label htmlFor="status-reason">Rejection Reason</Label>
+                <Textarea
+                  id="status-reason"
+                  value={statusReason}
+                  onChange={(event) => setStatusReason(event.target.value)}
+                  placeholder="Enter rejection reason..."
+                  rows={4}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter>

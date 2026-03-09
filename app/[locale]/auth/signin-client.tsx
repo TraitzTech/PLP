@@ -100,12 +100,12 @@ export function SignInClient() {
             router.push(getDashboardPathByRole(resolvedUserType));
         } catch (error: any) {
             console.error("Login failed:", error);
-            const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
+            const errorMessage = error?.data?.message || error?.message || 'Login failed. Please try again.';
             toast.error(errorMessage);
 
             // Set validation errors if available
-            if (error.response?.data?.errors) {
-                setErrors(error.response.data.errors);
+            if (error?.data?.errors) {
+                setErrors(error.data.errors);
             }
         } finally {
             setIsLoading(false);

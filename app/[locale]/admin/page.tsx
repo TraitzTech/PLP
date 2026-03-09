@@ -5,6 +5,16 @@ import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Users, Building2, DollarSign, TrendingUp, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Clock, Star, ChartBar as BarChart3, Shield, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -33,10 +43,24 @@ export default function AdminDashboard() {
   const [isLoadingProperties, setIsLoadingProperties] = useState(true);
   const [isLoadingApprovals, setIsLoadingApprovals] = useState(true);
   const [isLoadingAgents, setIsLoadingAgents] = useState(true);
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
+  const [approvalReason, setApprovalReason] = useState('');
+  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
+  const [selectedApproval, setSelectedApproval] = useState<PendingApproval | null>(null);
+  const [isProcessingApproval, setIsProcessingApproval] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  const refreshPendingApprovals = async () => {
+    try {
+      const response = await dashboardService.getPendingApprovals({ limit: 3 });
+      setPendingApprovals(response.data);
+    } catch (error) {
+      console.error("Failed to refresh approvals:", error);
+    }
+  };
 
   const fetchDashboardData = async () => {
     // Fetch stats
@@ -125,69 +149,74 @@ export default function AdminDashboard() {
   };
 
   const handleReviewApproval = (approval: PendingApproval) => {
-    // Route to the appropriate detailed page based on type
-    switch (approval.type.toLowerCase()) {
+    if (approval.review_path) {
+      router.push(approval.review_path);
+      return;
+    }
+
+    switch (approval.type) {
+      case 'agent':
+        router.push(`/admin/agents/pending?agentId=${approval.id}`);
+        return;
       case 'property':
         router.push(`/admin/properties/${approval.id}`);
-        break;
-      case 'agent':
-        router.push(`/admin/agents/${approval.id}/edit`);
-        break;
+        return;
       case 'booking':
         router.push(`/admin/bookings/${approval.id}`);
-        break;
+        return;
       default:
-        router.push(`/admin/properties/${approval.id}`);
+        router.push('/admin/properties');
     }
   };
 
-  const handleApproveApproval = async (approval: PendingApproval) => {
-    try {
-      if (approval.type.toLowerCase() === 'agent') {
-        await agentService.updateAgentStatus(approval.id, 'approved');
-      } else if (approval.type.toLowerCase() === 'property') {
-        await propertyManagementService.updateApprovalStatus(approval.id, { is_approved: true });
-      }
-      
-      toast.success(`${approval.type} approved successfully`);
-      
-      // Refresh pending approvals
-      try {
-        const response = await dashboardService.getPendingApprovals({ limit: 3 });
-        setPendingApprovals(response.data);
-      } catch (error) {
-        console.error("Failed to refresh approvals:", error);
-      }
-    } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || `Failed to approve ${approval.type.toLowerCase()}`
-      );
-      console.error("Approval error:", error);
-    }
+  const openApprovalDialog = (approval: PendingApproval, action: 'approve' | 'reject') => {
+    setSelectedApproval(approval);
+    setApprovalAction(action);
+    setApprovalReason('');
+    setApprovalDialogOpen(true);
   };
 
-  const handleRejectApproval = async (approval: PendingApproval) => {
+  const isActionableApproval = (approval: PendingApproval) => {
+    return approval.type === 'agent' || approval.type === 'property';
+  };
+
+  const handleConfirmApproval = async () => {
+    if (!selectedApproval) return;
+
+    if (approvalAction === 'reject' && !approvalReason.trim()) {
+      toast.error('Please provide a reason for rejection.');
+      return;
+    }
+
     try {
-      if (approval.type.toLowerCase() === 'agent') {
-        await agentService.updateAgentStatus(approval.id, 'rejected');
-      } else if (approval.type.toLowerCase() === 'property') {
-        await propertyManagementService.updateApprovalStatus(approval.id, { is_approved: false });
+      setIsProcessingApproval(true);
+      if (selectedApproval.type === 'agent') {
+        await agentService.updateAgentStatus(
+          selectedApproval.id,
+          approvalAction === 'approve' ? 'approved' : 'rejected',
+          approvalReason.trim() || undefined
+        );
+      } else if (selectedApproval.type === 'property') {
+        await propertyManagementService.updateApprovalStatus(selectedApproval.id, {
+          is_approved: approvalAction === 'approve',
+          reason: approvalReason.trim() || undefined,
+        });
       }
-      
-      toast.success(`${approval.type} rejected successfully`);
-      
-      // Refresh pending approvals
-      try {
-        const response = await dashboardService.getPendingApprovals({ limit: 3 });
-        setPendingApprovals(response.data);
-      } catch (error) {
-        console.error("Failed to refresh approvals:", error);
-      }
-    } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || `Failed to reject ${approval.type.toLowerCase()}`
+
+      toast.success(
+        approvalAction === 'approve'
+          ? `${selectedApproval.type} approved successfully`
+          : `${selectedApproval.type} rejected successfully`
       );
-      console.error("Rejection error:", error);
+      setApprovalDialogOpen(false);
+      setSelectedApproval(null);
+      setApprovalReason('');
+      await refreshPendingApprovals();
+    } catch (error: any) {
+      toast.error(error?.data?.message || error?.message || `Failed to ${approvalAction} ${selectedApproval.type}`);
+      console.error("Approval update error:", error);
+    } finally {
+      setIsProcessingApproval(false);
     }
   };
 
@@ -374,27 +403,31 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex gap-2">
                       <Button 
-                        size="sm" 
-                        className="btn-primary"
-                        onClick={() => handleApproveApproval(item)}
-                      >
-                        Approve
-                      </Button>
-                      <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => handleReviewApproval(item)}
                       >
                         Review
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-red-600 hover:text-red-700"
-                        onClick={() => handleRejectApproval(item)}
-                      >
-                        Reject
-                      </Button>
+                      {isActionableApproval(item) && (
+                        <>
+                          <Button 
+                            size="sm" 
+                            className="btn-primary"
+                            onClick={() => openApprovalDialog(item, 'approve')}
+                          >
+                            Approve
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-red-600 hover:text-red-700"
+                            onClick={() => openApprovalDialog(item, 'reject')}
+                          >
+                            Reject
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -439,7 +472,7 @@ export default function AdminDashboard() {
                     </div>
                     <Button
                       size="sm"
-                      onClick={() => router.push(`/admin/agents/pending`)}
+                      onClick={() => router.push(`/admin/agents/pending?agentId=${agent.id}`)}
                       className="ml-2"
                     >
                       Review
@@ -467,6 +500,53 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Top Performing Properties */}
+        <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {approvalAction === 'approve' ? 'Approve' : 'Reject'} {selectedApproval?.type ?? 'item'}
+              </DialogTitle>
+              <DialogDescription>
+                {approvalAction === 'approve'
+                  ? 'This action will approve the selected item and notify the owner.'
+                  : 'Please provide a rejection reason. It will be included in notifications and email.'}
+              </DialogDescription>
+            </DialogHeader>
+
+            {approvalAction === 'reject' && (
+              <div className="space-y-2">
+                <Label htmlFor="approval-reason">Rejection Reason</Label>
+                <Textarea
+                  id="approval-reason"
+                  value={approvalReason}
+                  onChange={(event) => setApprovalReason(event.target.value)}
+                  placeholder="Enter a clear reason for rejection..."
+                  rows={4}
+                />
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setApprovalDialogOpen(false)}
+                disabled={isProcessingApproval}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmApproval}
+                disabled={isProcessingApproval}
+                className={approvalAction === 'reject' ? 'bg-red-600 hover:bg-red-700' : ''}
+              >
+                {isProcessingApproval
+                  ? (approvalAction === 'approve' ? 'Approving...' : 'Rejecting...')
+                  : (approvalAction === 'approve' ? 'Approve' : 'Reject')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

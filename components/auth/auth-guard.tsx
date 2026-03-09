@@ -40,6 +40,13 @@ export function AuthGuard({
         if (redirectAuthenticated) {
           if (isAuthenticated) {
             const user = await authService.getCurrentUser?.();
+
+            if (!user || !user.user_type) {
+              // Stale/invalid token was likely cleared by the API client.
+              setIsAuthorized(true);
+              setIsLoading(false);
+              return;
+            }
             
             // Redirect based on user type
             if (user?.user_type === 'admin') {

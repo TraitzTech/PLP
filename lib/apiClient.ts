@@ -29,15 +29,17 @@ apiClient.interceptors.response.use(
     (response) => response,
     (error: AxiosError<any>) => {
         const status = error.response?.status;
-        if (status === 401) {
+        const responseData = error.response?.data as any;
+        if (status === 401 || (status === 403 && responseData?.code === "AGENT_APPROVAL_REQUIRED")) {
             // Token invalid/expired
             clearToken();
         }
-        const message = (error.response?.data as any)?.message || error.message || "Unknown error";
+        const message = responseData?.message || error.message || "Unknown error";
         return Promise.reject({
             status,
+            code: responseData?.code,
             message,
-            data: error.response?.data,
+            data: responseData,
         });
     }
 );

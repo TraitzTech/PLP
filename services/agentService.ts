@@ -274,12 +274,13 @@ export const agentService = {
    */
   async updateAgentStatus(
     id: string | number,
-    status: "pending" | "approved" | "rejected"
+    status: "pending" | "approved" | "rejected",
+    reason?: string
   ): Promise<AgentStatusUpdateResponse> {
     try {
       const response = await apiClient.patch<AgentStatusUpdateResponse>(
         `${BASE_URL}/${id}/status`,
-        { status }
+        { status, reason }
       );
       return response.data;
     } catch (error) {

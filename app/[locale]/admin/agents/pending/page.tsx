@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Clock, CheckCircle2, ArrowLeft, Eye } from "lucide-react";
@@ -27,6 +29,7 @@ interface DetailModalData {
 
 export default function PendingAgentsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [pendingAgents, setPendingAgents] = useState<Agent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [detailModal, setDetailModal] = useState<DetailModalData>({
@@ -35,6 +38,9 @@ export default function PendingAgentsPage() {
   });
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
+  const [selectedRejectAgentId, setSelectedRejectAgentId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const fetchPendingAgents = async () => {
     try {
@@ -55,6 +61,20 @@ export default function PendingAgentsPage() {
     fetchPendingAgents();
   }, []);
 
+  useEffect(() => {
+    if (isLoading) return;
+
+    const agentIdFromQuery = searchParams.get("agentId");
+    if (!agentIdFromQuery) return;
+
+    const selectedAgent = pendingAgents.find((agent) => String(agent.id) === agentIdFromQuery);
+    if (selectedAgent) {
+      setDetailModal({ agent: selectedAgent, isOpen: true });
+    } else if (pendingAgents.length > 0) {
+      toast.error("Requested pending agent was not found.");
+    }
+  }, [isLoading, pendingAgents, searchParams]);
+
   const handleApprove = async (agentId: string | number) => {
     try {
       setApprovingId(String(agentId));
@@ -71,10 +91,10 @@ export default function PendingAgentsPage() {
     }
   };
 
-  const handleReject = async (agentId: string | number) => {
+  const handleReject = async (agentId: string | number, reason: string) => {
     try {
       setRejectingId(String(agentId));
-      await agentService.updateAgentStatus(agentId, "rejected");
+      await agentService.updateAgentStatus(agentId, "rejected", reason);
       toast.success("Agent rejected");
       setDetailModal({ agent: null, isOpen: false });
       await fetchPendingAgents();
@@ -85,6 +105,25 @@ export default function PendingAgentsPage() {
     } finally {
       setRejectingId(null);
     }
+  };
+
+  const openRejectDialog = (agentId: string | number) => {
+    setSelectedRejectAgentId(String(agentId));
+    setRejectionReason("");
+    setRejectionDialogOpen(true);
+  };
+
+  const confirmReject = async () => {
+    if (!selectedRejectAgentId) return;
+    if (!rejectionReason.trim()) {
+      toast.error("Please provide a reason for rejection");
+      return;
+    }
+
+    await handleReject(selectedRejectAgentId, rejectionReason.trim());
+    setRejectionDialogOpen(false);
+    setSelectedRejectAgentId(null);
+    setRejectionReason("");
   };
 
   return (
@@ -344,12 +383,11 @@ export default function PendingAgentsPage() {
                 <Button
                   variant="outline"
                   onClick={() =>
-                    handleReject(detailModal.agent!.id)
+                    openRejectDialog(detailModal.agent!.id)
                   }
-                  disabled={rejectingId === String(detailModal.agent.id)}
                   className="text-red-600"
                 >
-                  {rejectingId === String(detailModal.agent.id) ? "Rejecting..." : "Reject"}
+                  Reject
                 </Button>
                 <Button
                   onClick={() =>
@@ -363,6 +401,45 @@ export default function PendingAgentsPage() {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={rejectionDialogOpen} onOpenChange={setRejectionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Agent Application</DialogTitle>
+            <DialogDescription>
+              Provide a rejection reason. It will be sent to the agent by notification and email.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <Label htmlFor="agent-rejection-reason">Rejection Reason</Label>
+            <Textarea
+              id="agent-rejection-reason"
+              value={rejectionReason}
+              onChange={(event) => setRejectionReason(event.target.value)}
+              placeholder="Enter rejection reason..."
+              rows={4}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setRejectionDialogOpen(false)}
+              disabled={!!rejectingId}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmReject}
+              disabled={!!rejectingId}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {rejectingId ? "Rejecting..." : "Reject Agent"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </DashboardLayout>

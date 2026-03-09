@@ -175,12 +175,14 @@ export interface TopProperty {
 
 export interface PendingApproval {
   id: number;
-  type: string;
+  type: "agent" | "property" | "booking" | string;
   title: string;
   owner: string;
   location: string;
   submitted: string;
   status: string;
+  review_path?: string;
+  reason_required_on_reject?: boolean;
 }
 
 export type ForgotPasswordRequest = { email: string };
@@ -702,8 +704,8 @@ export type AgentRegistrationResponse = {
   data: {
     user: User;
     agent: Agent;
-    token: string;
-    token_type: "Bearer";
+    token?: string;
+    token_type?: "Bearer";
   };
 };
 
