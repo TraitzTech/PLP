@@ -57,6 +57,7 @@ export interface CreateBookingRequest {
   guest_count?: number;
   special_requests?: string;
   discount_code?: string;
+  payment_id?: number;
 }
 
 export interface GuestBookingRequest {
@@ -69,6 +70,7 @@ export interface GuestBookingRequest {
   guest_phone: string;
   special_requests?: string;
   discount_code?: string;
+  payment_id?: number;
 }
 
 export interface BookingResponse {

@@ -25,8 +25,20 @@ export const newsletterService = {
    * Subscribe to the newsletter
    */
   async subscribe(data: NewsletterSubscribeRequest): Promise<NewsletterResponse> {
-    const response = await apiClient.post<NewsletterResponse>("/newsletter/subscribe", data);
-    return response.data;
+    try {
+      const response = await apiClient.post<NewsletterResponse>("/newsletter/subscribe", data, {
+        timeout: 12000,
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error?.code === 'ECONNABORTED' || String(error?.message || '').toLowerCase().includes('timeout')) {
+        throw {
+          ...error,
+          message: 'Request timed out. Please try subscribing again.',
+        };
+      }
+      throw error;
+    }
   },
 
   /**

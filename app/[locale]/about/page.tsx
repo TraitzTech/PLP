@@ -1,15 +1,111 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Users, Target, Award, Heart, Globe, Shield, ChevronRight } from 'lucide-react';
 import {Navbar} from "@/components/navigation/navbar";
 import {Footer} from "@/components/navigation/footer";
+import { PlatformGuideSection } from '@/components/sections/platform-guide-section';
 import { useTranslations } from '@/components/translation-provider';
+import { settingsService, type PublicSettings } from '@/services/settingsService';
 
 const valueIcons = [Heart, Globe, Shield, Award];
 
 export default function AboutPage() {
   const t = useTranslations();
+  const [aboutSettings, setAboutSettings] = useState<PublicSettings>({});
+
+  useEffect(() => {
+    const loadAboutSettings = async () => {
+      const settings = await settingsService.getPublicSettings([
+        'about_mission_title',
+        'about_mission_description',
+        'about_vision_title',
+        'about_vision_description',
+        'about_journey_title',
+        'about_journey_items',
+        'about_team_title',
+        'about_team_description',
+        'about_team_members',
+        'about_stats_items',
+        'about_cta_title',
+        'about_cta_description',
+        'about_cta_button_text',
+        'about_cta_button_link',
+      ]);
+      setAboutSettings(settings || {});
+    };
+
+    loadAboutSettings();
+  }, []);
+
+  const statsItems = useMemo(() => {
+    const fromSettings = Array.isArray(aboutSettings.about_stats_items)
+      ? aboutSettings.about_stats_items
+      : [];
+
+    if (fromSettings.length > 0) {
+      return fromSettings.map((item) => ({
+        number: String(item?.number || ''),
+        label: String(item?.label || ''),
+      }));
+    }
+
+    return [0, 1, 2, 3].map((index) => ({
+      number: t(`about.stats.${index}.number`),
+      label: t(`about.stats.${index}.label`),
+    }));
+  }, [aboutSettings.about_stats_items, t]);
+
+  const teamMembers = useMemo(() => {
+    const fromSettings = Array.isArray(aboutSettings.about_team_members)
+      ? aboutSettings.about_team_members
+      : [];
+
+    if (fromSettings.length > 0) {
+      return fromSettings.map((member, index) => ({
+        id: `${member?.name || 'member'}-${index}`,
+        name: String(member?.name || `Team Member ${index + 1}`),
+        role: String(member?.role || ''),
+        description: String(member?.description || ''),
+        image: String(member?.image || ''),
+        link: String(member?.link || ''),
+      }));
+    }
+
+    return [0, 1, 2, 3].map((index) => ({
+      id: `fallback-${index}`,
+      name: t(`about.team.${index}.name`),
+      role: t(`about.team.${index}.role`),
+      description: t(`about.team.${index}.bio`),
+      image: '',
+      link: '',
+    }));
+  }, [aboutSettings.about_team_members, t]);
+
+  const journeyItems = useMemo(() => {
+    const fromSettings = Array.isArray(aboutSettings.about_journey_items)
+      ? aboutSettings.about_journey_items
+      : [];
+
+    if (fromSettings.length > 0) {
+      return fromSettings.map((item, index) => ({
+        id: `${item?.year || 'year'}-${index}`,
+        year: String(item?.year || ''),
+        title: String(item?.title || ''),
+        description: String(item?.description || ''),
+      }));
+    }
+
+    return [0, 1, 2, 3, 4].map((index) => ({
+      id: `timeline-${index}`,
+      year: t(`about.timeline.${index}.year`),
+      title: t(`about.timeline.${index}.title`),
+      description: t(`about.timeline.${index}.description`),
+    }));
+  }, [aboutSettings.about_journey_items, t]);
+
+  const ctaLink = String(aboutSettings.about_cta_button_link || '/search');
 
   return (
     <div className="min-h-screen bg-white">
@@ -34,19 +130,19 @@ export default function AboutPage() {
             <div className="text-center">
               <Target className="w-16 h-16 text-yellow-500 mx-auto mb-6" />
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                {t('about.mission.title')}
+                {aboutSettings.about_mission_title || t('about.mission.title')}
               </h2>
               <p className="text-lg text-gray-600">
-                {t('about.mission.description')}
+                {aboutSettings.about_mission_description || t('about.mission.description')}
               </p>
             </div>
             <div className="text-center">
               <Users className="w-16 h-16 text-pink-500 mx-auto mb-6" />
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                {t('about.vision.title')}
+                {aboutSettings.about_vision_title || t('about.vision.title')}
               </h2>
               <p className="text-lg text-gray-600">
-                {t('about.vision.description')}
+                {aboutSettings.about_vision_description || t('about.vision.description')}
               </p>
             </div>
           </div>
@@ -85,13 +181,13 @@ export default function AboutPage() {
             {t('about.stats.title')}
           </h2>
           <div className="grid md:grid-cols-4 gap-8">
-            {[0, 1, 2, 3].map((index) => (
-              <div key={index} className="text-center">
+            {statsItems.map((item, index) => (
+              <div key={`stat-${index}`} className="text-center">
                 <div className="text-4xl md:text-5xl font-bold text-yellow-500 mb-2">
-                  {t(`about.stats.${index}.number`)}
+                  {item.number}
                 </div>
                 <div className="text-lg text-gray-600">
-                  {t(`about.stats.${index}.label`)}
+                  {item.label}
                 </div>
               </div>
             ))}
@@ -104,29 +200,50 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              {t('about.team.title')}
+              {aboutSettings.about_team_title || t('about.team.title')}
             </h2>
             <p className="text-xl text-gray-600">
-              {t('about.team.description')}
+              {aboutSettings.about_team_description || t('about.team.description')}
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[0, 1, 2, 3].map((index) => (
-              <div key={index} className="text-center bg-white p-6 rounded-xl shadow-lg">
-                <div className="w-24 h-24 bg-gradient-to-br from-yellow-400 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
-                  {t(`about.team.${index}.name`).split(' ').map(n => n[0]).join('')}
+            {teamMembers.map((member) => {
+              const initials = member.name
+                .split(' ')
+                .map((n) => n?.[0] || '')
+                .join('')
+                .slice(0, 2)
+                .toUpperCase();
+
+              const content = (
+                <div className="text-center bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow h-full">
+                  {member.image ? (
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 bg-gradient-to-br from-yellow-400 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+                      {initials}
+                    </div>
+                  )}
+                  <h3 className="text-xl font-semibold text-gray-900 mb-1">{member.name}</h3>
+                  <p className="text-yellow-600 font-medium mb-3">{member.role}</p>
+                  <p className="text-gray-600 text-sm">{member.description}</p>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                  {t(`about.team.${index}.name`)}
-                </h3>
-                <p className="text-yellow-600 font-medium mb-3">
-                  {t(`about.team.${index}.role`)}
-                </p>
-                <p className="text-gray-600 text-sm">
-                  {t(`about.team.${index}.bio`)}
-                </p>
-              </div>
-            ))}
+              );
+
+              if (member.link) {
+                return (
+                  <a key={member.id} href={member.link} target="_blank" rel="noreferrer" className="block">
+                    {content}
+                  </a>
+                );
+              }
+
+              return <div key={member.id}>{content}</div>;
+            })}
           </div>
         </div>
       </section>
@@ -135,20 +252,20 @@ export default function AboutPage() {
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center text-gray-900 mb-16">
-            {t('about.timeline.title')}
+            {aboutSettings.about_journey_title || t('about.timeline.title')}
           </h2>
           <div className="space-y-8">
-            {[0, 1, 2, 3, 4].map((index) => (
-              <div key={index} className="flex items-start space-x-4">
+            {journeyItems.map((item) => (
+              <div key={item.id} className="flex items-start space-x-4">
                 <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-yellow-400 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                  {t(`about.timeline.${index}.year`)}
+                  {item.year}
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {t(`about.timeline.${index}.title`)}
+                    {item.title}
                   </h3>
                   <p className="text-gray-600">
-                    {t(`about.timeline.${index}.description`)}
+                    {item.description}
                   </p>
                 </div>
               </div>
@@ -157,19 +274,21 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <PlatformGuideSection />
+
       {/* CTA */}
       <section className="py-20 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
-            {t('about.cta.title')}
+            {aboutSettings.about_cta_title || t('about.cta.title')}
           </h2>
           <p className="text-xl text-white/90 mb-8">
-            {t('about.cta.description')}
+            {aboutSettings.about_cta_description || t('about.cta.description')}
           </p>
-          <button className="bg-white text-gray-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-colors inline-flex items-center space-x-2">
-            <span>{t('about.cta.button')}</span>
+          <Link href={ctaLink} className="bg-white text-gray-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-colors inline-flex items-center space-x-2">
+            <span>{aboutSettings.about_cta_button_text || t('about.cta.button')}</span>
             <ChevronRight className="w-5 h-5" />
-          </button>
+          </Link>
         </div>
       </section>
         <Footer />

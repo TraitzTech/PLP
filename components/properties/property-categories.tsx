@@ -49,7 +49,6 @@ export function PropertyCategories() {
         
         // Map property types with their config and limit to 8
         const categoriesWithConfig = types
-          .filter(type => type.status === 1) // Only show active types
           .slice(0, 6) // Limit to 6 property types
           .map(type => ({
             ...type,
@@ -81,7 +80,7 @@ export function PropertyCategories() {
             Explore Property Types
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Whether you're looking for a luxury hotel, dream home, or investment land, we have the perfect property waiting for you.
+            Whether you are looking for a luxury hotel, dream home, or investment land, we have the perfect property waiting for you.
           </p>
         </div>
 
@@ -104,14 +103,15 @@ export function PropertyCategories() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {categories.map((category) => {
                 const Icon = category.icon;
+                const isActive = category.status === 1 || category.status === true;
                 return (
-                  <Card key={category.id} className="group cursor-pointer card-hover overflow-hidden border-0 shadow-lg">
+                  <Card key={category.id} className="group overflow-hidden border-0 shadow-lg">
                     <div className="relative h-64 overflow-hidden">
                       <Image
                         src={category.image}
                         alt={category.name}
                         fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-110"
+                        className={`object-cover transition-transform duration-300 ${isActive ? 'group-hover:scale-110' : ''}`}
                       />
                       <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
                       <div className="absolute top-4 left-4">
@@ -119,6 +119,11 @@ export function PropertyCategories() {
                           <Icon className="w-6 h-6" />
                         </div>
                       </div>
+                      {!isActive && (
+                        <div className="absolute top-4 right-4 rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                          Coming Soon
+                        </div>
+                      )}
                       <div className="absolute bottom-4 left-4 text-white">
                         <p className="text-sm opacity-90">{category.count}</p>
                       </div>
@@ -132,12 +137,16 @@ export function PropertyCategories() {
                         <p className="text-gray-600">
                           {category.description || 'Discover amazing properties in this category'}
                         </p>
-                        <Link href={`/search?type=${category.name.toLowerCase()}`}>
-                          <Button variant="ghost" className="group/btn p-0 h-auto font-semibold text-plp-purple hover:text-plp-pink transition-colors">
-                            <span data-explore-button>Explore</span> {category.name}
-                            <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
-                          </Button>
-                        </Link>
+                        {isActive ? (
+                          <Link href={`/search?type=${category.name.toLowerCase()}`}>
+                            <Button variant="ghost" className="group/btn p-0 h-auto font-semibold text-plp-purple hover:text-plp-pink transition-colors">
+                              <span data-explore-button>Explore</span> {category.name}
+                              <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+                            </Button>
+                          </Link>
+                        ) : (
+                          <p className="text-sm font-medium text-amber-700">Coming soon for launch rollout</p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

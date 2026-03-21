@@ -204,7 +204,7 @@ export default function CreateAgentPage() {
             <Label htmlFor="phone">Phone Number *</Label>
             <Input
               id="phone"
-              placeholder="+1 (555) 000-0000"
+              placeholder="+237680090360"
               value={formData.phone}
               onChange={(e) => handleInputChange("phone", e.target.value)}
               className={formErrors.phone ? "border-red-500" : ""}
@@ -317,7 +317,7 @@ export default function CreateAgentPage() {
             <Label htmlFor="country">Country *</Label>
             <Input
               id="country"
-              placeholder="e.g., United States"
+              placeholder="e.g., Cameroon"
               value={formData.country}
               onChange={(e) => handleInputChange("country", e.target.value)}
               className={formErrors.country ? "border-red-500" : ""}

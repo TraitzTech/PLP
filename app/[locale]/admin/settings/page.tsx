@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Save, Settings, DollarSign, FileText, User, Camera, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Save, Settings, DollarSign, FileText, User, Users, Camera, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { profileService } from '@/services/profileService';
 import apiClient from '@/lib/apiClient';
@@ -67,6 +67,15 @@ export default function AdminSettingsPage() {
     enableVirtualTours: true,
   });
 
+  const [contactSettings, setContactSettings] = useState({
+    primaryPhone: '+237680090360',
+    secondaryPhone: '+237659471779',
+    whatsappPhone: '+237680090360',
+    supportEmail: 'support@plplistings.com',
+    contactEmail: 'info@plplistings.com',
+    officeAddress: 'ENS Street Bambili, Bamenda, Cameroon',
+  });
+
   const [rolloutSettings, setRolloutSettings] = useState({
     enforceCityScope: true,
     rolloutCities: 'Douala, Bamenda',
@@ -94,6 +103,62 @@ export default function AdminSettingsPage() {
     privacyEn: '',
     privacyFr: '',
     privacyLastUpdated: new Date().toISOString().slice(0, 10),
+  });
+
+  const [homepageSettings, setHomepageSettings] = useState({
+    whyUsePoints: [
+      'Verified Property Listings',
+      'Direct Contact with Trusted Agents and Landlords',
+      'Simple and Fast Property Search',
+      'Safe and Transparent Property Discovery',
+    ].join('\n'),
+    citiesCovered: 'Douala, Bamenda',
+    numbersPropertiesListed: '50000',
+    numbersVerifiedAgents: '25000',
+    numbersCitiesCovered: '100',
+    numbersMonthlyVisitors: '1200',
+    featuredAgentId: '',
+    recentPropertiesLimit: '8',
+  });
+
+  const [aboutPageSettings, setAboutPageSettings] = useState({
+    missionTitle: 'Our Mission',
+    missionDescription: 'To make finding and listing properties in Cameroon simple, trusted, and transparent for everyone.',
+    visionTitle: 'Our Vision',
+    visionDescription: 'To become the most trusted property discovery platform in Cameroon and beyond.',
+    journeyTitle: 'Our Journey',
+    journeyItemsJson: JSON.stringify([
+      { year: '2020', title: 'Platform Idea', description: 'PLP started with a mission to simplify property discovery.' },
+      { year: '2021', title: 'Early Listings', description: 'Our first partner agents listed properties in key cities.' },
+    ], null, 2),
+    teamTitle: 'Meet Our Team',
+    teamDescription: 'The people building a better property platform for Cameroon.',
+    teamMembersJson: JSON.stringify([
+      { name: 'Team Member 1', role: 'Founder', image: '', description: 'Leads product and strategy.', link: '' },
+    ], null, 2),
+    statsItemsJson: JSON.stringify([
+      { label: 'Properties Listed', number: '50000+' },
+      { label: 'Cities Covered', number: '100+' },
+      { label: 'Countries Reached', number: '10+' },
+      { label: 'Trusted Agents', number: '25000+' },
+    ], null, 2),
+    ctaTitle: 'Start Your Property Journey Today',
+    ctaDescription: 'Explore listings, connect with providers, and find your next property with PLP.',
+    ctaButtonText: 'Start Your Journey',
+    ctaButtonLink: '/search',
+    howStepsTitle: 'How the Platform Works',
+    howStepsDescription: 'From search to booking, discover properties with a simple and transparent process.',
+    howStepsJson: JSON.stringify([
+      { accent: 'Step 1', title: 'Search', description: 'Use filters for city, price, and property type to find what fits.' },
+      { accent: 'Step 2', title: 'Identify', description: 'Open listing details and compare options with confidence.' },
+      { accent: 'Step 3', title: 'Contact Agent', description: 'Reach the agent directly through WhatsApp or listed contact channels.' },
+      { accent: 'Step 4', title: 'Book or Proceed', description: 'Confirm booking or continue the purchase/rental process safely.' },
+    ], null, 2),
+    popularSearchesTitle: 'Popular Searches',
+    popularSearchesJson: JSON.stringify([
+      { label: '2 Bedroom Apartments in Douala', link: '/search?type=apartment&location=Douala&purpose=rent' },
+      { label: 'Affordable Rooms in Bamenda', link: '/search?location=Bamenda&purpose=rent' },
+    ], null, 2),
   });
 
   const previewLegal = useMemo(
@@ -132,6 +197,13 @@ export default function AdminSettingsPage() {
         saveSetting('site_description', platformSettings.siteDescription, 'string', 'general'),
         saveSetting('default_currency', platformSettings.defaultCurrency, 'string', 'general'),
         saveSetting('default_language', platformSettings.defaultLanguage, 'string', 'general'),
+        saveSetting('site_phone', contactSettings.primaryPhone, 'string', 'general'),
+        saveSetting('support_phone_secondary', contactSettings.secondaryPhone, 'string', 'general'),
+        saveSetting('support_whatsapp_phone', contactSettings.whatsappPhone, 'string', 'general'),
+        saveSetting('support_email', contactSettings.supportEmail, 'string', 'general'),
+        saveSetting('contact_email', contactSettings.contactEmail, 'string', 'general'),
+        saveSetting('site_email', contactSettings.contactEmail, 'string', 'general'),
+        saveSetting('site_address', contactSettings.officeAddress, 'string', 'general'),
         saveSetting('maintenance_mode', platformSettings.maintenanceMode, 'boolean', 'features'),
         saveSetting('enable_registration', platformSettings.allowRegistration, 'boolean', 'features'),
         saveSetting('auto_approve_properties', platformSettings.autoApproveProperties, 'boolean', 'features'),
@@ -195,6 +267,85 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const handleSaveHomepageSettings = async () => {
+    try {
+      setSaving(true);
+
+      const whyUsePoints = homepageSettings.whyUsePoints
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      const citiesCovered = homepageSettings.citiesCovered
+        .split(',')
+        .map((city) => city.trim())
+        .filter(Boolean);
+
+      await Promise.all([
+        saveSetting('homepage_why_use_points', whyUsePoints, 'json', 'homepage'),
+        saveSetting('homepage_cities_covered', citiesCovered, 'json', 'homepage'),
+        saveSetting('homepage_numbers_properties_listed', Number(homepageSettings.numbersPropertiesListed || 0), 'integer', 'homepage'),
+        saveSetting('homepage_numbers_verified_agents', Number(homepageSettings.numbersVerifiedAgents || 0), 'integer', 'homepage'),
+        saveSetting('homepage_numbers_cities_covered', Number(homepageSettings.numbersCitiesCovered || 0), 'integer', 'homepage'),
+        saveSetting('homepage_numbers_monthly_visitors', Number(homepageSettings.numbersMonthlyVisitors || 0), 'integer', 'homepage'),
+        saveSetting('homepage_featured_agent_id', Number(homepageSettings.featuredAgentId || 0), 'integer', 'homepage'),
+        saveSetting('homepage_recent_properties_limit', Number(homepageSettings.recentPropertiesLimit || 8), 'integer', 'homepage'),
+      ]);
+
+      toast.success('Homepage content settings updated.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save homepage settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveAboutPageSettings = async () => {
+    try {
+      setSaving(true);
+
+      const parseJsonArray = (raw: string, fieldName: string) => {
+        const parsed = JSON.parse(raw || '[]');
+        if (!Array.isArray(parsed)) {
+          throw new Error(`${fieldName} must be a JSON array.`);
+        }
+        return parsed;
+      };
+
+      const journeyItems = parseJsonArray(aboutPageSettings.journeyItemsJson, 'Journey items');
+      const teamMembers = parseJsonArray(aboutPageSettings.teamMembersJson, 'Team members');
+      const statsItems = parseJsonArray(aboutPageSettings.statsItemsJson, 'Stats items');
+      const howSteps = parseJsonArray(aboutPageSettings.howStepsJson, 'How it works steps');
+
+      await Promise.all([
+        saveSetting('about_mission_title', aboutPageSettings.missionTitle, 'string', 'about'),
+        saveSetting('about_mission_description', aboutPageSettings.missionDescription, 'string', 'about'),
+        saveSetting('about_vision_title', aboutPageSettings.visionTitle, 'string', 'about'),
+        saveSetting('about_vision_description', aboutPageSettings.visionDescription, 'string', 'about'),
+        saveSetting('about_journey_title', aboutPageSettings.journeyTitle, 'string', 'about'),
+        saveSetting('about_journey_items', journeyItems, 'json', 'about'),
+        saveSetting('about_team_title', aboutPageSettings.teamTitle, 'string', 'about'),
+        saveSetting('about_team_description', aboutPageSettings.teamDescription, 'string', 'about'),
+        saveSetting('about_team_members', teamMembers, 'json', 'about'),
+        saveSetting('about_stats_items', statsItems, 'json', 'about'),
+        saveSetting('about_cta_title', aboutPageSettings.ctaTitle, 'string', 'about'),
+        saveSetting('about_cta_description', aboutPageSettings.ctaDescription, 'string', 'about'),
+        saveSetting('about_cta_button_text', aboutPageSettings.ctaButtonText, 'string', 'about'),
+        saveSetting('about_cta_button_link', aboutPageSettings.ctaButtonLink, 'string', 'about'),
+        saveSetting('platform_how_steps_title', aboutPageSettings.howStepsTitle, 'string', 'about'),
+        saveSetting('platform_how_steps_description', aboutPageSettings.howStepsDescription, 'string', 'about'),
+        saveSetting('platform_how_steps_items', howSteps, 'json', 'about'),
+        saveSetting('platform_popular_searches_title', aboutPageSettings.popularSearchesTitle, 'string', 'about'),
+      ]);
+
+      toast.success('About page settings updated.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save about page settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   useEffect(() => {
     const loadProfileAndSettings = async () => {
       try {
@@ -223,6 +374,16 @@ export default function AdminSettingsPage() {
           autoApproveProperties: toBool(settings.auto_approve_properties, prev.autoApproveProperties),
           enableLandlordListing: toBool(settings.enable_landlord_listing, prev.enableLandlordListing),
           enableVirtualTours: toBool(settings.enable_virtual_tours, prev.enableVirtualTours),
+        }));
+
+        setContactSettings((prev) => ({
+          ...prev,
+          primaryPhone: String(settings.site_phone ?? prev.primaryPhone),
+          secondaryPhone: String(settings.support_phone_secondary ?? prev.secondaryPhone),
+          whatsappPhone: String(settings.support_whatsapp_phone ?? settings.site_phone ?? prev.whatsappPhone),
+          supportEmail: String(settings.support_email ?? settings.site_email ?? prev.supportEmail),
+          contactEmail: String(settings.contact_email ?? settings.site_email ?? prev.contactEmail),
+          officeAddress: String(settings.site_address ?? prev.officeAddress),
         }));
 
         setRolloutSettings((prev) => ({
@@ -257,6 +418,55 @@ export default function AdminSettingsPage() {
           privacyEn: String(settings.legal_privacy_content_en ?? prev.privacyEn),
           privacyFr: String(settings.legal_privacy_content_fr ?? prev.privacyFr),
           privacyLastUpdated: ensureDate(settings.legal_privacy_last_updated ?? prev.privacyLastUpdated),
+        }));
+
+        setHomepageSettings((prev) => ({
+          ...prev,
+          whyUsePoints: Array.isArray(settings.homepage_why_use_points)
+            ? settings.homepage_why_use_points.join('\n')
+            : prev.whyUsePoints,
+          citiesCovered: Array.isArray(settings.homepage_cities_covered)
+            ? settings.homepage_cities_covered.join(', ')
+            : prev.citiesCovered,
+          numbersPropertiesListed: String(settings.homepage_numbers_properties_listed ?? prev.numbersPropertiesListed),
+          numbersVerifiedAgents: String(settings.homepage_numbers_verified_agents ?? prev.numbersVerifiedAgents),
+          numbersCitiesCovered: String(settings.homepage_numbers_cities_covered ?? prev.numbersCitiesCovered),
+          numbersMonthlyVisitors: String(settings.homepage_numbers_monthly_visitors ?? prev.numbersMonthlyVisitors),
+          featuredAgentId: String(settings.homepage_featured_agent_id ?? prev.featuredAgentId),
+          recentPropertiesLimit: String(settings.homepage_recent_properties_limit ?? prev.recentPropertiesLimit),
+        }));
+
+        setAboutPageSettings((prev) => ({
+          ...prev,
+          missionTitle: String(settings.about_mission_title ?? prev.missionTitle),
+          missionDescription: String(settings.about_mission_description ?? prev.missionDescription),
+          visionTitle: String(settings.about_vision_title ?? prev.visionTitle),
+          visionDescription: String(settings.about_vision_description ?? prev.visionDescription),
+          journeyTitle: String(settings.about_journey_title ?? prev.journeyTitle),
+          journeyItemsJson: Array.isArray(settings.about_journey_items)
+            ? JSON.stringify(settings.about_journey_items, null, 2)
+            : prev.journeyItemsJson,
+          teamTitle: String(settings.about_team_title ?? prev.teamTitle),
+          teamDescription: String(settings.about_team_description ?? prev.teamDescription),
+          teamMembersJson: Array.isArray(settings.about_team_members)
+            ? JSON.stringify(settings.about_team_members, null, 2)
+            : prev.teamMembersJson,
+          statsItemsJson: Array.isArray(settings.about_stats_items)
+            ? JSON.stringify(settings.about_stats_items, null, 2)
+            : prev.statsItemsJson,
+          ctaTitle: String(settings.about_cta_title ?? prev.ctaTitle),
+          ctaDescription: String(settings.about_cta_description ?? prev.ctaDescription),
+          ctaButtonText: String(settings.about_cta_button_text ?? prev.ctaButtonText),
+          ctaButtonLink: String(settings.about_cta_button_link ?? prev.ctaButtonLink),
+          howStepsTitle: String(settings.platform_how_steps_title ?? prev.howStepsTitle),
+          howStepsDescription: String(settings.platform_how_steps_description ?? prev.howStepsDescription),
+          howStepsJson: Array.isArray(settings.platform_how_steps_items)
+            ? JSON.stringify(settings.platform_how_steps_items, null, 2)
+            : prev.howStepsJson,
+          popularSearchesTitle: String(settings.platform_popular_searches_title ?? prev.popularSearchesTitle),
+          popularSearchesJson: Array.isArray(settings.platform_popular_searches_items)
+            ? JSON.stringify(settings.platform_popular_searches_items, null, 2)
+            : prev.popularSearchesJson,
         }));
       } catch {
         toast.error('Failed to load profile/settings');
@@ -340,7 +550,7 @@ export default function AdminSettingsPage() {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Profile
@@ -352,6 +562,14 @@ export default function AdminSettingsPage() {
             <TabsTrigger value="payments" className="flex items-center gap-2">
               <DollarSign className="w-4 h-4" />
               Payments
+            </TabsTrigger>
+            <TabsTrigger value="homepage" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Homepage
+            </TabsTrigger>
+            <TabsTrigger value="about" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              About
             </TabsTrigger>
             <TabsTrigger value="legal" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
@@ -585,6 +803,68 @@ export default function AdminSettingsPage() {
               </CardContent>
             </Card>
 
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact & Support</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Primary Phone (MTN)</Label>
+                    <Input
+                      value={contactSettings.primaryPhone}
+                      onChange={(e) => setContactSettings((prev) => ({ ...prev, primaryPhone: e.target.value }))}
+                      placeholder="+237680090360"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Secondary Phone (Orange)</Label>
+                    <Input
+                      value={contactSettings.secondaryPhone}
+                      onChange={(e) => setContactSettings((prev) => ({ ...prev, secondaryPhone: e.target.value }))}
+                      placeholder="+237659471779"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>WhatsApp Support Phone</Label>
+                    <Input
+                      value={contactSettings.whatsappPhone}
+                      onChange={(e) => setContactSettings((prev) => ({ ...prev, whatsappPhone: e.target.value }))}
+                      placeholder="+237680090360"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Support Email</Label>
+                    <Input
+                      type="email"
+                      value={contactSettings.supportEmail}
+                      onChange={(e) => setContactSettings((prev) => ({ ...prev, supportEmail: e.target.value }))}
+                      placeholder="support@plplistings.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Contact Email</Label>
+                    <Input
+                      type="email"
+                      value={contactSettings.contactEmail}
+                      onChange={(e) => setContactSettings((prev) => ({ ...prev, contactEmail: e.target.value }))}
+                      placeholder="info@plplistings.com"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Office Address</Label>
+                  <Textarea
+                    rows={3}
+                    value={contactSettings.officeAddress}
+                    onChange={(e) => setContactSettings((prev) => ({ ...prev, officeAddress: e.target.value }))}
+                    placeholder="ENS Street Bambili, Bamenda, Cameroon"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             <Button onClick={handleSaveGeneralSettings} className="btn-primary" disabled={saving}>
               {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
               Save General Settings
@@ -649,6 +929,272 @@ export default function AdminSettingsPage() {
             <Button onClick={handleSavePaymentSettings} className="btn-primary" disabled={saving}>
               {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
               Save Payment Settings
+            </Button>
+          </TabsContent>
+
+          <TabsContent value="homepage" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Homepage Dynamic Content</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Why Use PLP Points (one per line)</Label>
+                  <Textarea
+                    rows={6}
+                    value={homepageSettings.whyUsePoints}
+                    onChange={(e) => setHomepageSettings((prev) => ({ ...prev, whyUsePoints: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Cities Covered (comma separated)</Label>
+                  <Input
+                    value={homepageSettings.citiesCovered}
+                    onChange={(e) => setHomepageSettings((prev) => ({ ...prev, citiesCovered: e.target.value }))}
+                    placeholder="Douala, Bamenda"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Properties Listed</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={homepageSettings.numbersPropertiesListed}
+                      onChange={(e) => setHomepageSettings((prev) => ({ ...prev, numbersPropertiesListed: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Happy Customers</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={homepageSettings.numbersVerifiedAgents}
+                      onChange={(e) => setHomepageSettings((prev) => ({ ...prev, numbersVerifiedAgents: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Cities Covered (Number)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={homepageSettings.numbersCitiesCovered}
+                      onChange={(e) => setHomepageSettings((prev) => ({ ...prev, numbersCitiesCovered: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Monthly Visitors</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={homepageSettings.numbersMonthlyVisitors}
+                      onChange={(e) => setHomepageSettings((prev) => ({ ...prev, numbersMonthlyVisitors: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Featured Agent ID (optional)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={homepageSettings.featuredAgentId}
+                      onChange={(e) => setHomepageSettings((prev) => ({ ...prev, featuredAgentId: e.target.value }))}
+                      placeholder="0 = auto-select top agent"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Recent Properties Limit</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="24"
+                      value={homepageSettings.recentPropertiesLimit}
+                      onChange={(e) => setHomepageSettings((prev) => ({ ...prev, recentPropertiesLimit: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button onClick={handleSaveHomepageSettings} className="btn-primary" disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Save Homepage Settings
+            </Button>
+          </TabsContent>
+
+          <TabsContent value="about" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Mission & Vision</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Mission Title</Label>
+                    <Input value={aboutPageSettings.missionTitle} onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, missionTitle: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Vision Title</Label>
+                    <Input value={aboutPageSettings.visionTitle} onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, visionTitle: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Mission Description</Label>
+                    <Textarea rows={4} value={aboutPageSettings.missionDescription} onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, missionDescription: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Vision Description</Label>
+                    <Textarea rows={4} value={aboutPageSettings.visionDescription} onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, visionDescription: e.target.value }))} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Journey & Timeline</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Journey Section Title</Label>
+                  <Input value={aboutPageSettings.journeyTitle} onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, journeyTitle: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Journey Items (JSON Array)</Label>
+                  <Textarea
+                    rows={8}
+                    value={aboutPageSettings.journeyItemsJson}
+                    onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, journeyItemsJson: e.target.value }))}
+                    placeholder='[{"year":"2020","title":"Platform Idea","description":"..."}]'
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Team Members</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Team Section Title</Label>
+                    <Input value={aboutPageSettings.teamTitle} onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, teamTitle: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Team Section Description</Label>
+                    <Input value={aboutPageSettings.teamDescription} onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, teamDescription: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Team Members (JSON Array)</Label>
+                  <Textarea
+                    rows={10}
+                    value={aboutPageSettings.teamMembersJson}
+                    onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, teamMembersJson: e.target.value }))}
+                    placeholder='[{"name":"Jane Doe","role":"Founder","image":"https://...","description":"...","link":"https://..."}]'
+                  />
+                  <p className="text-xs text-gray-500">Each item supports: name, role, image, description, link (portfolio/social/WhatsApp).</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Stats & CTA</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Stats Items (JSON Array)</Label>
+                  <Textarea
+                    rows={7}
+                    value={aboutPageSettings.statsItemsJson}
+                    onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, statsItemsJson: e.target.value }))}
+                    placeholder='[{"label":"Properties Listed","number":"50000+"}]'
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>CTA Title</Label>
+                    <Input value={aboutPageSettings.ctaTitle} onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, ctaTitle: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>CTA Button Text</Label>
+                    <Input value={aboutPageSettings.ctaButtonText} onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, ctaButtonText: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>CTA Description</Label>
+                    <Textarea rows={3} value={aboutPageSettings.ctaDescription} onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, ctaDescription: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>CTA Button Link</Label>
+                    <Input value={aboutPageSettings.ctaButtonLink} onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, ctaButtonLink: e.target.value }))} placeholder="/search" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>How It Works (Shared Section)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Section Title</Label>
+                    <Input
+                      value={aboutPageSettings.howStepsTitle}
+                      onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, howStepsTitle: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Section Description</Label>
+                    <Input
+                      value={aboutPageSettings.howStepsDescription}
+                      onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, howStepsDescription: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Steps Items (JSON Array)</Label>
+                  <Textarea
+                    rows={10}
+                    value={aboutPageSettings.howStepsJson}
+                    onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, howStepsJson: e.target.value }))}
+                    placeholder='[{"accent":"Step 1","title":"Search","description":"..."}]'
+                  />
+                  <p className="text-xs text-gray-500">Each step supports: accent, title, description.</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Popular Searches (Homepage Section)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Section Title</Label>
+                  <Input
+                    value={aboutPageSettings.popularSearchesTitle}
+                    onChange={(e) => setAboutPageSettings((prev) => ({ ...prev, popularSearchesTitle: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Popular Searches (JSON Array)</Label>
+                  <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    Popular searches are now generated automatically from real user queries. The homepage shows the live top 5 queries.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button onClick={handleSaveAboutPageSettings} className="btn-primary" disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Save About Settings
             </Button>
           </TabsContent>
 

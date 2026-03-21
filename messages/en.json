@@ -25,7 +25,7 @@
   "hero": {
     "title": "Your Dream Property",
     "subtitle": "Awaits",
-    "description": "The trusted bridge for seamless property listing, booking, and discovery. Find your perfect stay from luxury hotels to dream homes."
+    "description": "The easiest way to buy, rent, or sell property in Cameroon. Discover verified homes, land, and rentals."
   },
   "search": {
     "locationPlaceholder": "City, region, or area...",
@@ -38,12 +38,12 @@
     "forRent": "For Rent",
     "forSale": "For Sale",
     "priceRange": "Price Range",
-    "anyPrice": "Any Price",
+    "anyPrice": "Any Price (XAF)",
     "popular": "Popular:",
     "guests": "Guests",
     "price": {
-      "budget": "Under $50,000",
-      "luxury": "$1M+"
+      "budget": "Under 50,000 XAF",
+      "luxury": "1,000,000 XAF+"
     },
     "types": {
       "hotels": "Hotels",
@@ -61,7 +61,7 @@
   },
   "categories": {
     "title": "Explore Property Types",
-    "subtitle": "Whether you're looking for a luxury hotel, dream home, or investment land, we have the perfect property waiting for you.",
+    "subtitle": "Whether you're looking for homes, rentals, or investment land, we have verified properties for you.",
     "exploreButton": "Explore",
     "hotels": {
       "name": "Hotels",
@@ -116,7 +116,7 @@
     "thankYouMessage": "Thank you! You'll receive our latest updates soon."
   },
   "footer": {
-    "description": "The trusted bridge for seamless property listing, booking, and discovery. Connecting property owners with travelers worldwide.",
+    "description": "Your trusted platform for verified homes, land, and rentals across Cameroon.",
     "sections": {
       "company": "Company",
       "support": "Support",
@@ -292,9 +292,9 @@
     },
     "contact": {
       "title": "Contact Information",
-      "phone": { "title": "Phone Support", "description": "Speak with our support team", "number": "+1 (555) 123-4567" },
-      "email": { "title": "Email Support", "description": "Send us an email anytime", "address": "support@propertylistingportal.com" },
-      "address": { "title": "Office Address", "description": "Visit our headquarters", "location": "123 Business Ave, Suite 100\nCity, ST 12345\nUnited States" }
+      "phone": { "title": "Phone Support", "description": "Speak with our support team", "number": "+237680090360" },
+      "email": { "title": "Email Support", "description": "Send us an email anytime", "address": "support@plplistings.com" },
+      "address": { "title": "Office Address", "description": "Visit our headquarters", "location": "ENS Street Bambili\nBamenda\nCameroon" }
     },
     "hours": {
       "title": "Business Hours",
@@ -368,7 +368,7 @@
       "title": "Media Contact",
       "description": "For press inquiries, interviews, and media requests",
       "email": "press@propertylistingportal.com",
-      "phone": "+1 (555) 123-PRESS"
+      "phone": "+237680090360"
     },
     "awards": {
       "title": "Awards & Recognition",
@@ -456,7 +456,7 @@
       "title": "Emergency Procedures",
       "description": "In case of emergency, follow these steps:",
       "0": "Ensure immediate safety - call local emergency services if needed",
-      "1": "Contact PLP emergency support: +1 (555) 911-HELP",
+      "1": "Contact PLP emergency support: +237680090360",
       "2": "Document the incident with photos if safe to do so",
       "3": "Cooperate with local authorities and PLP investigation",
       "4": "Follow up with our safety team for resolution"

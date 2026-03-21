@@ -13,7 +13,12 @@ export type AuthErrorResponse = { message: string };
 export type NotFoundResponse = { message: string };
 
 // Auth
-export type LoginRequest = { email: string; password: string };
+export type LoginRequest = {
+  email: string;
+  password: string;
+  remember?: boolean;
+  expected_user_type?: "admin" | "agent" | "customer";
+};
 export type LoginResponse = { user: string; token: string };
 
 export type RegisterRequest = {
@@ -227,7 +232,7 @@ export interface PropertyType {
   id: number;
   name: string;
   description: string | null;
-  status: number;
+  status: number | boolean;
   created_at: string | null;
   updated_at: string | null;
 }

@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import type { AdminProperty, User, PropertyType, Facility, ListingImage, ListingVideo } from "@/services/types";
 import { listingImageService } from "@/services/listingImageService";
 import { listingVideoService } from "@/services/listingVideoService";
+import { settingsService } from "@/services/settingsService";
 import { LocationPicker } from "@/components/properties/location-picker";
 
 export default function EditAdminPropertyPage() {
@@ -40,6 +41,8 @@ export default function EditAdminPropertyPage() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [deletingImageIds, setDeletingImageIds] = useState<number[]>([]);
   const [deletingVideoIds, setDeletingVideoIds] = useState<number[]>([]);
+  const [launchRentalsOnly, setLaunchRentalsOnly] = useState(true);
+  const [launchSalesEnabled, setLaunchSalesEnabled] = useState(false);
   const [formData, setFormData] = useState<any>({
     agent_id: 0,
     title: "",
@@ -101,8 +104,19 @@ export default function EditAdminPropertyPage() {
       setAgents(agentsArray);
 
       // Fetch property types
-      const typesRes = await propertyTypeService.getAllPropertyTypes();
-      setPropertyTypes(Array.isArray(typesRes) ? typesRes : []);
+      const [typesRes, launchSettings] = await Promise.all([
+        propertyTypeService.getAllPropertyTypes(),
+        settingsService.getPublicSettings(['launch_rentals_only', 'launch_sales_enabled']),
+      ]);
+      const rentalsOnly = launchSettings.launch_rentals_only !== false;
+      const salesEnabled = launchSettings.launch_sales_enabled === true;
+      setLaunchRentalsOnly(rentalsOnly);
+      setLaunchSalesEnabled(salesEnabled);
+      setPropertyTypes(
+        Array.isArray(typesRes)
+          ? typesRes.filter((type) => type.status === 1 || type.status === true || type.id === propertyData.property_type_id)
+          : []
+      );
 
       // Fetch facilities
       const facilitiesRes = await facilitiesService.getAllFacilities();
@@ -175,6 +189,10 @@ export default function EditAdminPropertyPage() {
         has_restaurant: prop.has_restaurant || false,
         has_pool: prop.has_pool || false,
       });
+
+      if (rentalsOnly) {
+        setFormData((prev: any) => ({ ...prev, for_rent: true, for_purchase: false }));
+      }
     } catch (error: any) {
       console.error("Error fetching data:", error);
       toast.error(error.response?.data?.message || "Failed to fetch property details");
@@ -842,6 +860,7 @@ export default function EditAdminPropertyPage() {
                     id="for_rent"
                     checked={formData.for_rent}
                     onCheckedChange={(checked) => handleInputChange("for_rent", checked)}
+                    disabled={launchRentalsOnly}
                   />
                   <Label htmlFor="for_rent" className="cursor-pointer">
                     For Rent
@@ -853,6 +872,7 @@ export default function EditAdminPropertyPage() {
                     id="for_purchase"
                     checked={formData.for_purchase}
                     onCheckedChange={(checked) => handleInputChange("for_purchase", checked)}
+                    disabled={launchRentalsOnly || !launchSalesEnabled}
                   />
                   <Label htmlFor="for_purchase" className="cursor-pointer">
                     For Purchase
@@ -880,6 +900,12 @@ export default function EditAdminPropertyPage() {
                     Featured
                   </Label>
                 </div>
+                {launchRentalsOnly && (
+                  <p className="text-sm text-amber-700">Sales are disabled for launch. Listings must be rental.</p>
+                )}
+                {!launchSalesEnabled && !launchRentalsOnly && (
+                  <p className="text-sm text-amber-700">Sales are currently disabled by admin settings.</p>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -1,19 +1,21 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { MessageCircle, X, Send, HelpCircle, Mail, Phone, Sparkles, BookOpen } from "lucide-react";
+import { MessageCircle, Send, HelpCircle, Mail, Phone, Sparkles, BookOpen } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { buildWhatsappMessageUrl, useContactSettings } from "@/hooks/use-contact-settings";
 
 export function SupportWidget() {
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
-  const isValid = useMemo(() => form.name && form.email && form.message, [form]);
+  const [form, setForm] = useState({ name: "", phone: "", message: "" });
+  const isValid = useMemo(() => form.name && form.phone && form.message, [form]);
+  const { contact } = useContactSettings();
   const pathname = usePathname();
   const locale = useMemo(() => {
     if (!pathname) return 'en';
@@ -25,11 +27,17 @@ export function SupportWidget() {
     e.preventDefault();
     if (!isValid) return;
     setSubmitting(true);
-    // Placeholder for integration. Simulate delay.
-    setTimeout(() => {
-      setSubmitting(false);
-      setOpen(false);
-    }, 800);
+
+    const supportMessage = [
+      "Hello PLP Support,",
+      `Name: ${form.name}`,
+      `Phone: ${form.phone}`,
+      `Message: ${form.message}`,
+      `Source: ${pathname || '/'}`,
+    ].join("\n");
+
+    const whatsappUrl = buildWhatsappMessageUrl(contact.whatsappPhone || contact.primaryPhone, supportMessage);
+    window.location.href = whatsappUrl;
   };
 
   return (
@@ -54,7 +62,7 @@ export function SupportWidget() {
                 <HelpCircle className="w-5 h-5" /> We\'re here to help
               </DialogTitle>
               <DialogDescription className="text-white/90">
-                Get quick answers or send us a message. We typically respond within a few hours.
+                Get quick answers or send us a message. We typically respond as soon as possible.
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -100,8 +108,8 @@ export function SupportWidget() {
                   <Input id="support-name" value={form.name} onChange={(e)=>setForm(f=>({...f, name: e.target.value}))} placeholder="Your name" required />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700" htmlFor="support-email">Email</label>
-                  <Input id="support-email" type="email" value={form.email} onChange={(e)=>setForm(f=>({...f, email: e.target.value}))} placeholder="you@example.com" required />
+                  <label className="text-sm text-gray-700" htmlFor="support-phone">Phone</label>
+                  <Input id="support-phone" value={form.phone} onChange={(e)=>setForm(f=>({...f, phone: e.target.value}))} placeholder="+2376XXXXXXXX" required />
                 </div>
               </div>
               <div>
@@ -110,12 +118,12 @@ export function SupportWidget() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <span className="inline-flex items-center gap-1"><Phone className="w-4 h-4 text-plp-purple" /> +237 600 000 000</span>
+                  <span className="inline-flex items-center gap-1"><Phone className="w-4 h-4 text-plp-purple" /> {contact.primaryPhone}</span>
                   <span className="hidden md:inline">•</span>
-                  <span className="inline-flex items-center gap-1"><Mail className="w-4 h-4 text-plp-pink" /> support@plp.app</span>
+                  <span className="inline-flex items-center gap-1"><Mail className="w-4 h-4 text-plp-pink" /> {contact.supportEmail}</span>
                 </div>
                 <Button type="submit" disabled={!isValid || submitting} className="btn-primary inline-flex items-center gap-2">
-                  <Send className="w-4 h-4" /> {submitting ? "Sending..." : "Send"}
+                  <Send className="w-4 h-4" /> {submitting ? "Opening WhatsApp..." : "Chat on WhatsApp"}
                 </Button>
               </div>
             </form>

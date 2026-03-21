@@ -16,6 +16,7 @@ import {
   ArrowRight 
 } from 'lucide-react';
 import { useTranslations } from '@/components/translation-provider';
+import { useContactSettings, toWhatsappNumber } from '@/hooks/use-contact-settings';
 
 const socialLinks = [
   { name: 'Facebook', href: '#', icon: Facebook },
@@ -27,6 +28,7 @@ const socialLinks = [
 export function Footer() {
   const currentYear = new Date().getFullYear();
   const t = useTranslations();
+  const { contact } = useContactSettings();
 
   const footerLinks = {
     company: [
@@ -64,22 +66,26 @@ export function Footer() {
           <div className="lg:col-span-4 space-y-6">
             <Logo showText variant="horizontal" className="text-white" />
             <p className="text-gray-400 leading-relaxed">
-              {t('footer.description','The trusted bridge for seamless property listing, booking, and discovery. Connecting property owners with travelers worldwide.')}
+              {t('footer.description','Your trusted platform for verified homes, land, and rentals across Cameroon.')}
             </p>
             
             {/* Contact Info */}
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Phone className="w-4 h-4 text-plp-yellow" />
-                <span>+1 (555) 123-4567</span>
+                <a href={`https://wa.me/${toWhatsappNumber(contact.whatsappPhone)}`} target="_blank" rel="noreferrer" className="hover:text-plp-yellow transition-colors">
+                  {contact.primaryPhone}
+                </a>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="w-4 h-4 text-plp-yellow" />
-                <span>support@propertylistingportal.com</span>
+                <a href={`mailto:${contact.supportEmail}`} className="hover:text-plp-yellow transition-colors">
+                  {contact.supportEmail}
+                </a>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="w-4 h-4 text-plp-yellow" />
-                <span>123 Business Ave, Suite 100, City, ST 12345</span>
+                <span>{contact.officeAddress}</span>
               </div>
             </div>
 

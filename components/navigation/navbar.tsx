@@ -118,9 +118,7 @@ export function Navbar() {
             try {
                 setIsLoadingTypes(true);
                 const types = await propertyTypeService.getAllPropertyTypes();
-                // Filter only active property types
-                const activeTypes = types.filter(type => type.status === 1);
-                setPropertyTypes(activeTypes);
+                setPropertyTypes(types);
             } catch (error) {
                 console.error('Error fetching property types:', error);
                 setPropertyTypes([]);
@@ -210,19 +208,35 @@ export function Navbar() {
                                         No property types available
                                     </div>
                                 ) : (
-                                    propertyTypes.map((type) => (
-                                        <DropdownMenuItem key={type.id} asChild>
-                                            <Link href={`/search?type=${type.name.toLowerCase()}`} className="flex items-center cursor-pointer">
-                                                <Building2 className="w-4 h-4 mr-2" />
-                                                {type.name}
-                                                {type.description && (
-                                                    <span className="ml-2 text-xs text-gray-500">
-                                                        • {type.description.substring(0, 20)}...
-                                                    </span>
-                                                )}
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    ))
+                                    propertyTypes.map((type) => {
+                                        const isActive = type.status === 1 || type.status === true;
+
+                                        if (!isActive) {
+                                            return (
+                                                <DropdownMenuItem key={type.id} disabled>
+                                                    <div className="flex items-center text-gray-400">
+                                                        <Building2 className="w-4 h-4 mr-2" />
+                                                        {type.name}
+                                                        <span className="ml-2 text-[10px] uppercase tracking-wide text-amber-600">Coming soon</span>
+                                                    </div>
+                                                </DropdownMenuItem>
+                                            );
+                                        }
+
+                                        return (
+                                            <DropdownMenuItem key={type.id} asChild>
+                                                <Link href={`/search?type=${type.name.toLowerCase()}`} className="flex items-center cursor-pointer">
+                                                    <Building2 className="w-4 h-4 mr-2" />
+                                                    {type.name}
+                                                    {type.description && (
+                                                        <span className="ml-2 text-xs text-gray-500">
+                                                            • {type.description.substring(0, 20)}...
+                                                        </span>
+                                                    )}
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        );
+                                    })
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>

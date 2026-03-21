@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Mail, Phone, MapPin, Clock, Send, MessageSquare, CircleHelp as HelpCircle, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { toWhatsappNumber, useContactSettings } from '@/hooks/use-contact-settings';
 
 export default function ContactPage() {
   const t = useTranslations();
@@ -24,6 +25,7 @@ export default function ContactPage() {
     message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { contact } = useContactSettings();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,7 +208,16 @@ export default function ContactPage() {
                             {t('contact.contact.phone.description')}
                           </p>
                           <p className="font-medium text-plp-purple">
-                            {t('contact.contact.phone.number')}
+                            <a
+                              href={`https://wa.me/${toWhatsappNumber(contact.whatsappPhone)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="hover:underline"
+                            >
+                              {contact.primaryPhone}
+                            </a>
+                            <br />
+                            <span className="text-sm text-gray-600">{contact.secondaryPhone}</span>
                           </p>
                         </div>
                       </div>
@@ -227,7 +238,9 @@ export default function ContactPage() {
                             {t('contact.contact.email.description')}
                           </p>
                           <p className="font-medium text-plp-pink">
-                            {t('contact.contact.email.address')}
+                            <a href={`mailto:${contact.supportEmail}`} className="hover:underline">{contact.supportEmail}</a>
+                            <br />
+                            <a href={`mailto:${contact.contactEmail}`} className="hover:underline text-sm text-gray-600">{contact.contactEmail}</a>
                           </p>
                         </div>
                       </div>
@@ -248,7 +261,7 @@ export default function ContactPage() {
                             {t('contact.contact.address.description')}
                           </p>
                           <p className="font-medium text-gray-700 whitespace-pre-line">
-                            {t('contact.contact.address.location')}
+                            {contact.officeAddress}
                           </p>
                         </div>
                       </div>

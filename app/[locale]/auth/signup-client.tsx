@@ -224,7 +224,7 @@ export function SignUpClient() {
               <Input
                 id="phone"
                 name="phone"
-                placeholder="+1 (555) 000-0000"
+                placeholder="+237680090360"
                 value={formData.phone}
                 onChange={handleInputChange}
                 className={errors.phone ? "border-red-500" : ""}

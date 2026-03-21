@@ -20,6 +20,7 @@ import { propertyTypeService } from "@/services/propertyTypeService";
 import { listingService } from "@/services/listingService";
 import { listingImageService } from "@/services/listingImageService";
 import { listingVideoService } from "@/services/listingVideoService";
+import { settingsService } from "@/services/settingsService";
 import type { Facility, PropertyType, ListingCreateRequest } from "@/services/types";
 import { AREA_UNITS, HOUSE_TYPES, ZONING_OPTIONS } from "@/lib/propertyHelpers";
 
@@ -34,6 +35,8 @@ export default function CreatePropertyPage() {
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [completedSteps, setCompletedSteps] = useState<boolean[]>([false, false, false, false, false]);
+  const [launchRentalsOnly, setLaunchRentalsOnly] = useState(true);
+  const [launchSalesEnabled, setLaunchSalesEnabled] = useState(false);
 
   const [formData, setFormData] = useState<ListingCreateRequest>({
     title: "",
@@ -85,8 +88,25 @@ export default function CreatePropertyPage() {
         propertyTypeService.getAllPropertyTypes(),
       ]);
 
+      const launchSettings = await settingsService.getPublicSettings([
+        'launch_rentals_only',
+        'launch_sales_enabled',
+      ]);
+
+      const rentalsOnly = launchSettings.launch_rentals_only !== false;
+      const salesEnabled = launchSettings.launch_sales_enabled === true;
+
       setFacilities(Array.isArray(facilitiesData) ? facilitiesData : []);
-      setPropertyTypes(Array.isArray(propertyTypesData) ? propertyTypesData : []);
+      setPropertyTypes(
+        Array.isArray(propertyTypesData)
+          ? propertyTypesData.filter((type) => type.status === 1 || type.status === true)
+          : []
+      );
+      setLaunchRentalsOnly(rentalsOnly);
+      setLaunchSalesEnabled(salesEnabled);
+      if (rentalsOnly) {
+        setFormData((prev) => ({ ...prev, for_rent: true, for_purchase: false }));
+      }
     } catch (error: any) {
       console.error("Error fetching data:", error);
       toast.error("Failed to load form data");
@@ -589,6 +609,7 @@ export default function CreatePropertyPage() {
                   id="for_rent"
                   checked={formData.for_rent || false}
                   onCheckedChange={(checked) => handleInputChange("for_rent", checked)}
+                  disabled={launchRentalsOnly}
                 />
                 <Label htmlFor="for_rent" className="font-normal cursor-pointer">
                   For Rent
@@ -599,12 +620,19 @@ export default function CreatePropertyPage() {
                   id="for_purchase"
                   checked={formData.for_purchase || false}
                   onCheckedChange={(checked) => handleInputChange("for_purchase", checked)}
+                  disabled={launchRentalsOnly || !launchSalesEnabled}
                 />
                 <Label htmlFor="for_purchase" className="font-normal cursor-pointer">
                   For Sale/Purchase
                 </Label>
               </div>
             </div>
+            {launchRentalsOnly && (
+              <p className="text-sm text-amber-700">Sales are disabled for launch. Listings must be rental.</p>
+            )}
+            {!launchSalesEnabled && !launchRentalsOnly && (
+              <p className="text-sm text-amber-700">Sales are currently disabled by admin settings.</p>
+            )}
             {formData.for_rent && !formData.for_purchase && (
               <p className="text-sm text-gray-600">Price will be shown as monthly rent</p>
             )}

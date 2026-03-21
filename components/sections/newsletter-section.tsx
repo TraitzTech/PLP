@@ -31,7 +31,7 @@ export function NewsletterSection() {
       if (response.status === 'success') {
         setIsSubscribed(true);
         newsletterService.markAsSubscribed();
-        toast.success(response.message || t('newsletter.subscribeSuccess', 'Thank you for subscribing!'));
+        toast.success('Subscribed successfully');
         setEmail('');
       } else if (response.status === 'info') {
         toast.info(response.message);

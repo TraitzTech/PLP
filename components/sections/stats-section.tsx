@@ -1,16 +1,42 @@
 'use client'
 
 import React from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Building2, Users, MapPin, Star } from 'lucide-react';
+import { Building2, Users, MapPin } from 'lucide-react';
 import { useTranslations } from '@/components/translation-provider';
+import { homepageService } from '@/services/homepageService';
 
-const statIcons = [Building2, Users, MapPin, Star];
-const statValues = ['50,000+', '25,000+', '100+', '4.8'];
-const statKeys = ['properties', 'customers', 'cities', 'rating'];
+const statIcons = [Building2, Users, MapPin];
+const statKeys = ['properties', 'customers', 'cities'];
+
+const formatCompact = (value: number): string => {
+  if (value >= 1000000) return `${Math.round(value / 1000000)}M+`;
+  if (value >= 1000) return `${Math.round(value / 1000)}K+`;
+  return `${value}+`;
+};
 
 export function StatsSection() {
   const t = useTranslations();
+  const [statValues, setStatValues] = useState(['50K+', '25K+', '100+']);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await homepageService.getHomepageData();
+        const numbers = data.portal_numbers;
+        setStatValues([
+          formatCompact(numbers.properties_listed || 50000),
+          formatCompact(numbers.verified_agents || 25000),
+          formatCompact(numbers.cities_covered || 100),
+        ]);
+      } catch {
+        setStatValues(['50K+', '25K+', '100+']);
+      }
+    };
+
+    load();
+  }, []);
 
   return (
     <section className="py-20 bg-gradient-to-r from-plp-purple via-plp-pink to-plp-yellow">
@@ -24,7 +50,7 @@ export function StatsSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {statKeys.map((key, index) => {
             const Icon = statIcons[index];
             return (

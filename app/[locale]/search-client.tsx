@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/navigation/navbar';
@@ -16,6 +16,7 @@ import { publicPropertyService } from '@/services/publicPropertyService';
 import { listingImageService } from '@/services/listingImageService';
 import { propertyTypeService } from '@/services/propertyTypeService';
 import { SearchMap } from '@/components/search/search-map';
+import { searchAnalyticsService } from '@/services/searchAnalyticsService';
 import type { AdminProperty, PropertyType } from '@/services/types';
 
 // Helper function to get image URL
@@ -93,6 +94,7 @@ export function SearchClient() {
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const lastLoggedQueryRef = useRef<string>('');
   
   const [filters, setFilters] = useState({
     type: searchParams?.get('type') || '',
@@ -123,6 +125,35 @@ export function SearchClient() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentProperties = filteredProperties.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams?.toString() || '');
+    const payload = {
+      location: params.get('location') || undefined,
+      type: params.get('type') || undefined,
+      purpose: params.get('purpose') || undefined,
+      priceMin: params.get('priceMin') ? Number(params.get('priceMin')) : undefined,
+      priceMax: params.get('priceMax') ? Number(params.get('priceMax')) : undefined,
+    };
+
+    const hasMeaningfulQuery = Object.values(payload).some(
+      (value) => value !== undefined && value !== ''
+    );
+
+    if (!hasMeaningfulQuery) {
+      return;
+    }
+
+    const querySignature = JSON.stringify(payload);
+    if (lastLoggedQueryRef.current === querySignature) {
+      return;
+    }
+
+    lastLoggedQueryRef.current = querySignature;
+    searchAnalyticsService.logSearch(payload).catch(() => {
+      // Search logging is non-blocking by design.
+    });
+  }, [searchParams]);
 
   // Fetch property types
   useEffect(() => {

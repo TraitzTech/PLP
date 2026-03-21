@@ -27,7 +27,7 @@ export function Logo({ className = '', showText = true, variant = 'horizontal', 
   // Select the appropriate image based on variant and theme
   const getLogoSrc = () => {
     if (variant === 'mark-only') {
-      return '/logo-images/PlpLisitng-Fav-Icon.svg';
+      return '/logo-images/Plp-NewLogo.svg';
     }
     if (!showText) {
       return isDark
@@ -37,7 +37,7 @@ export function Logo({ className = '', showText = true, variant = 'horizontal', 
     // showText=true: use full logo for light, compact white for dark (no full-white variant exists)
     return isDark
       ? '/logo-images/PlpLisitng-Half_White.svg'
-      : '/logo-images/PlpLisitng-Full-Blk.svg';
+      : '/logo-images/Plp-NewLogo.svg';
   };
 
   const getLogoDimensions = () => {

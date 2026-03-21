@@ -22,6 +22,7 @@ import { propertyTypeService } from "@/services/propertyTypeService";
 import { propertyManagementService } from "@/services/propertyManagementService";
 import { listingImageService } from "@/services/listingImageService";
 import { listingVideoService } from "@/services/listingVideoService";
+import { settingsService } from "@/services/settingsService";
 import type { Facility, PropertyType, User, AdminPropertyCreateRequest } from "@/services/types";
 
 export default function AdminCreatePropertyPage() {
@@ -36,6 +37,8 @@ export default function AdminCreatePropertyPage() {
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [completedSteps, setCompletedSteps] = useState<boolean[]>([false, false, false, false, false]);
+  const [launchRentalsOnly, setLaunchRentalsOnly] = useState(true);
+  const [launchSalesEnabled, setLaunchSalesEnabled] = useState(false);
 
   const [formData, setFormData] = useState<AdminPropertyCreateRequest>({
     agent_id: 0,
@@ -92,11 +95,28 @@ export default function AdminCreatePropertyPage() {
         propertyTypeService.getAllPropertyTypes(),
       ]);
 
+      const launchSettings = await settingsService.getPublicSettings([
+        'launch_rentals_only',
+        'launch_sales_enabled',
+      ]);
+
+      const rentalsOnly = launchSettings.launch_rentals_only !== false;
+      const salesEnabled = launchSettings.launch_sales_enabled === true;
+
       // Extract agents array - ManageAgentController returns {status: 'success', data: agents[]}
       const agentsArray = agentsData?.data?.data || [];
       setAgents(agentsArray);
       setFacilities(Array.isArray(facilitiesData) ? facilitiesData : []);
-      setPropertyTypes(Array.isArray(propertyTypesData) ? propertyTypesData : []);
+      setPropertyTypes(
+        Array.isArray(propertyTypesData)
+          ? propertyTypesData.filter((type) => type.status === 1 || type.status === true)
+          : []
+      );
+      setLaunchRentalsOnly(rentalsOnly);
+      setLaunchSalesEnabled(salesEnabled);
+      if (rentalsOnly) {
+        setFormData((prev) => ({ ...prev, for_rent: true, for_purchase: false }));
+      }
     } catch (error: any) {
       console.error("Error fetching data:", error);
       toast.error("Failed to load form data");
@@ -175,6 +195,10 @@ export default function AdminCreatePropertyPage() {
         }
         if (!formData.price || formData.price <= 0) {
           toast.error("Please enter a valid price");
+          return false;
+        }
+        if (!formData.for_rent && !formData.for_purchase) {
+          toast.error("Please select at least one purpose (rent or purchase)");
           return false;
         }
         return true;
@@ -454,6 +478,7 @@ export default function AdminCreatePropertyPage() {
                   id="for_rent"
                   checked={formData.for_rent || false}
                   onCheckedChange={(checked) => handleInputChange("for_rent", checked)}
+                  disabled={launchRentalsOnly}
                 />
                 <Label htmlFor="for_rent" className="font-normal cursor-pointer">
                   Available for Rent/Booking
@@ -465,12 +490,19 @@ export default function AdminCreatePropertyPage() {
                   id="for_purchase"
                   checked={formData.for_purchase || false}
                   onCheckedChange={(checked) => handleInputChange("for_purchase", checked)}
+                  disabled={launchRentalsOnly || !launchSalesEnabled}
                 />
                 <Label htmlFor="for_purchase" className="font-normal cursor-pointer">
                   Available for Purchase/Sale
                 </Label>
               </div>
             </div>
+            {launchRentalsOnly && (
+              <p className="text-sm text-amber-700">Sales are disabled for launch. Listings must be rental.</p>
+            )}
+            {!launchSalesEnabled && !launchRentalsOnly && (
+              <p className="text-sm text-amber-700">Sales are currently disabled by admin settings.</p>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -790,7 +822,7 @@ export default function AdminCreatePropertyPage() {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Select at least one facility to describe the property's amenities.
+              Select at least one facility to describe the property amenities.
             </AlertDescription>
           </Alert>
 

@@ -12,7 +12,20 @@ export const listingVideoService = {
   async getVideosByListing(listingId: string | number): Promise<ListingVideosResponse> {
     try {
       const response = await apiClient.get<ListingVideosResponse>(`/listings/${listingId}/videos`);
-      return response.data;
+      const payload: any = response.data;
+
+      // Backward compatibility: older API shape returned a raw array.
+      if (Array.isArray(payload)) {
+        return {
+          status: "success",
+          data: payload,
+        } as ListingVideosResponse;
+      }
+
+      return {
+        status: payload?.status || "success",
+        data: Array.isArray(payload?.data) ? payload.data : [],
+      } as ListingVideosResponse;
     } catch (error) {
       console.error(`Failed to fetch videos for listing ${listingId}:`, error);
       throw error;
@@ -30,7 +43,7 @@ export const listingVideoService = {
     try {
       const formData = new FormData();
       files.forEach((file) => {
-        formData.append("videos", file);
+        formData.append("videos[]", file);
       });
       if (url) {
         formData.append("url", url);

@@ -20,6 +20,31 @@ type ValidationErrors = {
     [key: string]: string | undefined;
 };
 
+function mapApiErrorsToFields(rawErrors: any): ValidationErrors {
+    if (!rawErrors) return {};
+
+    const next: ValidationErrors = {};
+
+    if (Array.isArray(rawErrors)) {
+        if (rawErrors[0]) {
+            next.email = String(rawErrors[0]);
+        }
+        return next;
+    }
+
+    if (typeof rawErrors === 'object') {
+        Object.entries(rawErrors).forEach(([key, value]) => {
+            if (Array.isArray(value) && value[0]) {
+                next[key] = String(value[0]);
+            } else if (typeof value === 'string') {
+                next[key] = value;
+            }
+        });
+    }
+
+    return next;
+}
+
 export function SignInClient() {
     const router = useRouter();
     const pathname = usePathname();
@@ -78,7 +103,12 @@ export function SignInClient() {
         setIsLoading(true);
 
         try {
-            const loginResponse = await authService.login(formData);
+            const loginResponse = await authService.login({
+                email: formData.email,
+                password: formData.password,
+                remember: formData.rememberMe,
+                expected_user_type: userType as 'admin' | 'agent' | 'customer',
+            });
             const currentUser = await authService.getCurrentUser();
             const resolvedUserType =
                 currentUser?.user_type
@@ -104,9 +134,7 @@ export function SignInClient() {
             toast.error(errorMessage);
 
             // Set validation errors if available
-            if (error?.data?.errors) {
-                setErrors(error.data.errors);
-            }
+            setErrors(mapApiErrorsToFields(error?.data?.errors || error?.errors));
         } finally {
             setIsLoading(false);
         }

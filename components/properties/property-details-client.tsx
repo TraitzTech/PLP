@@ -337,6 +337,15 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
   const isForRent = normalizeBoolean(property.for_rent);
   const isForSale = normalizeBoolean(property.for_purchase);
   const isBothRentAndSale = isForRent && isForSale;
+  const isHotelListing = isHotelProperty(property);
+
+  const getPrimaryActionLabel = () => {
+    if (isHotelListing) return isAuthenticated ? 'Book Now' : 'Book as Guest';
+    if (isForRent && !isForSale) return isAuthenticated ? 'Secure Rental' : 'Rent as Guest';
+    if (isForSale && !isForRent) return 'Secure Property';
+    if (isBothRentAndSale) return 'Secure Property';
+    return isAuthenticated ? 'Continue' : 'Submit Request';
+  };
 
   console.log(
     "Property Object - for_rent:", property.for_rent, "for_purchase:", property.for_purchase,
@@ -407,15 +416,71 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
     await executeBooking();
   };
 
+  const normalizeWhatsappPhone = (rawPhone?: string): string | null => {
+    if (!rawPhone) return null;
+    const digits = rawPhone.replace(/\D/g, '');
+    if (!digits) return null;
+
+    // Cameroon local numbers are commonly stored as 9 digits; prepend country code.
+    if (digits.length === 9) {
+      return `237${digits}`;
+    }
+
+    if (digits.startsWith('00')) {
+      return digits.slice(2);
+    }
+
+    return digits;
+  };
+
+  const redirectToAgentWhatsapp = (bookingData: any) => {
+    const agentPhoneRaw =
+      bookingData?.listing?.agent?.user?.phone ||
+      property?.agent?.user?.phone ||
+      property?.agent?.phone ||
+      null;
+
+    const agentPhone = normalizeWhatsappPhone(agentPhoneRaw);
+    if (!agentPhone) {
+      return false;
+    }
+
+    const propertyTitle = bookingData?.listing?.title || property?.title || 'Property';
+    const propertyCity = bookingData?.listing?.city || property?.city || 'Cameroon';
+    const checkInValue = bookingData?.check_in_date || format(checkIn ?? new Date(), 'yyyy-MM-dd');
+    const checkOutValue = bookingData?.check_out_date || format(checkOut ?? addDays(new Date(), 1), 'yyyy-MM-dd');
+    const guestCount = bookingData?.guest_count || guests;
+    const customerName = isAuthenticated ? 'Customer' : guestName.trim() || 'Guest';
+    const bookingId = bookingData?.id;
+
+    const message = [
+      `Hello, I just made a booking on PLP for: ${propertyTitle}`,
+      `City: ${propertyCity}`,
+      `Check-in: ${checkInValue}`,
+      `Check-out: ${checkOutValue}`,
+      `Guests: ${guestCount}`,
+      bookingId ? `Booking ID: #${bookingId}` : null,
+      `Name: ${customerName}`,
+      'Please let me know the next steps. Thank you.',
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const whatsappUrl = `https://wa.me/${agentPhone}?text=${encodeURIComponent(message)}`;
+    window.location.href = whatsappUrl;
+    return true;
+  };
+
   const executeBooking = async (paymentDetails?: any) => {
     const effectiveCheckIn = checkIn ?? new Date();
     const effectiveCheckOut = checkOut ?? addDays(new Date(), 1);
 
     setIsBooking(true);
     try {
+      let bookingResponse;
       if (isAuthenticated) {
         // Authenticated user booking
-        await bookingService.createBooking({
+        bookingResponse = await bookingService.createBooking({
           listing_id: property.id,
           check_in_date: format(effectiveCheckIn, 'yyyy-MM-dd'),
           check_out_date: format(effectiveCheckOut, 'yyyy-MM-dd'),
@@ -425,7 +490,7 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
         });
       } else {
         // Guest booking
-        await bookingService.createGuestBooking({
+        bookingResponse = await bookingService.createGuestBooking({
           listing_id: property.id,
           check_in_date: format(effectiveCheckIn, 'yyyy-MM-dd'),
           check_out_date: format(effectiveCheckOut, 'yyyy-MM-dd'),
@@ -439,7 +504,13 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
       }
 
       setBookingSuccess(true);
-      toast.success('Booking request submitted successfully! You will receive a confirmation email shortly.');
+      toast.success('Booking submitted successfully. Redirecting to WhatsApp chat with the agent...');
+
+      // Redirect immediately to WhatsApp so agents receive booking details quickly.
+      const redirected = redirectToAgentWhatsapp(bookingResponse?.data);
+      if (!redirected) {
+        toast.info('Booking submitted. Confirmation email has been sent. Agent phone is unavailable for WhatsApp redirect.');
+      }
       
       // Reset form after success
       setTimeout(() => {
@@ -1544,7 +1615,7 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
                   </p>
                   <p className="text-xs text-purple-800 mt-1">
                     {publicSettings?.customer_booking_free_mode === true ? (
-                      "Free for a limited time! Book now without any platform fees."
+                      "Free for a limited time! Secure this property now without any platform fees."
                     ) : (
                       <>
                         A platform fee of <span className="font-bold">{new Intl.NumberFormat('fr-CM', { style: 'currency', currency: publicSettings?.default_currency || 'XAF', minimumFractionDigits: 0 }).format(publicSettings?.platform_fee_xaf || 0)}</span> is required to secure this booking and access agent contact details.
@@ -1800,7 +1871,7 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
                     ) : (
                       <>
                         <CalendarIcon className="w-4 h-4 mr-2" />
-                        {isAuthenticated ? 'Book Now' : 'Book as Guest'}
+                        {getPrimaryActionLabel()}
                       </>
                     )}
                   </Button>

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
 export default function AdminBookingsPage() {
+  const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [stats, setStats] = useState<BookingStatistics | null>(null);
@@ -250,8 +252,8 @@ export default function AdminBookingsPage() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">All Bookings</h1>
-            <p className="text-gray-600 mt-2">Manage and monitor all platform bookings.</p>
+            <h1 className="text-3xl font-bold text-gray-900">All Reservations</h1>
+            <p className="text-gray-600 mt-2">Manage and monitor all platform reservations.</p>
           </div>
           <Button variant="outline" className="gap-2">
             <Download className="w-4 h-4" />
@@ -388,7 +390,7 @@ export default function AdminBookingsPage() {
           <Card>
             <CardContent className="p-12 text-center">
               <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No bookings found</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No reservations found</h3>
               <p className="text-gray-600">
                 {searchTerm || statusFilter !== 'all' || paymentFilter !== 'all'
                   ? 'Try adjusting your search or filter criteria.'
@@ -482,8 +484,7 @@ export default function AdminBookingsPage() {
                                 variant="ghost" 
                                 size="icon"
                                 onClick={() => {
-                                  setSelectedBooking(booking);
-                                  setIsViewDialogOpen(true);
+                                  router.push(`/admin/reservations/${booking.id}`);
                                 }}
                               >
                                 <Eye className="w-4 h-4" />
@@ -516,7 +517,7 @@ export default function AdminBookingsPage() {
         {/* Pagination Info */}
         {!isLoading && filteredBookings.length > 0 && (
           <div className="text-sm text-gray-600 text-center">
-            Showing {filteredBookings.length} of {pagination.total} bookings
+            Showing {filteredBookings.length} of {pagination.total} reservations
           </div>
         )}
       </div>

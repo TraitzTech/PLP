@@ -25,7 +25,7 @@
   "hero": {
     "title": "Votre Propriété de Rêve",
     "subtitle": "Vous Attend",
-    "description": "Le pont de confiance pour une inscription, réservation et découverte de propriétés sans faille. Trouvez votre séjour parfait des hôtels de luxe aux maisons de rêve."
+    "description": "Le moyen le plus simple d'acheter, louer ou vendre un bien immobilier au Cameroun. Découvrez des maisons, terrains et locations vérifiés."
   },
   "search": {
     "locationPlaceholder": "Ville, région ou quartier...",
@@ -38,12 +38,12 @@
     "forRent": "À Louer",
     "forSale": "À Vendre",
     "priceRange": "Gamme de Prix",
-    "anyPrice": "Tout Prix",
+    "anyPrice": "Tout prix (XAF)",
     "popular": "Populaire:",
     "guests": "Invités",
     "price": {
-      "budget": "Moins de 50 000 $",
-      "luxury": "1M$+"
+      "budget": "Moins de 50 000 XAF",
+      "luxury": "1 000 000 XAF+"
     },
     "types": {
       "hotels": "Hôtels",
@@ -61,7 +61,7 @@
   },
   "categories": {
     "title": "Explorer les Types de Propriétés",
-    "subtitle": "Que vous recherchiez un hôtel de luxe, une maison de rêve ou un terrain d'investissement, nous avons la propriété parfaite qui vous attend.",
+    "subtitle": "Que vous recherchiez des maisons, des locations ou des terrains d'investissement, nous avons des propriétés vérifiées pour vous.",
     "exploreButton": "Explorer",
     "hotels": {
       "name": "Hôtels",
@@ -116,7 +116,7 @@
     "thankYouMessage": "Merci! Vous recevrez bientôt nos dernières mises à jour."
   },
   "footer": {
-    "description": "Le pont de confiance pour une inscription, réservation et découverte de propriétés sans faille. Connecter les propriétaires avec les voyageurs du monde entier.",
+    "description": "Votre plateforme de confiance pour des maisons, terrains et locations vérifiés à travers le Cameroun.",
     "sections": {
       "company": "Entreprise",
       "support": "Support",
@@ -292,9 +292,9 @@
     },
     "contact": {
       "title": "Informations de Contact",
-      "phone": { "title": "Support Téléphonique", "description": "Parlez avec notre équipe support", "number": "+1 (555) 123-4567" },
-      "email": { "title": "Support Email", "description": "Envoyez-nous un email à tout moment", "address": "support@propertylistingportal.com" },
-      "address": { "title": "Adresse du Bureau", "description": "Visitez notre siège social", "location": "123 Business Ave, Suite 100\nCity, ST 12345\nÉtats-Unis" }
+      "phone": { "title": "Support Téléphonique", "description": "Parlez avec notre équipe support", "number": "+237680090360" },
+      "email": { "title": "Support Email", "description": "Envoyez-nous un email à tout moment", "address": "support@plplistings.com" },
+      "address": { "title": "Adresse du Bureau", "description": "Visitez notre siège social", "location": "ENS Street Bambili\nBamenda\nCameroun" }
     },
     "hours": {
       "title": "Heures d'Ouverture",
@@ -368,7 +368,7 @@
       "title": "Contact Média",
       "description": "Pour les demandes de presse, interviews et demandes médias",
       "email": "press@propertylistingportal.com",
-      "phone": "+1 (555) 123-PRESS"
+      "phone": "+237680090360"
     },
     "awards": {
       "title": "Prix et Reconnaissance",
@@ -456,7 +456,7 @@
       "title": "Procédures d'Urgence",
       "description": "En cas d'urgence, suivez ces étapes:",
       "0": "Assurez la sécurité immédiate - appelez les services d'urgence locaux si nécessaire",
-      "1": "Contactez le support d'urgence PLP: +1 (555) 911-HELP",
+      "1": "Contactez le support d'urgence PLP: +237680090360",
       "2": "Documentez l'incident avec des photos si c'est sûr de le faire",
       "3": "Coopérez avec les autorités locales et l'enquête PLP",
       "4": "Suivez avec notre équipe de sécurité pour la résolution"

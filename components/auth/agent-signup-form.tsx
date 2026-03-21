@@ -31,6 +31,9 @@ interface FormErrors {
   [key: string]: string;
 }
 
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
+
 export function AgentSignupForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
@@ -79,9 +82,32 @@ export function AgentSignupForm() {
 
   const handleFileChange = (field: "profile_photo" | "id_image_front" | "id_image_back", file: File | null) => {
     if (file) {
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        setFormErrors((prev) => ({
+          ...prev,
+          [field]: 'Only JPG and PNG images are allowed.',
+        }));
+        toast.error('Please upload a JPG or PNG image.');
+        return;
+      }
+
+      if (file.size > MAX_IMAGE_SIZE) {
+        setFormErrors((prev) => ({
+          ...prev,
+          [field]: 'File size must be 2MB or less.',
+        }));
+        toast.error('Image size must be 2MB or less.');
+        return;
+      }
+
       setFormData((prev) => ({
         ...prev,
         [field]: file,
+      }));
+
+      setFormErrors((prev) => ({
+        ...prev,
+        [field]: '',
       }));
 
       const reader = new FileReader();
@@ -133,6 +159,11 @@ export function AgentSignupForm() {
   };
 
   const handleSubmit = async () => {
+    if (!validateStep(currentStep)) {
+      toast.error('Please fix the highlighted fields before submitting.');
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -157,10 +188,31 @@ export function AgentSignupForm() {
 
       await agentService.registerAgent(submitData);
       setIsRegistrationComplete(true);
-      toast.success("Registration submitted! Awaiting admin approval.");
+      toast.success("Registration Successful. Awaiting admin approval.");
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || "Registration failed";
+      const errorMessage = error?.message || error?.data?.message || "Registration failed";
       toast.error(errorMessage);
+
+      const backendErrors = error?.errors || error?.data?.errors;
+      if (backendErrors) {
+        if (Array.isArray(backendErrors)) {
+          const first = backendErrors[0];
+          if (first) {
+            toast.error(String(first));
+          }
+        } else {
+          const mapped: FormErrors = {};
+          Object.entries(backendErrors).forEach(([key, value]) => {
+            if (Array.isArray(value) && value[0]) {
+              mapped[key] = String(value[0]);
+            } else if (typeof value === 'string') {
+              mapped[key] = value;
+            }
+          });
+          setFormErrors((prev) => ({ ...prev, ...mapped }));
+        }
+      }
+
       console.error("Registration error:", error);
     } finally {
       setIsLoading(false);
@@ -175,7 +227,7 @@ export function AgentSignupForm() {
             <div className="flex justify-center mb-4">
               <CheckCircle2 className="h-16 w-16 text-green-500" />
             </div>
-            <CardTitle className="text-2xl">Registration Submitted!</CardTitle>
+            <CardTitle className="text-2xl">Registration Successful!</CardTitle>
             <CardDescription className="mt-2">
               Your agent account has been created and is pending admin approval
             </CardDescription>
@@ -236,7 +288,7 @@ export function AgentSignupForm() {
             <Label htmlFor="phone">Phone Number *</Label>
             <Input
               id="phone"
-              placeholder="+1 (555) 000-0000"
+              placeholder="+237680090360"
               value={formData.phone}
               onChange={(e) => handleInputChange("phone", e.target.value)}
               className={formErrors.phone ? "border-red-500" : ""}
@@ -302,7 +354,7 @@ export function AgentSignupForm() {
               <Input
                 id="profile_photo"
                 type="file"
-                accept="image/*"
+                accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                 onChange={(e) => handleFileChange("profile_photo", e.target.files?.[0] || null)}
               />
               {previews.profile_photo && (
@@ -349,7 +401,7 @@ export function AgentSignupForm() {
             <Label htmlFor="country">Country *</Label>
             <Input
               id="country"
-              placeholder="e.g., United States"
+              placeholder="e.g., Cameroon"
               value={formData.country}
               onChange={(e) => handleInputChange("country", e.target.value)}
               className={formErrors.country ? "border-red-500" : ""}
@@ -420,7 +472,7 @@ export function AgentSignupForm() {
               <Input
                 id="id_image_front"
                 type="file"
-                accept="image/*"
+                accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                 onChange={(e) => handleFileChange("id_image_front", e.target.files?.[0] || null)}
                 className={formErrors.id_image_front ? "border-red-500" : ""}
               />
@@ -444,7 +496,7 @@ export function AgentSignupForm() {
               <Input
                 id="id_image_back"
                 type="file"
-                accept="image/*"
+                accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                 onChange={(e) => handleFileChange("id_image_back", e.target.files?.[0] || null)}
                 className={formErrors.id_image_back ? "border-red-500" : ""}
               />

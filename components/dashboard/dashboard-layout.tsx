@@ -39,7 +39,7 @@ const ownerNavItems = [
     { name: 'Dashboard', href: '/dashboard/owner', icon: Home },
     { name: 'My Properties', href: '/dashboard/owner/properties', icon: Building2 },
     { name: 'Add Property', href: '/dashboard/owner/properties/new', icon: Plus },
-    { name: 'Bookings', href: '/dashboard/owner/bookings', icon: Calendar },
+    { name: 'Reservations', href: '/dashboard/owner/bookings', icon: Calendar },
     { name: 'Analytics', href: '/dashboard/owner/analytics', icon: BarChart3 },
     { name: 'Messages', href: '/dashboard/owner/messages', icon: MessageSquare },
     { name: 'Notifications', href: '/dashboard/owner/notifications', icon: Bell },
@@ -57,7 +57,7 @@ const agentNavItems = [
         ]
     },
     { name: 'Add Property', href: '/dashboard/agent/properties/new', icon: Plus },
-    { name: 'Bookings', href: '/dashboard/agent/bookings', icon: Calendar },
+    { name: 'Reservations', href: '/dashboard/agent/reservations', icon: Calendar },
     { name: 'Clients', href: '/dashboard/agent/clients', icon: Users },
     { name: 'Analytics', href: '/dashboard/agent/analytics', icon: BarChart3 },
     { name: 'Messages', href: '/dashboard/agent/messages', icon: MessageSquare },
@@ -87,7 +87,7 @@ const adminNavItems = [
             { name: 'Facilities', href: '/admin/facilities' },
         ]
     },
-    { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
+    { name: 'Reservations', href: '/admin/reservations', icon: Calendar },
     { name: 'Messages', href: '/admin/messages', icon: MessageSquare },
     { name: 'Reviews', href: '/admin/reviews', icon: Star },
     { name: 'Notifications', href: '/admin/notifications', icon: Bell },

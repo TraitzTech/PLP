@@ -82,7 +82,7 @@ export default function PropertyTypesPage() {
       setFormData({
         name: type.name,
         description: type.description || "",
-        status: type.status === 1,
+        status: type.status === 1 || type.status === true,
       });
     } else {
       setEditingType(null);
@@ -138,6 +138,19 @@ export default function PropertyTypesPage() {
       );
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleToggleVisibility = async (type: PropertyType) => {
+    try {
+      await propertyTypeService.updatePropertyType(type.id, {
+        status: !(type.status === 1 || type.status === true),
+      });
+      toast.success(`${type.name} visibility updated`);
+      fetchPropertyTypes();
+    } catch (error: any) {
+      console.error("Error updating property type visibility:", error);
+      toast.error(error.response?.data?.message || "Failed to update visibility");
     }
   };
 
@@ -258,10 +271,10 @@ export default function PropertyTypesPage() {
                             {type.description || "—"}
                           </td>
                           <td className="px-6 py-4 text-sm">
-                            {type.status === 1 ? (
-                              <Badge className="bg-green-500">Active</Badge>
+                            {type.status === 1 || type.status === true ? (
+                              <Badge className="bg-green-500">Live</Badge>
                             ) : (
-                              <Badge variant="secondary">Inactive</Badge>
+                              <Badge variant="secondary">Coming Soon</Badge>
                             )}
                           </td>
                           <td className="px-6 py-4 text-sm">
@@ -282,6 +295,12 @@ export default function PropertyTypesPage() {
                                 >
                                   <Edit className="mr-2 h-4 w-4" />
                                   Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleToggleVisibility(type)}
+                                >
+                                  <Layout className="mr-2 h-4 w-4" />
+                                  {type.status === 1 || type.status === true ? 'Mark as Coming Soon' : 'Make Live'}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => setDeleteTypeId(String(type.id))}

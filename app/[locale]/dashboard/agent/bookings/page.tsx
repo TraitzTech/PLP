@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
 export default function AgentBookingsPage() {
+  const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [stats, setStats] = useState<BookingStatistics | null>(null);
@@ -201,8 +203,8 @@ export default function AgentBookingsPage() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Booking Management</h1>
-            <p className="text-gray-600 mt-2">Manage all bookings for your properties.</p>
+            <h1 className="text-3xl font-bold text-gray-900">Reservation Management</h1>
+            <p className="text-gray-600 mt-2">Manage all reservations for your properties.</p>
           </div>
         </div>
 
@@ -213,7 +215,7 @@ export default function AgentBookingsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Bookings</p>
+                    <p className="text-sm font-medium text-gray-600">Total Reservations</p>
                     <p className="text-2xl font-bold text-gray-900">{stats.total_bookings}</p>
                   </div>
                   <Calendar className="w-8 h-8 text-plp-purple" />
@@ -312,7 +314,7 @@ export default function AgentBookingsPage() {
           <Card>
             <CardContent className="p-12 text-center">
               <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No bookings found</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No reservations found</h3>
               <p className="text-gray-600">
                 {searchTerm || statusFilter !== 'all' 
                   ? 'Try adjusting your search or filter criteria.'
@@ -416,8 +418,7 @@ export default function AgentBookingsPage() {
                           variant="outline" 
                           size="sm"
                           onClick={() => {
-                            setSelectedBooking(booking);
-                            setIsViewDialogOpen(true);
+                            router.push(`/dashboard/agent/reservations/${booking.id}`);
                           }}
                         >
                           <Eye className="w-4 h-4 mr-1" />

@@ -18,6 +18,7 @@ import { listingImageService } from "@/services/listingImageService";
 import { listingVideoService } from "@/services/listingVideoService";
 import { propertyTypeService } from "@/services/propertyTypeService";
 import { facilitiesService } from "@/services/facilitiesService";
+import { settingsService } from "@/services/settingsService";
 import { Badge } from "@/components/ui/badge";
 import type { Listing, PropertyType, Facility, ListingImage, ListingVideo } from "@/services/types";
 import { LocationPicker } from "@/components/properties/location-picker";
@@ -37,6 +38,8 @@ export default function EditPropertyPage() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [deletingImageIds, setDeletingImageIds] = useState<number[]>([]);
   const [deletingVideoIds, setDeletingVideoIds] = useState<number[]>([]);
+  const [launchRentalsOnly, setLaunchRentalsOnly] = useState(true);
+  const [launchSalesEnabled, setLaunchSalesEnabled] = useState(false);
   const [formData, setFormData] = useState<any>({
     title: "",
     description: "",
@@ -88,8 +91,20 @@ export default function EditPropertyPage() {
       setProperty(propertyData);
 
       // Fetch property types and facilities for dropdowns
-      const typesRes = await propertyTypeService.getAllPropertyTypes();
-      setPropertyTypes(Array.isArray(typesRes) ? typesRes : []);
+      const [typesRes, launchSettings] = await Promise.all([
+        propertyTypeService.getAllPropertyTypes(),
+        settingsService.getPublicSettings(['launch_rentals_only', 'launch_sales_enabled']),
+      ]);
+
+      const rentalsOnly = launchSettings.launch_rentals_only !== false;
+      const salesEnabled = launchSettings.launch_sales_enabled === true;
+      setLaunchRentalsOnly(rentalsOnly);
+      setLaunchSalesEnabled(salesEnabled);
+
+      const availableTypes = Array.isArray(typesRes)
+        ? typesRes.filter((type) => type.status === 1 || type.status === true || type.id === propertyData.property_type_id)
+        : [];
+      setPropertyTypes(availableTypes);
 
       const facilitiesRes = await facilitiesService.getAllFacilities();
       setFacilities(Array.isArray(facilitiesRes) ? facilitiesRes : []);
@@ -156,6 +171,10 @@ export default function EditPropertyPage() {
         has_restaurant: prop.has_restaurant || false,
         has_pool: prop.has_pool || false,
       });
+
+      if (rentalsOnly) {
+        setFormData((prev: any) => ({ ...prev, for_rent: true, for_purchase: false }));
+      }
     } catch (error: any) {
       console.error("Error fetching data:", error);
       toast.error(error.response?.data?.message || "Failed to fetch property details");
@@ -748,6 +767,7 @@ export default function EditPropertyPage() {
                   id="for_rent"
                   checked={formData.for_rent}
                   onCheckedChange={(checked) => handleInputChange("for_rent", checked)}
+                  disabled={launchRentalsOnly}
                 />
                 <Label htmlFor="for_rent" className="cursor-pointer">
                   Available for Rent
@@ -759,6 +779,7 @@ export default function EditPropertyPage() {
                   id="for_purchase"
                   checked={formData.for_purchase}
                   onCheckedChange={(checked) => handleInputChange("for_purchase", checked)}
+                  disabled={launchRentalsOnly || !launchSalesEnabled}
                 />
                 <Label htmlFor="for_purchase" className="cursor-pointer">
                   Available for Purchase
@@ -785,6 +806,12 @@ export default function EditPropertyPage() {
                     min="1"
                   />
                 </div>
+                {launchRentalsOnly && (
+                  <p className="text-sm text-amber-700">Sales are disabled for launch. Listings must be rental.</p>
+                )}
+                {!launchSalesEnabled && !launchRentalsOnly && (
+                  <p className="text-sm text-amber-700">Sales are currently disabled by admin settings.</p>
+                )}
               </div>
 
               <div className="space-y-3">

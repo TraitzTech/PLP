@@ -19,7 +19,7 @@ export async function generateStaticParams() {
 export const metadata: Metadata = {
     metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
     title: 'Property Listing Portal - Your Dream Property Awaits',
-    description: 'Discover, book, and manage properties with ease. The trusted bridge for seamless property listing, booking, and discovery.',
+    description: 'The easiest way to buy, rent, or sell property in Cameroon. Discover verified homes, land, and rentals.',
     keywords: 'property, real estate, booking, hotels, houses, land, rental',
     authors: [{ name: 'Property Listing Portal' }],
     icons: {
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     },
     openGraph: {
         title: 'Property Listing Portal',
-        description: 'Your Dream Property Awaits',
+        description: 'The easiest way to buy, rent, or sell property in Cameroon.',
         siteName: 'Property Listing Portal',
         locale: 'en_US',
         type: 'website',

@@ -57,7 +57,7 @@ export function NewsletterPopup({ delay = 3000 }: NewsletterPopupProps) {
         setIsSubscribed(true);
         newsletterService.markAsSubscribed();
         newsletterService.markPopupAsSeen();
-        toast.success(response.message);
+        toast.success('Subscribed successfully');
         
         // Close popup after showing success
         setTimeout(() => {

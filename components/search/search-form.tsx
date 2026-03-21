@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Search, Home, Building2, Mountain, Hotel, DollarSign, Building, Loader2 } from 'lucide-react';
+import { MapPin, Search, Home, Building2, Mountain, Hotel, Building, Loader2 } from 'lucide-react';
 import { useTranslations } from '@/components/translation-provider';
 import { cn } from '@/lib/utils';
 import { propertyTypeService } from '@/services/propertyTypeService';
@@ -29,6 +29,8 @@ const getPropertyTypeIcon = (name: string): React.ReactNode => {
   return propertyTypeIcons[lowerName] || <Building className="w-4 h-4" />;
 };
 
+const formatXaf = (amount: number): string => `${amount.toLocaleString('en-US')} XAF`;
+
 export function SearchForm() {
   const router = useRouter();
   const [location, setLocation] = useState('');
@@ -38,7 +40,11 @@ export function SearchForm() {
   const [propertyTypes, setPropertyTypes] = useState<PropertyTypeModel[]>([]);
   const [isLoadingTypes, setIsLoadingTypes] = useState(true);
   const [launchCities, setLaunchCities] = useState<string[]>([]);
+  const [launchRentalsOnly, setLaunchRentalsOnly] = useState(true);
+  const [launchSalesEnabled, setLaunchSalesEnabled] = useState(false);
   const t = useTranslations();
+
+  const isTypeActive = (type: PropertyTypeModel) => type.status === 1 || type.status === true;
 
   // Fetch property types and launch cities on mount
   useEffect(() => {
@@ -47,16 +53,21 @@ export function SearchForm() {
         setIsLoadingTypes(true);
         
         // Fetch property types
-        const types = await propertyTypeService.getAllPropertyTypes();
-        setPropertyTypes(types.filter(type => type.status === 1));
+        const [types, launchSettings] = await Promise.all([
+          propertyTypeService.getAllPropertyTypes(),
+          settingsService.getPublicSettings(['launch_rentals_only', 'launch_sales_enabled']),
+        ]);
+        setPropertyTypes(types);
+        setLaunchRentalsOnly(launchSettings.launch_rentals_only !== false);
+        setLaunchSalesEnabled(launchSettings.launch_sales_enabled === true);
         
         // Fetch launch cities from settings
         const cities = await settingsService.getLaunchRolloutCities();
-        setLaunchCities(cities.length > 0 ? cities : ['Douala', 'Yaoundé', 'Bafoussam', 'Kribi']);
+        setLaunchCities(cities.length > 0 ? cities : ['Douala', 'Bamenda']);
       } catch (error) {
         console.error('Failed to fetch data:', error);
         // Fallback to default cities if fetch fails
-        setLaunchCities(['Douala', 'Yaoundé', 'Bafoussam', 'Kribi']);
+        setLaunchCities(['Douala', 'Bamenda']);
       } finally {
         setIsLoadingTypes(false);
       }
@@ -64,13 +75,24 @@ export function SearchForm() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (launchRentalsOnly) {
+      setPurpose('rent');
+      return;
+    }
+
+    if (!launchSalesEnabled && purpose === 'purchase') {
+      setPurpose('');
+    }
+  }, [launchRentalsOnly, launchSalesEnabled, purpose]);
+
   const priceRanges = [
-    { value: '0-50000', label: t('search.price.budget', 'Under $50,000') },
-    { value: '50000-100000', label: '$50,000 - $100,000' },
-    { value: '100000-250000', label: '$100,000 - $250,000' },
-    { value: '250000-500000', label: '$250,000 - $500,000' },
-    { value: '500000-1000000', label: '$500,000 - $1M' },
-    { value: '1000000+', label: t('search.price.luxury', '$1M+') },
+    { value: '0-50000', label: t('search.price.budget', `Under ${formatXaf(50000)}`) },
+    { value: '50000-100000', label: `${formatXaf(50000)} - ${formatXaf(100000)}` },
+    { value: '100000-250000', label: `${formatXaf(100000)} - ${formatXaf(250000)}` },
+    { value: '250000-500000', label: `${formatXaf(250000)} - ${formatXaf(500000)}` },
+    { value: '500000-1000000', label: `${formatXaf(500000)} - ${formatXaf(1000000)}` },
+    { value: '1000000+', label: t('search.price.luxury', `${formatXaf(1000000)}+`) },
   ];
 
   const handleSearch = () => {
@@ -109,12 +131,17 @@ export function SearchForm() {
             {t('search.forRent', 'For Rent')}
           </button>
           <button
-            onClick={() => setPurpose(purpose === 'purchase' ? '' : 'purchase')}
+            onClick={() => {
+              if (!launchSalesEnabled || launchRentalsOnly) return;
+              setPurpose(purpose === 'purchase' ? '' : 'purchase');
+            }}
+            disabled={!launchSalesEnabled || launchRentalsOnly}
             className={cn(
               "px-6 py-2 rounded-full text-sm font-medium transition-all duration-200",
               purpose === 'purchase'
                 ? "bg-plp-accent text-white shadow-md"
-                : "text-white hover:bg-white/10"
+                : "text-white hover:bg-white/10",
+              (!launchSalesEnabled || launchRentalsOnly) && "opacity-50 cursor-not-allowed hover:bg-transparent"
             )}
           >
             {t('search.forSale', 'For Sale')}
@@ -136,16 +163,22 @@ export function SearchForm() {
             {propertyTypes.map((type) => (
               <button
                 key={type.id}
-                onClick={() => handlePropertyTypeClick(type.name)}
+                onClick={() => {
+                  if (!isTypeActive(type)) return;
+                  handlePropertyTypeClick(type.name);
+                }}
+                disabled={!isTypeActive(type)}
                 className={cn(
                   "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200",
                   selectedPropertyType === type.name
                     ? "bg-plp-accent border-plp-accent text-white shadow-lg scale-105"
-                    : "bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40"
+                    : "bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40",
+                  !isTypeActive(type) && "opacity-60 cursor-not-allowed hover:bg-white/10 hover:border-white/20"
                 )}
               >
                 <span className="mb-2">{getPropertyTypeIcon(type.name)}</span>
                 <span className="text-sm font-medium">{type.name}</span>
+                {!isTypeActive(type) && <span className="mt-1 text-[10px] uppercase tracking-wide">Coming soon</span>}
               </button>
             ))}
           </div>
@@ -178,11 +211,11 @@ export function SearchForm() {
           </Label>
           <Select value={priceRange} onValueChange={setPriceRange}>
             <SelectTrigger className="h-12 bg-white border-gray-300">
-              <DollarSign className="mr-2 h-4 w-4 text-gray-400" />
-              <SelectValue placeholder={t('search.anyPrice', 'Any Price')} />
+              <span className="mr-2 text-xs font-semibold text-gray-500">XAF</span>
+              <SelectValue placeholder={t('search.anyPrice', 'Any Price (XAF)')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="any">{t('search.anyPrice', 'Any Price')}</SelectItem>
+              <SelectItem value="any">{t('search.anyPrice', 'Any Price (XAF)')}</SelectItem>
               {priceRanges.map((range) => (
                 <SelectItem key={range.value} value={range.value}>
                   {range.label}
