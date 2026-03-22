@@ -16,7 +16,7 @@ export default function Home() {
       <Navbar />
       <HeroSection />
       <HomeDynamicSections />
-      <PlatformGuideSection showPopularSearches />
+      <PlatformGuideSection />
       <PropertyCategories />
       <FeaturedProperties />
       <NewsletterSection />

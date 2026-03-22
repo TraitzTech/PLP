@@ -176,10 +176,10 @@ export function Navbar() {
                 : 'bg-transparent'
         }`}>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center h-16 lg:h-20">
+                    <div className="flex justify-between items-center h-14 sm:h-16 lg:h-16 xl:h-20">
                     {/* Logo */}
                     <div className="flex-shrink-0">
-                       <Logo />
+                              <Logo className="origin-left scale-75 sm:scale-90 lg:scale-90 xl:scale-100" />
                     </div>
 
                     {/* Desktop Navigation */}

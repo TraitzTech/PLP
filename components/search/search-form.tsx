@@ -10,6 +10,7 @@ import { MapPin, Search, Home, Building2, Mountain, Hotel, Building, Loader2 } f
 import { useTranslations } from '@/components/translation-provider';
 import { cn } from '@/lib/utils';
 import { propertyTypeService } from '@/services/propertyTypeService';
+import { searchAnalyticsService, type PopularSearchItem } from '@/services/searchAnalyticsService';
 import { settingsService } from '@/services/settingsService';
 import type { PropertyType as PropertyTypeModel } from '@/services/types';
 
@@ -40,6 +41,7 @@ export function SearchForm() {
   const [propertyTypes, setPropertyTypes] = useState<PropertyTypeModel[]>([]);
   const [isLoadingTypes, setIsLoadingTypes] = useState(true);
   const [launchCities, setLaunchCities] = useState<string[]>([]);
+  const [popularSearches, setPopularSearches] = useState<PopularSearchItem[]>([]);
   const [launchRentalsOnly, setLaunchRentalsOnly] = useState(true);
   const [launchSalesEnabled, setLaunchSalesEnabled] = useState(false);
   const t = useTranslations();
@@ -53,13 +55,15 @@ export function SearchForm() {
         setIsLoadingTypes(true);
         
         // Fetch property types
-        const [types, launchSettings] = await Promise.all([
+        const [types, launchSettings, popular] = await Promise.all([
           propertyTypeService.getAllPropertyTypes(),
           settingsService.getPublicSettings(['launch_rentals_only', 'launch_sales_enabled']),
+          searchAnalyticsService.getPopularSearches(6),
         ]);
         setPropertyTypes(types);
         setLaunchRentalsOnly(launchSettings.launch_rentals_only !== false);
         setLaunchSalesEnabled(launchSettings.launch_sales_enabled === true);
+        setPopularSearches(Array.isArray(popular) ? popular.slice(0, 6) : []);
         
         // Fetch launch cities from settings
         const cities = await settingsService.getLaunchRolloutCities();
@@ -68,6 +72,7 @@ export function SearchForm() {
         console.error('Failed to fetch data:', error);
         // Fallback to default cities if fetch fails
         setLaunchCities(['Douala', 'Bamenda']);
+        setPopularSearches([]);
       } finally {
         setIsLoadingTypes(false);
       }
@@ -112,6 +117,15 @@ export function SearchForm() {
 
   const handlePropertyTypeClick = (typeName: string) => {
     setSelectedPropertyType(typeName === selectedPropertyType ? '' : typeName);
+  };
+
+  const handlePopularSearchClick = (item: PopularSearchItem) => {
+    if (item.link) {
+      router.push(item.link);
+      return;
+    }
+
+    setLocation(item.label);
   };
 
   return (
@@ -238,20 +252,42 @@ export function SearchForm() {
         </div>
       </div>
 
-      {/* Quick Stats or Suggestions */}
-      <div className="mt-4 flex flex-wrap justify-center gap-2">
-        <span className="text-white/60 text-xs">
-          {t('search.popular', 'Popular:')}
-        </span>
-        {launchCities.map((city) => (
-          <button
-            key={city}
-            onClick={() => setLocation(city)}
-            className="text-white/80 text-xs px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-          >
-            {city}
-          </button>
-        ))}
+      <div className="mt-4 rounded-xl border border-white/20 bg-black/20 px-4 py-3">
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
+            {t('search.cities', 'Cities')}
+          </span>
+          {launchCities.map((city) => (
+            <button
+              key={city}
+              onClick={() => setLocation(city)}
+              className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/90 transition-colors hover:bg-white/20"
+            >
+              {city}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-white/20 bg-black/30 p-4">
+        <p className="text-center text-xs font-semibold uppercase tracking-wide text-white/75">
+          Popular Searches
+        </p>
+        <div className="mt-3 flex flex-wrap justify-center gap-2">
+          {popularSearches.length > 0 ? (
+            popularSearches.map((item, index) => (
+              <button
+                key={`${item.label}-${index}`}
+                onClick={() => handlePopularSearchClick(item)}
+                className="rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-xs text-white transition-colors hover:bg-black/55"
+              >
+                {item.label}
+              </button>
+            ))
+          ) : (
+            <span className="text-xs text-white/60">Popular searches will appear as people use the platform.</span>
+          )}
+        </div>
       </div>
     </div>
   );
