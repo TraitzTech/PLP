@@ -550,28 +550,28 @@ export default function AdminSettingsPage() {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-6">
+            <TabsTrigger value="profile" className="flex h-auto w-full items-center justify-center gap-2 whitespace-normal px-2 py-2 text-center">
               <User className="w-4 h-4" />
               Profile
             </TabsTrigger>
-            <TabsTrigger value="general" className="flex items-center gap-2">
+            <TabsTrigger value="general" className="flex h-auto w-full items-center justify-center gap-2 whitespace-normal px-2 py-2 text-center">
               <Settings className="w-4 h-4" />
               General
             </TabsTrigger>
-            <TabsTrigger value="payments" className="flex items-center gap-2">
+            <TabsTrigger value="payments" className="flex h-auto w-full items-center justify-center gap-2 whitespace-normal px-2 py-2 text-center">
               <DollarSign className="w-4 h-4" />
               Payments
             </TabsTrigger>
-            <TabsTrigger value="homepage" className="flex items-center gap-2">
+            <TabsTrigger value="homepage" className="flex h-auto w-full items-center justify-center gap-2 whitespace-normal px-2 py-2 text-center">
               <Settings className="w-4 h-4" />
               Homepage
             </TabsTrigger>
-            <TabsTrigger value="about" className="flex items-center gap-2">
+            <TabsTrigger value="about" className="flex h-auto w-full items-center justify-center gap-2 whitespace-normal px-2 py-2 text-center">
               <Users className="w-4 h-4" />
               About
             </TabsTrigger>
-            <TabsTrigger value="legal" className="flex items-center gap-2">
+            <TabsTrigger value="legal" className="flex h-auto w-full items-center justify-center gap-2 whitespace-normal px-2 py-2 text-center">
               <FileText className="w-4 h-4" />
               Legal Content
             </TabsTrigger>
