@@ -53,8 +53,9 @@ export interface PublicSettings {
 }
 
 class SettingsService {
-  private static cache: PublicSettings | null = null;
+  private static cache: PublicSettings = {};
   private static cacheTime: number = 0;
+  private static cacheIsComplete: boolean = false;
   private static CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   /**
@@ -62,10 +63,24 @@ class SettingsService {
    * Supports optional filtering by specific keys
    */
   async getPublicSettings(keys?: string[]): Promise<PublicSettings> {
-    // Return cached settings if still valid
     const now = Date.now();
-    if (SettingsService.cache && now - SettingsService.cacheTime < SettingsService.CACHE_DURATION) {
-      return SettingsService.cache;
+    const isCacheFresh = now - SettingsService.cacheTime < SettingsService.CACHE_DURATION;
+
+    // Use cache only when it safely contains what the caller asked for.
+    if (isCacheFresh) {
+      if (!keys || keys.length === 0) {
+        if (SettingsService.cacheIsComplete) {
+          return SettingsService.cache;
+        }
+      } else {
+        const hasAllRequestedKeys = keys.every((key) =>
+          Object.prototype.hasOwnProperty.call(SettingsService.cache, key)
+        );
+
+        if (hasAllRequestedKeys) {
+          return SettingsService.cache;
+        }
+      }
     }
 
     try {
@@ -78,15 +93,29 @@ class SettingsService {
 
       if (response.data && response.data.data) {
         const settings = response.data.data as PublicSettings;
-        SettingsService.cache = settings;
+
+        // Key-filtered requests return partial payloads, so merge into cache.
+        if (keys && keys.length > 0) {
+          SettingsService.cache = { ...SettingsService.cache, ...settings };
+        } else {
+          SettingsService.cache = settings;
+          SettingsService.cacheIsComplete = true;
+        }
+
         SettingsService.cacheTime = now;
-        return settings;
+        return SettingsService.cache;
       }
 
-      return {};
+      return SettingsService.cache;
     } catch (error) {
       console.error('Failed to fetch public settings:', error);
-      return {};
+
+      // Fall back to whatever cache is available to avoid sudden blank UI.
+      if (keys && keys.length > 0) {
+        return SettingsService.cache;
+      }
+
+      return SettingsService.cache;
     }
   }
 
@@ -118,8 +147,9 @@ class SettingsService {
    * Clear cache (useful after settings update)
    */
   clearCache(): void {
-    SettingsService.cache = null;
+    SettingsService.cache = {};
     SettingsService.cacheTime = 0;
+    SettingsService.cacheIsComplete = false;
   }
 }
 
