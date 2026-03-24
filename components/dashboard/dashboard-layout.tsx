@@ -14,11 +14,12 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Chrome as Home, Calendar, Heart, MessageSquare, Settings, User, LogOut, Menu, X, Building2, ChartBar as BarChart3, Plus, Users, Shield, Bell, Star } from 'lucide-react';
+import { Chrome as Home, Calendar, Heart, MessageSquare, Settings, User, LogOut, Menu, X, Building2, ChartBar as BarChart3, Plus, Users, Shield, Bell, Star, Globe, Check } from 'lucide-react';
 import { FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { authService } from '@/services/authService';
 import { NotificationDropdown } from './notification-dropdown';
+import { useTranslations } from '@/components/translation-provider';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -26,76 +27,87 @@ interface DashboardLayoutProps {
 }
 
 const customerNavItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'My Bookings', href: '/dashboard/bookings', icon: Calendar },
-    { name: 'Saved Properties', href: '/dashboard/saved', icon: Heart },
-    { name: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
-    { name: 'Notifications', href: '/dashboard/notifications', icon: Bell },
-    { name: 'Profile', href: '/dashboard/profile', icon: User },
-    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+    { nameKey: 'dashboard.customer.navigation.dashboard', href: '/dashboard', icon: Home },
+    { nameKey: 'dashboard.customer.navigation.myBookings', href: '/dashboard/bookings', icon: Calendar },
+    { nameKey: 'dashboard.customer.navigation.savedProperties', href: '/dashboard/saved', icon: Heart },
+    { nameKey: 'dashboard.customer.navigation.messages', href: '/dashboard/messages', icon: MessageSquare },
+    { nameKey: 'dashboard.customer.navigation.notifications', href: '/dashboard/notifications', icon: Bell },
+    { nameKey: 'dashboard.customer.navigation.profile', href: '/dashboard/profile', icon: User },
+    { nameKey: 'dashboard.customer.navigation.settings', href: '/dashboard/settings', icon: Settings },
 ];
 
 const ownerNavItems = [
-    { name: 'Dashboard', href: '/dashboard/owner', icon: Home },
-    { name: 'My Properties', href: '/dashboard/owner/properties', icon: Building2 },
-    { name: 'Add Property', href: '/dashboard/owner/properties/new', icon: Plus },
-    { name: 'Reservations', href: '/dashboard/owner/bookings', icon: Calendar },
-    { name: 'Analytics', href: '/dashboard/owner/analytics', icon: BarChart3 },
-    { name: 'Messages', href: '/dashboard/owner/messages', icon: MessageSquare },
-    { name: 'Notifications', href: '/dashboard/owner/notifications', icon: Bell },
-    { name: 'Profile', href: '/dashboard/owner/profile', icon: User },
-    { name: 'Settings', href: '/dashboard/owner/settings', icon: Settings },
+    { nameKey: 'dashboard.owner.navigation.dashboard', href: '/dashboard/owner', icon: Home },
+    { nameKey: 'dashboard.owner.navigation.myProperties', href: '/dashboard/owner/properties', icon: Building2 },
+    { nameKey: 'dashboard.owner.navigation.addProperty', href: '/dashboard/owner/properties/new', icon: Plus },
+    { nameKey: 'dashboard.owner.navigation.reservations', href: '/dashboard/owner/bookings', icon: Calendar },
+    { nameKey: 'dashboard.owner.navigation.analytics', href: '/dashboard/owner/analytics', icon: BarChart3 },
+    { nameKey: 'dashboard.owner.navigation.messages', href: '/dashboard/owner/messages', icon: MessageSquare },
+    { nameKey: 'dashboard.owner.navigation.notifications', href: '/dashboard/owner/notifications', icon: Bell },
+    { nameKey: 'dashboard.owner.navigation.profile', href: '/dashboard/owner/profile', icon: User },
+    { nameKey: 'dashboard.owner.navigation.settings', href: '/dashboard/owner/settings', icon: Settings },
 ];
 
 const agentNavItems = [
-    { name: 'Dashboard', href: '/dashboard/agent', icon: Home },
+    { nameKey: 'dashboard.agent.navigation.dashboard', href: '/dashboard/agent', icon: Home },
     { 
-        name: 'Properties',
+        nameKey: 'dashboard.agent.navigation.properties',
         icon: Building2,
         submenu: [
-            { name: 'My Properties', href: '/dashboard/agent/properties' },
+            { nameKey: 'dashboard.agent.navigation.myProperties', href: '/dashboard/agent/properties' },
         ]
     },
-    { name: 'Add Property', href: '/dashboard/agent/properties/new', icon: Plus },
-    { name: 'Reservations', href: '/dashboard/agent/reservations', icon: Calendar },
-    { name: 'Clients', href: '/dashboard/agent/clients', icon: Users },
-    { name: 'Analytics', href: '/dashboard/agent/analytics', icon: BarChart3 },
-    { name: 'Messages', href: '/dashboard/agent/messages', icon: MessageSquare },
-    { name: 'Notifications', href: '/dashboard/agent/notifications', icon: Bell },
-    { name: 'Subscription', href: '/dashboard/agent/subscription', icon: Star },
-    { name: 'Profile', href: '/dashboard/agent/profile', icon: User },
-    { name: 'Settings', href: '/dashboard/agent/settings', icon: Settings },
+    { nameKey: 'dashboard.agent.navigation.addProperty', href: '/dashboard/agent/properties/new', icon: Plus },
+    { nameKey: 'dashboard.agent.navigation.reservations', href: '/dashboard/agent/reservations', icon: Calendar },
+    { nameKey: 'dashboard.agent.navigation.clients', href: '/dashboard/agent/clients', icon: Users },
+    { nameKey: 'dashboard.agent.navigation.analytics', href: '/dashboard/agent/analytics', icon: BarChart3 },
+    { nameKey: 'dashboard.agent.navigation.messages', href: '/dashboard/agent/messages', icon: MessageSquare },
+    { nameKey: 'dashboard.agent.navigation.notifications', href: '/dashboard/agent/notifications', icon: Bell },
+    { nameKey: 'dashboard.agent.navigation.subscription', href: '/dashboard/agent/subscription', icon: Star },
+    { nameKey: 'dashboard.agent.navigation.profile', href: '/dashboard/agent/profile', icon: User },
+    { nameKey: 'dashboard.agent.navigation.settings', href: '/dashboard/agent/settings', icon: Settings },
 ];
 
 const adminNavItems = [
-    { name: 'Dashboard', href: '/admin', icon: Home },
-    { name: 'Users', href: '/admin/users', icon: Users },
+    { nameKey: 'dashboard.admin.navigation.dashboard', href: '/admin', icon: Home },
+    { nameKey: 'dashboard.admin.navigation.users', href: '/admin/users', icon: Users },
     {
-        name: 'Agents',
+        nameKey: 'dashboard.admin.navigation.agents',
         icon: Shield,
         submenu: [
-            { name: 'All Agents', href: '/admin/agents' },
-            { name: 'Pending Approvals', href: '/admin/agents/pending' },
+            { nameKey: 'dashboard.admin.navigation.allAgents', href: '/admin/agents' },
+            { nameKey: 'dashboard.admin.navigation.pendingApprovals', href: '/admin/agents/pending' },
         ]
     },
     { 
-        name: 'Properties',
+        nameKey: 'dashboard.admin.navigation.properties',
         icon: Building2,
         submenu: [
-            { name: 'All Properties', href: '/admin/properties' },
-            { name: 'Property Types', href: '/admin/property-types' },
-            { name: 'Facilities', href: '/admin/facilities' },
+            { nameKey: 'dashboard.admin.navigation.allProperties', href: '/admin/properties' },
+            { nameKey: 'dashboard.admin.navigation.propertyTypes', href: '/admin/property-types' },
+            { nameKey: 'dashboard.admin.navigation.facilities', href: '/admin/facilities' },
         ]
     },
-    { name: 'Reservations', href: '/admin/reservations', icon: Calendar },
-    { name: 'Messages', href: '/admin/messages', icon: MessageSquare },
-    { name: 'Reviews', href: '/admin/reviews', icon: Star },
-    { name: 'Notifications', href: '/admin/notifications', icon: Bell },
-    { name: 'Blog', href: '/admin/blog', icon: FileText },
-    { name: 'Subscriptions', href: '/admin/subscriptions', icon: Star },
-    { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-    { name: 'Profile', href: '/admin/profile', icon: User },
-    { name: 'Settings', href: '/admin/settings', icon: Settings },
+    { nameKey: 'dashboard.admin.navigation.reservations', href: '/admin/reservations', icon: Calendar },
+    { nameKey: 'dashboard.admin.navigation.messages', href: '/admin/messages', icon: MessageSquare },
+    { nameKey: 'dashboard.admin.navigation.reviews', href: '/admin/reviews', icon: Star },
+    { nameKey: 'dashboard.admin.navigation.notifications', href: '/admin/notifications', icon: Bell },
+    { nameKey: 'dashboard.admin.navigation.blog', href: '/admin/blog', icon: FileText },
+    { nameKey: 'dashboard.admin.navigation.subscriptions', href: '/admin/subscriptions', icon: Star },
+    { nameKey: 'dashboard.admin.navigation.analytics', href: '/admin/analytics', icon: BarChart3 },
+    { nameKey: 'dashboard.admin.navigation.profile', href: '/admin/profile', icon: User },
+    { nameKey: 'dashboard.admin.navigation.settings', href: '/admin/settings', icon: Settings },
+];
+
+type Language = {
+  code: string;
+  name: string;
+  flag: string;
+};
+
+const languages: Language[] = [
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
 ];
 
 export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
@@ -105,6 +117,16 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
     const pathname = usePathname();
     const router = useRouter();
     const pathnameRef = useRef(pathname);
+    const t = useTranslations();
+
+    // Extract locale from pathname
+    const parts = pathname.split('/').filter(Boolean);
+    const currentLocale = parts.length > 0 && ['en', 'fr'].includes(parts[0]) ? parts[0] : 'en';
+    const localizedPath = (path: string) => {
+        if (path.startsWith(`/${currentLocale}/`) || path === `/${currentLocale}`) return path;
+        return `/${currentLocale}${path.startsWith('/') ? path : `/${path}`}`;
+    };
+    const normalizedPath = pathname.replace(/^\/(en|fr)(?=\/|$)/, '') || '/';
 
     // Keep ref in sync so redirects use the latest pathname
     useEffect(() => {
@@ -177,11 +199,11 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
 
     const getUserTitle = () => {
         switch (userType) {
-            case 'customer': return 'Customer Dashboard';
-            case 'owner': return 'Owner Dashboard';
-            case 'agent': return 'Agent Dashboard';
-            case 'admin': return 'Admin Dashboard';
-            default: return 'Dashboard';
+            case 'customer': return t('dashboard.customer.title');
+            case 'owner': return t('dashboard.owner.title');
+            case 'agent': return t('dashboard.agent.title');
+            case 'admin': return t('dashboard.admin.title');
+            default: return t('nav.dashboard');
         }
     };
 
@@ -208,12 +230,19 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
     const handleLogout = async () => {
         try {
             await authService.logout();
-            toast.success('Logged out successfully');
-            router.push('/');
+            toast.success(t('auth.loggedOut'));
+            router.push(`/${currentLocale}`);
         } catch (error) {
             console.error('Logout failed:', error);
-            toast.error('Failed to logout');
+            toast.error(t('dashboard.messages.unauthorized'));
         }
+    };
+
+    const handleLanguageChange = (lang: Language) => {
+        // Preserve current path but change locale prefix
+        const rest = parts.length > 0 && ['en', 'fr'].includes(parts[0]) ? parts.slice(1) : parts;
+        const newPath = `/${lang.code}/${rest.join('/')}`.replace(/\/\/$/, '/');
+        router.push(newPath === '/' ? `/${lang.code}` : newPath);
     };
 
     const getUserInitials = (name?: string) => {
@@ -225,6 +254,8 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
             .toUpperCase()
             .slice(0, 2);
     };
+
+    const currentLang = languages.find((l) => l.code === currentLocale) ?? languages[0];
 
     // Show shimmer skeleton while checking authorization (only on initial load)
     if (!isAuthorized) {
@@ -348,27 +379,32 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                         {navItems.map((item: any) => {
                             const Icon = item.icon;
                             const hasSubmenu = item.submenu && item.submenu.length > 0;
-                            const isActive = item.href ? (pathname === item.href || pathname.startsWith(item.href + '/')) : false;
-                            const isSubmenuActive = hasSubmenu && item.submenu.some((subitem: any) => pathname === subitem.href || pathname.startsWith(subitem.href + '/'));
+                            const exactOnlyRoots = ['/dashboard', '/dashboard/owner', '/dashboard/agent', '/admin'];
+                            const isActive = item.href
+                                ? (exactOnlyRoots.includes(item.href)
+                                    ? normalizedPath === item.href
+                                    : (normalizedPath === item.href || normalizedPath.startsWith(item.href + '/')))
+                                : false;
+                            const isSubmenuActive = hasSubmenu && item.submenu.some((subitem: any) => normalizedPath === subitem.href || normalizedPath.startsWith(subitem.href + '/'));
 
                             if (hasSubmenu) {
                                 return (
-                                    <div key={item.name}>
+                                    <div key={item.nameKey}>
                                         <div className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-default ${
                                             isSubmenuActive
                                                 ? 'bg-plp-purple text-white'
                                                 : 'text-gray-700 hover:bg-gray-100'
                                         }`}>
                                             <Icon className="w-4 h-4" />
-                                            {item.name}
+                                            {t(item.nameKey)}
                                         </div>
                                         <div className="ml-6 space-y-1 mt-1">
                                             {item.submenu.map((subitem: any) => {
-                                                const isSubitemActive = pathname === subitem.href || pathname.startsWith(subitem.href + '/');
+                                                const isSubitemActive = normalizedPath === subitem.href || normalizedPath.startsWith(subitem.href + '/');
                                                 return (
                                                     <Link
-                                                        key={subitem.name}
-                                                        href={subitem.href}
+                                                        key={subitem.nameKey}
+                                                        href={localizedPath(subitem.href)}
                                                         className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                                                             isSubitemActive
                                                                 ? 'bg-plp-purple text-white'
@@ -376,7 +412,7 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                                                         }`}
                                                         onClick={() => setSidebarOpen(false)}
                                                     >
-                                                        {subitem.name}
+                                                        {t(subitem.nameKey)}
                                                     </Link>
                                                 );
                                             })}
@@ -387,8 +423,8 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
 
                             return (
                                 <Link
-                                    key={item.name}
-                                    href={item.href}
+                                    key={item.nameKey}
+                                    href={localizedPath(item.href)}
                                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                                         isActive
                                             ? 'bg-plp-purple text-white'
@@ -397,7 +433,7 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                                     onClick={() => setSidebarOpen(false)}
                                 >
                                     <Icon className="w-4 h-4" />
-                                    {item.name}
+                                    {t(item.nameKey)}
                                 </Link>
                             );
                         })}
@@ -417,24 +453,24 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                                             {currentUser?.name || 'User'}
                                         </p>
                                         <p className="text-xs text-gray-500 capitalize">
-                                            {userType === 'agent' ? 'Property Agent' : userType}
+                                            {userType === 'agent' ? t('nav.propertyAgent') : t(`nav.${userType}`)}
                                         </p>
                                     </div>
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                <DropdownMenuLabel>{t('dashboard.common.myAccount')}</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
-                                    <Link href={getProfileRoute()} className="flex items-center cursor-pointer">
+                                    <Link href={localizedPath(getProfileRoute())} className="flex items-center cursor-pointer">
                                         <User className="w-4 h-4 mr-2" />
-                                        Profile
+                                        {t('dashboard.common.profile')}
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
-                                    <Link href={getSettingsRoute()} className="flex items-center cursor-pointer">
+                                    <Link href={localizedPath(getSettingsRoute())} className="flex items-center cursor-pointer">
                                         <Settings className="w-4 h-4 mr-2" />
-                                        Settings
+                                        {t('dashboard.common.settings')}
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
@@ -443,7 +479,7 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                                     className="text-red-600 cursor-pointer"
                                 >
                                     <LogOut className="w-4 h-4 mr-2" />
-                                    Sign Out
+                                    {t('auth.signOut')}
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -472,10 +508,39 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
 
                         <div className="flex items-center gap-4">
                             <NotificationDropdown userType={userType} />
+                            
+                            {/* Language Switcher */}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="gap-2">
+                                  <span className="mr-2">{currentLang.flag}</span>
+                                  <Globe className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuLabel>{t('nav.selectLanguage')}</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {languages.map((language) => (
+                                  <DropdownMenuItem
+                                    key={language.code}
+                                    onClick={() => handleLanguageChange(language)}
+                                    className="flex items-center justify-between cursor-pointer"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span>{language.flag}</span>
+                                      <span>{language.name}</span>
+                                    </div>
+                                    {currentLang.code === language.code && (
+                                      <Check className="w-4 h-4 text-plp-purple" />
+                                    )}
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
 
-                            <Link href="/">
+                            <Link href={`/${currentLocale}`}>
                                 <Button variant="outline" size="sm">
-                                    Back to Site
+                                    {t('dashboard.common.backToSite')}
                                 </Button>
                             </Link>
                         </div>

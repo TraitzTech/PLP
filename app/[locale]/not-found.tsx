@@ -1,18 +1,49 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Logo } from "@/components/ui/logo";
 import { ArrowLeft, Home, LayoutGrid, HelpCircle } from "lucide-react";
 import { useTranslations } from '@/components/translation-provider';
+import { authService } from '@/services/authService';
 
 export default function NotFound() {
     const router = useRouter();
     const params = useParams<{ locale: string }>();
     const locale = (params?.locale || 'en').toLowerCase() === 'fr' ? 'fr' : 'en';
     const t = useTranslations();
+    const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+    const [userType, setUserType] = React.useState<string | null>(null);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const authenticated = await authService.isAuthenticated();
+                setIsAuthenticated(authenticated);
+                if (authenticated) {
+                    const user = await authService.getCurrentUser();
+                    setUserType(user?.user_type ?? null);
+                }
+            } catch (err) {
+                setIsAuthenticated(false);
+            }
+        };
+        checkAuth();
+    }, []);
+
+    const getDashboardLink = () => {
+        switch (userType) {
+            case 'admin':
+                return `/${locale}/admin`;
+            case 'agent':
+                return `/${locale}/dashboard/agent`;
+            default:
+                return `/${locale}/dashboard`;
+        }
+    };
 
     return (
         <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-plp-purple via-plp-pink to-plp-yellow p-6">
@@ -22,7 +53,17 @@ export default function NotFound() {
                 <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-black/10 rounded-full blur-3xl animate-[pulse_4s_ease-in-out_infinite]" />
             </div>
 
-            <Card className="relative z-10 w-full max-w-4xl border-0 shadow-2xl bg-white/90 backdrop-blur">
+            <Card className="relative z-10 w-full max-w-4xl border-0 shadow-2xl bg-white/95 backdrop-blur">
+                {/* Header with Logo */}
+                <div className="border-b border-gray-200 p-6 flex items-center justify-between">
+                    <Link href={`/${locale}`} className="transition-transform hover:scale-110">
+                        <Logo showText={false} className="w-8 h-8" disableLink />
+                    </Link>
+                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        {t('errors.pageNotFound', 'Page Not Found')}
+                    </p>
+                </div>
+
                 <CardContent className="p-0 md:p-10">
                     <div className="grid md:grid-cols-2">
                         {/* Illustration */}
@@ -60,24 +101,26 @@ export default function NotFound() {
                                     <ArrowLeft className="w-4 h-4 mr-2" />
                                     {t('notFound.goBack')}
                                 </Button>
-                                <Link href={`/${locale}`}>
-                                    <Button className="w-full btn-primary justify-center">
+                                <Button asChild className="w-full btn-primary justify-center">
+                                    <Link href={`/${locale}`}>
                                         <Home className="w-4 h-4 mr-2" />
                                         {t('notFound.home')}
+                                    </Link>
+                                </Button>
+                                {isAuthenticated && (
+                                    <Button asChild variant="secondary" className="w-full justify-center">
+                                        <Link href={getDashboardLink()}>
+                                            <LayoutGrid className="w-4 h-4 mr-2" />
+                                            {t('nav.dashboard')}
+                                        </Link>
                                     </Button>
-                                </Link>
-                                <Link href={`/${locale}/dashboard`}>
-                                    <Button variant="secondary" className="w-full justify-center">
-                                        <LayoutGrid className="w-4 h-4 mr-2" />
-                                        {t('notFound.dashboard')}
-                                    </Button>
-                                </Link>
-                                <Link href={`/${locale}/help`}>
-                                    <Button variant="ghost" className="w-full justify-center">
+                                )}
+                                <Button asChild variant="ghost" className="w-full justify-center">
+                                    <Link href={`/${locale}/help`}>
                                         <HelpCircle className="w-4 h-4 mr-2" />
                                         {t('notFound.helpCenter')}
-                                    </Button>
-                                </Link>
+                                    </Link>
+                                </Button>
                             </div>
 
                             {/* Tips / links */}
@@ -91,23 +134,13 @@ export default function NotFound() {
 
             {/* Decorative shapes */}
             <svg
-                className="pointer-events-none absolute -z-0 bottom-10 left-10 w-24 h-24 text-white/20 animate-spin-slow"
+                className="pointer-events-none absolute -z-0 bottom-10 left-10 w-24 h-24 text-white/20 animate-[spin_18s_linear_infinite]"
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
             >
                 <path d="M12 2L15 8L22 9L17 14L18 21L12 18L6 21L7 14L2 9L9 8L12 2Z" fill="currentColor" />
             </svg>
-
-            <style jsx>{`
-                @keyframes spin-slow {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                }
-                .animate-spin-slow {
-                    animation: spin-slow 18s linear infinite;
-                }
-            `}</style>
         </div>
     );
 }

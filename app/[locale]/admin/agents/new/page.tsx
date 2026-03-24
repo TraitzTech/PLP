@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,9 @@ interface FormErrors {
 
 export default function CreateAgentPage() {
   const router = useRouter();
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale === "fr" ? "fr" : "en";
+  const withLocale = (path: string) => `/${locale}${path.startsWith("/") ? path : `/${path}`}`;
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
@@ -158,7 +161,7 @@ export default function CreateAgentPage() {
 
       await agentService.createAgent(submitData);
       toast.success("Agent created successfully");
-      router.push("/admin/agents");
+      router.push(withLocale("/admin/agents"));
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || "Creation failed";
       toast.error(errorMessage);

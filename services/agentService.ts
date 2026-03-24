@@ -238,8 +238,10 @@ export const agentService = {
   ): Promise<AgentUpdateResponse> {
     try {
       const formData = createFormData(data);
+      // Method override is more reliable than multipart PUT on some production proxies.
+      formData.append("_method", "PUT");
 
-      const response = await apiClient.put<AgentUpdateResponse>(
+      const response = await apiClient.post<AgentUpdateResponse>(
         `${BASE_URL}/${id}`,
         formData,
         {

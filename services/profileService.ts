@@ -11,6 +11,10 @@ export interface ProfileData {
   bio?: string;
   company?: string;
   license_number?: string;
+  country?: string;
+  region?: string;
+  city?: string;
+  address?: string;
   created_at: string;
 }
 
@@ -19,6 +23,10 @@ export interface ProfileUpdatePayload {
   phone?: string;
   bio?: string;
   profile_photo?: File;
+  country?: string;
+  region?: string;
+  city?: string;
+  address?: string;
 }
 
 export interface ChangePasswordPayload {
@@ -42,10 +50,14 @@ export const profileService = {
   async updateProfile(payload: ProfileUpdatePayload): Promise<ProfileData> {
     const formData = new FormData();
 
-    if (payload.name) formData.append("name", payload.name);
-    if (payload.phone) formData.append("phone", payload.phone);
+    if (payload.name !== undefined) formData.append("name", payload.name);
+    if (payload.phone !== undefined) formData.append("phone", payload.phone);
     if (payload.bio !== undefined) formData.append("bio", payload.bio);
     if (payload.profile_photo) formData.append("profile_photo", payload.profile_photo);
+    if (payload.country !== undefined) formData.append("country", payload.country);
+    if (payload.region !== undefined) formData.append("region", payload.region);
+    if (payload.city !== undefined) formData.append("city", payload.city);
+    if (payload.address !== undefined) formData.append("address", payload.address);
 
     const { data } = await apiClient.post<{ status: string; message: string; data: ProfileData }>(
       "/profile",

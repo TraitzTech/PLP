@@ -15,8 +15,10 @@ import { savedPropertyService } from '@/services/savedPropertyService';
 import { format, formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useTranslations } from '@/components/translation-provider';
 
 export default function CustomerDashboard() {
+  const t = useTranslations();
   const [isLoading, setIsLoading] = useState(true);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -135,8 +137,8 @@ export default function CustomerDashboard() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-2">Welcome back! Here's an overview of your activity.</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('dashboards.customer.pageTitle')}</h1>
+          <p className="text-gray-600 mt-2">{t('dashboards.customer.welcome')} {t('dashboards.customer.welcomeSubtitle')}</p>
         </div>
 
         {/* Stats Cards */}
@@ -148,7 +150,7 @@ export default function CustomerDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Active Bookings</p>
+                    <p className="text-sm font-medium text-gray-600">{t('dashboards.customer.stats.activeBookings')}</p>
                     <p className="text-2xl font-bold text-gray-900">{stats.activeBookings}</p>
                   </div>
                   <Calendar className="w-8 h-8 text-plp-purple" />
@@ -160,7 +162,7 @@ export default function CustomerDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Saved Properties</p>
+                    <p className="text-sm font-medium text-gray-600">{t('dashboards.customer.stats.savedProperties')}</p>
                     <p className="text-2xl font-bold text-gray-900">{stats.savedProperties}</p>
                   </div>
                   <Heart className="w-8 h-8 text-plp-pink" />
@@ -172,7 +174,7 @@ export default function CustomerDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Spent</p>
+                    <p className="text-sm font-medium text-gray-600">{t('dashboards.customer.stats.totalSpent')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatCurrency(stats.totalSpent)}
                     </p>
@@ -186,7 +188,7 @@ export default function CustomerDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Reviews Given</p>
+                    <p className="text-sm font-medium text-gray-600">{t('dashboards.customer.stats.reviewsGiven')}</p>
                     <p className="text-2xl font-bold text-gray-900">{stats.reviewsGiven}</p>
                   </div>
                   <Star className="w-8 h-8 text-yellow-500" />
@@ -204,11 +206,11 @@ export default function CustomerDashboard() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
-                  Recent Bookings
+                  {t('dashboards.customer.sections.recentBookings')}
                 </CardTitle>
                 <Link href="/dashboard/bookings">
                   <Button variant="ghost" size="sm">
-                    View All
+                    {t('dashboards.common.viewAll')}
                     <ExternalLink className="w-4 h-4 ml-1" />
                   </Button>
                 </Link>
@@ -234,10 +236,10 @@ export default function CustomerDashboard() {
                 ) : bookings.length === 0 ? (
                   <div className="text-center py-8">
                     <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-600">No bookings yet</p>
+                    <p className="text-gray-600">{t('dashboards.customer.sections.noBookings')}</p>
                     <Link href="/search">
                       <Button className="mt-4" variant="outline">
-                        Browse Properties
+                        {t('dashboards.common.browseProperties')}
                       </Button>
                     </Link>
                   </div>
@@ -273,7 +275,7 @@ export default function CustomerDashboard() {
                           </p>
                           <Link href={`/dashboard/bookings`}>
                             <Button variant="outline" size="sm" className="mt-2">
-                              View Details
+                              {t('dashboards.common.viewDetails')}
                             </Button>
                           </Link>
                         </div>
@@ -291,11 +293,11 @@ export default function CustomerDashboard() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Bell className="w-5 h-5" />
-                  Notifications
+                  {t('dashboards.common.notifications')}
                 </CardTitle>
                 <Link href="/dashboard/notifications">
                   <Button variant="ghost" size="sm">
-                    View All
+                    {t('dashboards.common.viewAll')}
                     <ExternalLink className="w-4 h-4 ml-1" />
                   </Button>
                 </Link>
@@ -314,7 +316,7 @@ export default function CustomerDashboard() {
                 ) : notifications.length === 0 ? (
                   <div className="text-center py-8">
                     <Bell className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-600">No notifications</p>
+                    <p className="text-gray-600">{t('dashboards.common.noNotifications')}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -352,32 +354,32 @@ export default function CustomerDashboard() {
         {/* Quick Actions */}
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle>{t('dashboards.customer.sections.quickActions')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Link href="/properties">
                 <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
                   <Home className="w-6 h-6" />
-                  <span>Browse Properties</span>
+                  <span>{t('dashboards.customer.actions.browseProperties')}</span>
                 </Button>
               </Link>
               <Link href="/dashboard/bookings">
                 <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
                   <Calendar className="w-6 h-6" />
-                  <span>My Bookings</span>
+                  <span>{t('dashboards.customer.actions.myBookings')}</span>
                 </Button>
               </Link>
               <Link href="/dashboard/saved">
                 <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
                   <Heart className="w-6 h-6" />
-                  <span>Saved Properties</span>
+                  <span>{t('dashboards.customer.actions.savedProperties')}</span>
                 </Button>
               </Link>
               <Link href="/dashboard/profile">
                 <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
                   <Star className="w-6 h-6" />
-                  <span>My Profile</span>
+                  <span>{t('dashboards.customer.actions.myProfile')}</span>
                 </Button>
               </Link>
             </div>

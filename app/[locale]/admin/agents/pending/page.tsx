@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +29,9 @@ interface DetailModalData {
 
 function PendingAgentsPageContent() {
   const router = useRouter();
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale === "fr" ? "fr" : "en";
+  const withLocale = (path: string) => `/${locale}${path.startsWith("/") ? path : `/${path}`}`;
   const searchParams = useSearchParams();
   const [pendingAgents, setPendingAgents] = useState<Agent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -191,7 +194,7 @@ function PendingAgentsPageContent() {
                 <CardContent>
                   <Button
                     size="sm"
-                    onClick={() => router.push("/admin/agents")}
+                    onClick={() => router.push(withLocale("/admin/agents"))}
                     variant="outline"
                   >
                     View All Agents

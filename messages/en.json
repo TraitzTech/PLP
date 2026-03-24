@@ -602,5 +602,307 @@
     "helpCenter": "Help Center",
     "tip": "Tip: try the search bar or browse our categories to find what you need.",
     "brand": "Property Listing Portal"
+  },
+  "dashboard": {
+    "customer": {
+      "title": "Customer Dashboard",
+      "navigation": {
+        "dashboard": "Dashboard",
+        "myBookings": "My Bookings",
+        "savedProperties": "Saved Properties",
+        "messages": "Messages",
+        "notifications": "Notifications",
+        "profile": "Profile",
+        "settings": "Settings"
+      }
+    },
+    "owner": {
+      "title": "Owner Dashboard",
+      "navigation": {
+        "dashboard": "Dashboard",
+        "myProperties": "My Properties",
+        "addProperty": "Add Property",
+        "reservations": "Reservations",
+        "analytics": "Analytics",
+        "messages": "Messages",
+        "notifications": "Notifications",
+        "profile": "Profile",
+        "settings": "Settings"
+      }
+    },
+    "agent": {
+      "title": "Agent Dashboard",
+      "navigation": {
+        "dashboard": "Dashboard",
+        "properties": "Properties",
+        "myProperties": "My Properties",
+        "addProperty": "Add Property",
+        "reservations": "Reservations",
+        "clients": "Clients",
+        "analytics": "Analytics",
+        "messages": "Messages",
+        "notifications": "Notifications",
+        "subscription": "Subscription",
+        "profile": "Profile",
+        "settings": "Settings"
+      }
+    },
+    "admin": {
+      "title": "Admin Dashboard",
+      "navigation": {
+        "dashboard": "Dashboard",
+        "users": "Users",
+        "agents": "Agents",
+        "allAgents": "All Agents",
+        "pendingApprovals": "Pending Approvals",
+        "properties": "Properties",
+        "allProperties": "All Properties",
+        "propertyTypes": "Property Types",
+        "facilities": "Facilities",
+        "reservations": "Reservations",
+        "messages": "Messages",
+        "reviews": "Reviews",
+        "notifications": "Notifications",
+        "blog": "Blog",
+        "subscriptions": "Subscriptions",
+        "analytics": "Analytics",
+        "profile": "Profile",
+        "settings": "Settings"
+      }
+    },
+    "common": {
+      "myAccount": "My Account",
+      "profile": "Profile",
+      "settings": "Settings",
+      "signOut": "Sign Out",
+      "backToSite": "Back to Site",
+      "propertyAgent": "Property Agent",
+      "email": "Email",
+      "phone": "Phone",
+      "language": "Language",
+      "theme": "Theme",
+      "notifications": "Notifications",
+      "privacy": "Privacy",
+      "security": "Security",
+      "helpCenter": "Help Center",
+      "support": "Support"
+    },
+    "messages": {
+      "unauthorized": "You are not authorized to access this page",
+      "sessionExpired": "Your session has expired. Please log in again.",
+      "redirecting": "Redirecting...",
+      "notFound": "Page not found"
+    }
+  },
+  "errors": {
+    "pageNotFound": "Page Not Found",
+    "error": "Error",
+    "error404": "404",
+    "error500": "500",
+    "errorOccurred": "Error Occurred",
+    "somethingWentWrong": "Oops! Something went wrong",
+    "unexpectedError": "An unexpected error occurred. Please try again.",
+    "tryAgain": "Try Again",
+    "needHelp": "Need help?",
+    "serverError": "Server Error",
+    "badRequest": "Bad Request",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Forbidden",
+    "notFoundLong": "The page you're looking for cannot be found",
+    "serverErrorMessage": "Something went wrong on our end. Our team has been notified.",
+    "tryToGoBack": "Go back to your previous page or return home"
+  },
+  "dashboards": {
+    "customer": {
+      "pageTitle": "Dashboard",
+      "welcome": "Welcome back!",
+      "welcomeSubtitle": "Here's an overview of your activity.",
+      "stats": {
+        "activeBookings": "Active Bookings",
+        "savedProperties": "Saved Properties",
+        "totalSpent": "Total Spent",
+        "reviewsGiven": "Reviews Given"
+      },
+      "sections": {
+        "recentBookings": "Recent Bookings",
+        "upcomingBookings": "Upcoming Bookings",
+        "recentNotifications": "Recent Notifications",
+        "noBookings": "No bookings yet",
+        "noNotifications": "No notifications",
+        "quickActions": "Quick Actions"
+      },
+      "actions": {
+        "viewAll": "View All Bookings",
+        "browseProperties": "Browse Properties",
+        "markAsRead": "Mark as Read",
+        "myBookings": "My Bookings",
+        "myProfile": "My Profile",
+        "savedProperties": "Saved Properties"
+      }
+    },
+    "agent": {
+      "pageTitle": "Agent Dashboard",
+      "welcome": "Welcome, {name}!",
+      "welcomeSubtitle": "Manage your properties and bookings.",
+      "stats": {
+        "totalProperties": "Total Properties",
+        "activeBookings": "Active Bookings",
+        "monthlyRevenue": "Monthly Revenue",
+        "pendingApprovals": "Pending Approvals",
+        "averageRating": "Average Rating"
+      },
+      "sections": {
+        "myProperties": "My Properties",
+        "recentActivities": "Recent Activities",
+        "pendingProperties": "Pending Approval",
+        "noProperties": "No properties yet",
+        "noActivities": "No activities"
+      },
+      "actions": {
+        "addProperty": "Add New Property",
+        "viewAllProperties": "View All Properties",
+        "editProperty": "Edit",
+        "deleteProperty": "Delete",
+        "viewAnalytics": "View Analytics"
+      }
+    },
+    "owner": {
+      "pageTitle": "Owner Dashboard",
+      "welcome": "Welcome back!",
+      "welcomeSubtitle": "Manage your listings and reservations.",
+      "stats": {
+        "totalProperties": "Total Properties",
+        "activeBookings": "Active Bookings",
+        "monthlyRevenue": "Monthly Revenue",
+        "totalReviews": "Total Reviews"
+      },
+      "sections": {
+        "myProperties": "My Properties",
+        "reservations": "Reservations",
+        "analytics": "Analytics"
+      },
+      "actions": {
+        "addProperty": "Add Property",
+        "viewAnalytics": "View Analytics"
+      }
+    },
+    "admin": {
+      "pageTitle": "Admin Dashboard",
+      "welcome": "Admin Dashboard",
+      "welcomeSubtitle": "Monitor and manage the Property Listing Portal platform.",
+      "stats": {
+        "totalUsers": "Total Users",
+        "totalProperties": "Total Properties",
+        "monthlyRevenue": "Monthly Revenue",
+        "platformGrowth": "Platform Growth",
+        "activeAgents": "Active Agents",
+        "pendingApprovals": "Pending Approvals",
+        "totalBookings": "Total Bookings",
+        "systemHealth": "System Health"
+      },
+      "sections": {
+        "quickStats": "Quick Stats",
+        "recentActivities": "Recent Activities",
+        "topProperties": "Top Performing Properties",
+        "pendingApprovals": "Pending Approvals",
+        "pendingAgents": "Pending Agent Approvals",
+        "systemMetrics": "System Metrics",
+        "userManagement": "User Management",
+        "propertyManagement": "Property Management",
+        "viewAllPendingAgents": "View all {count} pending agents",
+        "allAgentsReviewed": "All agent applications have been reviewed!"
+      },
+      "actions": {
+        "viewUsers": "View Users",
+        "viewProperties": "View Properties",
+        "reviewApproval": "Review",
+        "approveAgent": "Approve",
+        "rejectAgent": "Reject",
+        "approveProperty": "Approve",
+        "rejectProperty": "Reject",
+        "viewAnalytics": "View Analytics"
+      },
+      "approval": {
+        "title": "Review Approval",
+        "approve": "Approve",
+        "reject": "Reject",
+        "approving": "Approving...",
+        "rejecting": "Rejecting...",
+        "approveMessage": "This action will approve the selected item and notify the owner.",
+        "rejectMessage": "Please provide a rejection reason. It will be included in notifications and email.",
+        "reason": "Rejection Reason",
+        "reasonPlaceholder": "Enter a clear reason for rejection...",
+        "approveSuccess": "Approved successfully",
+        "rejectSuccess": "Rejected successfully",
+        "approveFailed": "Failed to approve",
+        "rejectFailed": "Failed to reject",
+        "reasonRequired": "Please provide a reason for rejection"
+      },
+      "metrics": {
+        "revenue": "Revenue",
+        "growth": "Growth",
+        "activeUsers": "Active Users",
+        "newSignups": "New Signups",
+        "bookingRate": "Booking Rate",
+        "averageRating": "Average Rating",
+        "bookings": "Bookings",
+        "rating": "Rating"
+      }
+    },
+    "common": {
+      "noData": "No data available",
+      "loading": "Loading...",
+      "loadingData": "Loading data...",
+      "error": "Error occurred",
+      "errorLoading": "Error loading data",
+      "success": "Success",
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete",
+      "edit": "Edit",
+      "add": "Add",
+      "search": "Search",
+      "filter": "Filter",
+      "sort": "Sort",
+      "export": "Export",
+      "import": "Import",
+      "viewAll": "View All",
+      "viewMore": "View More",
+      "readMore": "Read More",
+      "showMore": "Show More",
+      "showLess": "Show Less",
+      "view": "View",
+      "download": "Download",
+      "share": "Share",
+      "contact": "Contact",
+      "message": "Message",
+      "status": "Status",
+      "date": "Date",
+      "time": "Time",
+      "property": "Property",
+      "properties": "Properties",
+      "booking": "Booking",
+      "bookings": "Bookings",
+      "price": "Price",
+      "currency": "XAF",
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "inProgress": "In Progress",
+      "active": "Active",
+      "inactive": "Inactive",
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived",
+      "quickActions": "Quick Actions",
+      "you": "You",
+      "notifications": "Notifications",
+      "noNotifications": "No notifications",
+      "viewDetails": "View Details",
+      "browseProperties": "Browse Properties"
+    }
   }
 }

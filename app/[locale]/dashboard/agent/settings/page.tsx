@@ -31,6 +31,10 @@ export default function AgentSettingsPage() {
     email: '',
     phone: '',
     bio: '',
+    country: '',
+    region: '',
+    city: '',
+    address: '',
     company: '',
     licenseNumber: '',
     avatar: null as string | null,
@@ -87,6 +91,10 @@ export default function AgentSettingsPage() {
           email: data.email || '',
           phone: data.phone || '',
           bio: data.bio || '',
+          country: data.country || '',
+          region: data.region || '',
+          city: data.city || '',
+          address: data.address || '',
           company: data.company || '',
           licenseNumber: data.license_number || '',
           avatar: data.avatar,
@@ -121,6 +129,10 @@ export default function AgentSettingsPage() {
         name: profileData.name,
         phone: profileData.phone,
         bio: profileData.bio,
+        country: profileData.country,
+        region: profileData.region,
+        city: profileData.city,
+        address: profileData.address,
         profile_photo: selectedPhoto || undefined,
       });
       setProfileData(prev => ({ ...prev, avatar: updated.avatar }));
@@ -301,6 +313,42 @@ export default function AgentSettingsPage() {
                           value={profileData.licenseNumber}
                           disabled
                           className="bg-gray-50 dark:bg-gray-800"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="country">Pays</Label>
+                        <Input
+                          id="country"
+                          value={profileData.country}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, country: e.target.value }))}
+                          placeholder="Cameroun"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="region">Région</Label>
+                        <Input
+                          id="region"
+                          value={profileData.region}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, region: e.target.value }))}
+                          placeholder="Centre"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="city">Ville</Label>
+                        <Input
+                          id="city"
+                          value={profileData.city}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, city: e.target.value }))}
+                          placeholder="Yaoundé"
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="address">Adresse</Label>
+                        <Input
+                          id="address"
+                          value={profileData.address}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, address: e.target.value }))}
+                          placeholder="Quartier, rue, référence"
                         />
                       </div>
                       <div className="space-y-2 md:col-span-2">

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from '@/components/translation-provider';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ const formatCurrency = (amount: number) =>
 
 export default function AgentDashboard() {
   const router = useRouter();
+  const t = useTranslations();
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [isLoadingProperties, setIsLoadingProperties] = useState(true);
   const [isLoadingActivities, setIsLoadingActivities] = useState(true);
@@ -153,13 +155,13 @@ export default function AgentDashboard() {
         {/* Welcome Section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Welcome, {agentName}!</h1>
-            <p className="text-gray-600 mt-2">Overview of your properties, bookings, and activity.</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('dashboards.agent.welcome', { name: agentName })}</h1>
+            <p className="text-gray-600 mt-2">{t('dashboards.agent.welcomeSubtitle')}</p>
           </div>
           <Link href="/dashboard/agent/properties/new">
             <Button className="btn-primary">
               <Plus className="w-4 h-4 mr-2" />
-              Add Property
+              {t('dashboards.agent.actions.addProperty')}
             </Button>
           </Link>
         </div>
@@ -173,7 +175,7 @@ export default function AgentDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Properties</p>
+                  <p className="text-sm font-medium text-gray-600">{t('dashboards.agent.stats.totalProperties')}</p>
                   <p className="text-2xl font-bold text-gray-900">{agentStats.totalProperties}</p>
                 </div>
                 <Building2 className="w-8 h-8 text-plp-purple" />
@@ -185,7 +187,7 @@ export default function AgentDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Bookings</p>
+                  <p className="text-sm font-medium text-gray-600">{t('dashboards.agent.stats.activeBookings')}</p>
                   <p className="text-2xl font-bold text-gray-900">{agentStats.activeBookings}</p>
                 </div>
                 <Calendar className="w-8 h-8 text-plp-pink" />
@@ -197,7 +199,7 @@ export default function AgentDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Revenue</p>
+                  <p className="text-sm font-medium text-gray-600">{t('dashboards.agent.stats.monthlyRevenue')}</p>
                   <p className="text-2xl font-bold text-gray-900">{formatCurrency(agentStats.monthlyRevenue)}</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-plp-yellow" />
@@ -209,7 +211,7 @@ export default function AgentDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pending</p>
+                  <p className="text-sm font-medium text-gray-600">{t('dashboards.agent.stats.pendingApprovals')}</p>
                   <p className="text-2xl font-bold text-gray-900">{agentStats.pendingApprovals}</p>
                 </div>
                 <AlertCircle className="w-8 h-8 text-orange-500" />
@@ -221,7 +223,7 @@ export default function AgentDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Rating</p>
+                  <p className="text-sm font-medium text-gray-600">{t('dashboards.agent.stats.averageRating')}</p>
                   <p className="text-2xl font-bold text-gray-900">{agentStats.averageRating.toFixed(1)} ⭐</p>
                 </div>
                 <Star className="w-8 h-8 text-yellow-500" />
@@ -239,10 +241,10 @@ export default function AgentDashboard() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="w-5 h-5" />
-                  Recent Activity
+                  {t('dashboards.agent.sections.recentActivities')}
                 </CardTitle>
                 <Link href="/dashboard/agent/activity">
-                  <Button variant="outline" size="sm">View All</Button>
+                  <Button variant="outline" size="sm">{t('dashboards.common.viewAll')}</Button>
                 </Link>
               </CardHeader>
               <CardContent>
@@ -269,7 +271,7 @@ export default function AgentDashboard() {
                     <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition">
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">{activity.description}</h3>
-                        <p className="text-sm text-gray-600 mt-1">You {activity.action}</p>
+                        <p className="text-sm text-gray-600 mt-1">{t('dashboards.common.you')} {activity.action}</p>
                         <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
                           <Clock className="w-4 h-4" />
                           <span>{new Date(activity.created_at).toLocaleDateString('en-US')}</span>
@@ -280,7 +282,7 @@ export default function AgentDashboard() {
                   ))}
                 </div>
                 ) : (
-                  <p className="text-sm text-gray-500 text-center py-8">No recent activity</p>
+                  <p className="text-sm text-gray-500 text-center py-8">{t('dashboards.common.noData')}</p>
                 )}
               </CardContent>
             </Card>
@@ -292,10 +294,10 @@ export default function AgentDashboard() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="w-5 h-5" />
-                  My Properties
+                  {t('dashboards.agent.sections.myProperties')}
                 </CardTitle>
                 <Link href="/dashboard/agent/properties">
-                  <Button variant="outline" size="sm">View All</Button>
+                  <Button variant="outline" size="sm">{t('dashboards.common.viewAll')}</Button>
                 </Link>
               </CardHeader>
               <CardContent>
@@ -322,7 +324,7 @@ export default function AgentDashboard() {
                           {property.title}
                         </h4>
                         <Badge variant={property.is_approved ? "default" : "secondary"} className="text-xs">
-                          {property.is_approved ? 'Active' : 'Pending'}
+                          {property.is_approved ? t('dashboards.common.active') : t('dashboards.common.pending')}
                         </Badge>
                       </div>
                       <p className="text-xs text-gray-600 mb-2">{property.location}</p>
@@ -331,7 +333,7 @@ export default function AgentDashboard() {
                   ))}
                 </div>
                 ) : (
-                  <p className="text-sm text-gray-500 text-center py-8">No properties yet</p>
+                  <p className="text-sm text-gray-500 text-center py-8">{t('dashboards.common.noData')}</p>
                 )}
               </CardContent>
             </Card>
@@ -344,7 +346,7 @@ export default function AgentDashboard() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-yellow-900">
                 <AlertCircle className="w-5 h-5" />
-                Pending Approval ({pendingProperties.length})
+                {t('dashboards.agent.sections.pendingProperties')} ({pendingProperties.length})
               </CardTitle>
               <Link href="/dashboard/agent/properties">
                 <Button variant="outline" size="sm">Review</Button>

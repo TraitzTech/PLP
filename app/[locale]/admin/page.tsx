@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from '@/components/translation-provider';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ import {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const t = useTranslations();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [topProperties, setTopProperties] = useState<TopProperty[]>([]);
@@ -236,8 +238,8 @@ export default function AdminDashboard() {
       <div className="space-y-8">
         {/* Welcome Section */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">Monitor and manage the Property Listing Portal platform.</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('dashboards.admin.pageTitle')}</h1>
+          <p className="text-gray-600 mt-2">{t('dashboards.admin.welcomeSubtitle')}</p>
         </div>
 
         {/* Quick Stats */}
@@ -249,7 +251,7 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Users</p>
+                    <p className="text-sm font-medium text-gray-600">{t('dashboards.admin.stats.totalUsers')}</p>
                     <p className="text-2xl font-bold text-gray-900">{(stats.totalUsers ?? 0).toLocaleString()}</p>
                   </div>
                   <Users className="w-8 h-8 text-plp-purple" />
@@ -261,7 +263,7 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Properties</p>
+                    <p className="text-sm font-medium text-gray-600">{t('dashboards.admin.stats.totalProperties')}</p>
                     <p className="text-2xl font-bold text-gray-900">{(stats.totalProperties ?? 0).toLocaleString()}</p>
                   </div>
                   <Building2 className="w-8 h-8 text-plp-pink" />
@@ -273,7 +275,7 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
+                    <p className="text-sm font-medium text-gray-600">{t('dashboards.admin.stats.monthlyRevenue')}</p>
                     <p className="text-2xl font-bold text-gray-900">XAF {(stats.monthlyRevenue ?? 0).toLocaleString()}</p>
                   </div>
                   <DollarSign className="w-8 h-8 text-plp-yellow" />
@@ -285,7 +287,7 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Platform Growth</p>
+                    <p className="text-sm font-medium text-gray-600">{t('dashboards.admin.stats.platformGrowth')}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {stats.platformGrowth ?? 0}%
                       </p>
@@ -304,7 +306,7 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5" />
-                  Recent Activities
+                  {t('dashboards.admin.sections.recentActivities')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -330,7 +332,7 @@ export default function AdminDashboard() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 text-center py-8">No recent activities</p>
+                  <p className="text-sm text-gray-500 text-center py-8">{t('dashboards.common.noData')}</p>
                 )}
               </CardContent>
             </Card>
@@ -342,32 +344,32 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="w-5 h-5" />
-                  Quick Actions
+                  {t('dashboards.common.quickActions') || 'Quick Actions'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Link href="/admin/properties">
                   <Button className="w-full btn-primary">
                     <AlertTriangle className="w-4 h-4 mr-2" />
-                    Pending Approvals ({stats?.pendingApprovals || 0})
+                    {t('dashboards.admin.sections.pendingApprovals')} ({stats?.pendingApprovals || 0})
                   </Button>
                 </Link>
                 <Link href="/admin/users">
                   <Button variant="outline" className="w-full">
                     <Users className="w-4 h-4 mr-2" />
-                    Manage Users
+                    {t('dashboards.admin.actions.viewUsers')}
                   </Button>
                 </Link>
                 <Link href="/admin/properties">
                   <Button variant="outline" className="w-full">
                     <Building2 className="w-4 h-4 mr-2" />
-                    Review Properties
+                    {t('dashboards.admin.actions.viewProperties')}
                   </Button>
                 </Link>
                 <Link href="/admin/analytics">
                   <Button variant="outline" className="w-full">
                     <BarChart3 className="w-4 h-4 mr-2" />
-                    View Analytics
+                    {t('dashboards.admin.actions.viewAnalytics')}
                   </Button>
                 </Link>
               </CardContent>
@@ -380,7 +382,7 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="w-5 h-5" />
-              Pending Approvals
+              {t('dashboards.admin.sections.pendingApprovals')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -407,7 +409,7 @@ export default function AdminDashboard() {
                         size="sm"
                         onClick={() => handleReviewApproval(item)}
                       >
-                        Review
+                        {t('dashboards.admin.actions.reviewApproval')}
                       </Button>
                       {isActionableApproval(item) && (
                         <>
@@ -416,7 +418,7 @@ export default function AdminDashboard() {
                             className="btn-primary"
                             onClick={() => openApprovalDialog(item, 'approve')}
                           >
-                            Approve
+                            {t('dashboards.admin.approval.approve')}
                           </Button>
                           <Button 
                             variant="outline" 
@@ -424,7 +426,7 @@ export default function AdminDashboard() {
                             className="text-red-600 hover:text-red-700"
                             onClick={() => openApprovalDialog(item, 'reject')}
                           >
-                            Reject
+                            {t('dashboards.admin.approval.reject')}
                           </Button>
                         </>
                       )}
@@ -433,7 +435,7 @@ export default function AdminDashboard() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500 text-center py-8">No pending approvals</p>
+              <p className="text-sm text-gray-500 text-center py-8">{t('dashboards.common.noData')}</p>
             )}
           </CardContent>
         </Card>
@@ -444,11 +446,11 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                Pending Agent Approvals
+                {t('dashboards.admin.sections.pendingAgents')}
               </CardTitle>
               {pendingAgents.length > 0 && (
                 <Badge className="bg-yellow-100 text-yellow-800">
-                  {pendingAgents.length} pending
+                  {pendingAgents.length} {t('dashboards.common.pending')}
                 </Badge>
               )}
             </div>
@@ -464,7 +466,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-gray-900">{agent.user?.name}</h3>
                         <Badge variant="secondary" className="text-xs">
-                          Pending
+                          {t('dashboards.common.pending')}
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-600">{agent.user?.email}</p>
@@ -475,7 +477,7 @@ export default function AdminDashboard() {
                       onClick={() => router.push(`/admin/agents/pending?agentId=${agent.id}`)}
                       className="ml-2"
                     >
-                      Review
+                      {t('dashboards.admin.actions.reviewApproval')}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
@@ -486,14 +488,14 @@ export default function AdminDashboard() {
                     className="w-full"
                     onClick={() => router.push(`/admin/agents/pending`)}
                   >
-                    View all {pendingAgents.length} pending agents
+                    {t('dashboards.admin.sections.viewAllPendingAgents', { count: pendingAgents.length })}
                   </Button>
                 )}
               </div>
             ) : (
               <div className="text-center py-8">
                 <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">All agent applications have been reviewed!</p>
+                <p className="text-sm text-gray-600">{t('dashboards.admin.sections.allAgentsReviewed')}</p>
               </div>
             )}
           </CardContent>
@@ -504,23 +506,23 @@ export default function AdminDashboard() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {approvalAction === 'approve' ? 'Approve' : 'Reject'} {selectedApproval?.type ?? 'item'}
+                {approvalAction === 'approve' ? t('dashboards.admin.approval.approve') : t('dashboards.admin.approval.reject')} {selectedApproval?.type ?? 'item'}
               </DialogTitle>
               <DialogDescription>
                 {approvalAction === 'approve'
-                  ? 'This action will approve the selected item and notify the owner.'
-                  : 'Please provide a rejection reason. It will be included in notifications and email.'}
+                  ? t('dashboards.admin.approval.approveMessage')
+                  : t('dashboards.admin.approval.rejectMessage')}
               </DialogDescription>
             </DialogHeader>
 
             {approvalAction === 'reject' && (
               <div className="space-y-2">
-                <Label htmlFor="approval-reason">Rejection Reason</Label>
+                <Label htmlFor="approval-reason">{t('dashboards.admin.approval.reason')}</Label>
                 <Textarea
                   id="approval-reason"
                   value={approvalReason}
                   onChange={(event) => setApprovalReason(event.target.value)}
-                  placeholder="Enter a clear reason for rejection..."
+                  placeholder={t('dashboards.admin.approval.reasonPlaceholder')}
                   rows={4}
                 />
               </div>
@@ -532,7 +534,7 @@ export default function AdminDashboard() {
                 onClick={() => setApprovalDialogOpen(false)}
                 disabled={isProcessingApproval}
               >
-                Cancel
+                {t('dashboards.common.cancel')}
               </Button>
               <Button
                 onClick={handleConfirmApproval}
@@ -540,8 +542,8 @@ export default function AdminDashboard() {
                 className={approvalAction === 'reject' ? 'bg-red-600 hover:bg-red-700' : ''}
               >
                 {isProcessingApproval
-                  ? (approvalAction === 'approve' ? 'Approving...' : 'Rejecting...')
-                  : (approvalAction === 'approve' ? 'Approve' : 'Reject')}
+                  ? (approvalAction === 'approve' ? t('dashboards.admin.approval.approving') : t('dashboards.admin.approval.rejecting'))
+                  : (approvalAction === 'approve' ? t('dashboards.admin.approval.approve') : t('dashboards.admin.approval.reject'))}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -551,7 +553,7 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Star className="w-5 h-5" />
-              Top Performing Properties
+              {t('dashboards.admin.sections.topProperties')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -573,22 +575,22 @@ export default function AdminDashboard() {
                     <div className="grid grid-cols-3 gap-2 text-sm">
                       <div className="text-center">
                         <p className="font-semibold text-gray-900">{property.bookings}</p>
-                        <p className="text-gray-600">Bookings</p>
+                        <p className="text-gray-600">{t('dashboards.admin.metrics.bookings')}</p>
                       </div>
                       <div className="text-center">
                         <p className="font-semibold text-gray-900">XAF {property.revenue.toLocaleString()}</p>
-                        <p className="text-gray-600">Revenue</p>
+                        <p className="text-gray-600">{t('dashboards.admin.metrics.revenue')}</p>
                       </div>
                       <div className="text-center">
                         <p className="font-semibold text-gray-900">{property.rating}</p>
-                        <p className="text-gray-600">Rating</p>
+                        <p className="text-gray-600">{t('dashboards.admin.metrics.rating')}</p>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500 text-center py-8">No properties data available</p>
+              <p className="text-sm text-gray-500 text-center py-8">{t('dashboards.common.noData')}</p>
             )}
           </CardContent>
         </Card>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,6 +74,9 @@ function getProfilePhotoUrl(imagePath: string): string {
 
 export default function AdminAgentsPage() {
   const router = useRouter();
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale === "fr" ? "fr" : "en";
+  const withLocale = (path: string) => `/${locale}${path.startsWith("/") ? path : `/${path}`}`;
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -235,7 +238,7 @@ export default function AdminAgentsPage() {
               <p className="text-muted-foreground">Manage all property agents</p>
             </div>
           </div>
-          <Button onClick={() => router.push("/admin/agents/new")}>
+          <Button onClick={() => router.push(withLocale("/admin/agents/new"))}>
             <Plus className="h-4 w-4 mr-2" />
             Add Agent
           </Button>
@@ -330,7 +333,7 @@ export default function AdminAgentsPage() {
                       <TableHead>Agent</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>ID Card</TableHead>
-                      <TableHead>Location</TableHead>
+                      <TableHead>Address</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Joined</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -386,7 +389,7 @@ export default function AdminAgentsPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => router.push(`/admin/agents/${agent.id}/edit`)}
+                              onClick={() => router.push(withLocale(`/admin/agents/${agent.id}/edit`))}
                               title="Edit agent"
                             >
                               <Edit className="h-4 w-4" />
@@ -551,7 +554,11 @@ export default function AdminAgentsPage() {
               <DialogFooter className="gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => router.push(`/admin/agents/${detailModal.agent!.id}/edit`)}
+                  onClick={() => {
+                    const id = detailModal.agent!.id;
+                    setDetailModal({ agent: null, isOpen: false });
+                    router.push(withLocale(`/admin/agents/${id}/edit`));
+                  }}
                 >
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Agent

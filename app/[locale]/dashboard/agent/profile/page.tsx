@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
+import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +19,10 @@ import type { ProfileData } from '@/services/profileService';
 import type { DashboardStats, Listing } from '@/services/types';
 
 export default function AgentProfilePage() {
+    const router = useRouter();
+    const params = useParams<{ locale: string }>();
+    const locale = params?.locale === 'fr' ? 'fr' : 'en';
+    const withLocale = (path: string) => `/${locale}${path.startsWith('/') ? path : `/${path}`}`;
   type AgentStats = Partial<DashboardStats & { pendingBookings?: number; confirmedBookings?: number; activeListings?: number; totalBookings?: number; monthlyRevenue?: number }>;
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -42,7 +47,7 @@ export default function AgentProfilePage() {
         setProfile(profileData);
         setStats(statsRes.data);
         setListings(listingsRes.data || []);
-        setBookings(bookingsRes.data?.data || bookingsRes.data || []);
+        setBookings(bookingsRes.data || []);
         setActivities(activitiesRes.data?.data || []);
       } catch (error) {
         console.error('Failed to load agent profile data', error);
@@ -140,11 +145,11 @@ export default function AgentProfilePage() {
                 )}
                 
                 <div className="flex gap-3">
-                  <Button className="btn-primary" onClick={() => toast.info('Edit profile from Settings')}>
+                  <Button className="btn-primary" onClick={() => router.push(withLocale('/dashboard/agent/settings'))}>
                     <Edit className="w-4 h-4 mr-2" />
                     Modifier le Profil
                   </Button>
-                  <Button variant="outline" onClick={() => toast.info('Manage contact info in Settings')}>
+                  <Button variant="outline" onClick={() => router.push(withLocale('/dashboard/agent/settings'))}>
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Paramètres de Contact
                   </Button>

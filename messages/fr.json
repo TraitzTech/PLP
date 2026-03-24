@@ -602,5 +602,308 @@
     "helpCenter": "Centre d'aide",
     "tip": "Conseil: utilisez la barre de recherche ou parcourez nos catégories pour trouver ce dont vous avez besoin.",
     "brand": "Property Listing Portal"
+  },
+  "dashboard": {
+    "customer": {
+      "title": "Tableau de Bord Client",
+      "navigation": {
+        "dashboard": "Tableau de Bord",
+        "myBookings": "Mes Réservations",
+        "savedProperties": "Propriétés Enregistrées",
+        "messages": "Messages",
+        "notifications": "Notifications",
+        "profile": "Profil",
+        "settings": "Paramètres"
+      }
+    },
+    "owner": {
+      "title": "Tableau de Bord Propriétaire",
+      "navigation": {
+        "dashboard": "Tableau de Bord",
+        "myProperties": "Mes Propriétés",
+        "addProperty": "Ajouter une Propriété",
+        "reservations": "Réservations",
+        "analytics": "Analytique",
+        "messages": "Messages",
+        "notifications": "Notifications",
+        "profile": "Profil",
+        "settings": "Paramètres"
+      }
+    },
+    "agent": {
+      "title": "Tableau de Bord Agent",
+      "navigation": {
+        "dashboard": "Tableau de Bord",
+        "properties": "Propriétés",
+        "myProperties": "Mes Propriétés",
+        "addProperty": "Ajouter une Propriété",
+        "reservations": "Réservations",
+        "clients": "Clients",
+        "analytics": "Analytique",
+        "messages": "Messages",
+        "notifications": "Notifications",
+        "subscription": "Abonnement",
+        "profile": "Profil",
+        "settings": "Paramètres"
+      }
+    },
+    "admin": {
+      "title": "Tableau de Bord Administrateur",
+      "navigation": {
+        "dashboard": "Tableau de Bord",
+        "users": "Utilisateurs",
+        "agents": "Agents",
+        "allAgents": "Tous les Agents",
+        "pendingApprovals": "Approbations en Attente",
+        "properties": "Propriétés",
+        "allProperties": "Toutes les Propriétés",
+        "propertyTypes": "Types de Propriétés",
+        "facilities": "Équipements",
+        "reservations": "Réservations",
+        "messages": "Messages",
+        "reviews": "Avis",
+        "notifications": "Notifications",
+        "blog": "Blog",
+        "subscriptions": "Abonnements",
+        "analytics": "Analytique",
+        "profile": "Profil",
+        "settings": "Paramètres"
+      }
+    },
+    "common": {
+      "myAccount": "Mon Compte",
+      "profile": "Profil",
+      "settings": "Paramètres",
+      "signOut": "Se Déconnecter",
+      "backToSite": "Retour au Site",
+      "propertyAgent": "Agent Immobilier",
+      "email": "Email",
+      "phone": "Téléphone",
+      "language": "Langue",
+      "theme": "Thème",
+      "notifications": "Notifications",
+      "privacy": "Confidentialité",
+      "security": "Sécurité",
+      "helpCenter": "Centre d'Aide",
+      "support": "Support"
+    },
+    "messages": {
+      "unauthorized": "Vous n'êtes pas autorisé à accéder à cette page",
+      "sessionExpired": "Votre session a expiré. Veuillez vous reconnecter.",
+      "redirecting": "Redirection...",
+      "notFound": "Page non trouvée"
+    }
+  },
+  "errors": {
+    "pageNotFound": "Page Non Trouvée",
+    "error": "Erreur",
+    "error404": "404",
+    "error500": "500",
+    "errorOccurred": "Erreur Survenue",
+    "somethingWentWrong": "Oups! Quelque chose s'est mal passé",
+    "unexpectedError": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+    "tryAgain": "Réessayer",
+    "needHelp": "Besoin d'aide?",
+    "serverError": "Erreur Serveur",
+    "badRequest": "Mauvaise Requête",
+    "unauthorized": "Non Autorisé",
+    "forbidden": "Interdit",
+    "notFoundLong": "La page que vous recherchez est introuvable",
+    "serverErrorMessage": "Quelque chose s'est mal passé de notre côté. Notre équipe a été notifiée.",
+    "tryToGoBack": "Retournez à votre page précédente ou allez à l'accueil"
+  },
+  "dashboards": {
+    "customer": {
+      "pageTitle": "Tableau de Bord",
+      "welcome": "Bienvenue!",
+      "welcomeSubtitle": "Voici un aperçu de votre activité.",
+      "stats": {
+        "activeBookings": "Réservations Actives",
+        "savedProperties": "Propriétés Enregistrées",
+        "totalSpent": "Total Dépensé",
+        "reviewsGiven": "Avis Donnés"
+      },
+      "sections": {
+        "recentBookings": "Réservations Récentes",
+        "upcomingBookings": "Réservations à Venir",
+        "recentNotifications": "Notifications Récentes",
+        "noBookings": "Aucune réservation",
+        "noNotifications": "Aucune notification",
+        "quickActions": "Actions Rapides"
+      },
+      "actions": {
+        "viewAll": "Voir Toutes les Réservations",
+        "browseProperties": "Parcourir les Propriétés",
+        "markAsRead": "Marquer comme Lue",
+        "myBookings": "Mes Réservations",
+        "myProfile": "Mon Profil",
+        "savedProperties": "Propriétés Enregistrées"
+      }
+    },
+    "agent": {
+      "pageTitle": "Tableau de Bord Agent",
+      "welcome": "Bienvenue, {name}!",
+      "welcomeSubtitle": "Gérez vos propriétés et réservations.",
+      "stats": {
+        "totalProperties": "Propriétés Totales",
+        "activeBookings": "Réservations Actives",
+        "monthlyRevenue": "Revenu Mensuel",
+        "pendingApprovals": "Approbations en Attente",
+        "averageRating": "Évaluation Moyenne"
+      },
+      "sections": {
+        "myProperties": "Mes Propriétés",
+        "recentActivities": "Activités Récentes",
+        "pendingProperties": "En Attente d'Approbation",
+        "noProperties": "Aucune propriété",
+        "noActivities": "Aucune activité"
+      },
+      "actions": {
+        "addProperty": "Ajouter une Nouvelle Propriété",
+        "viewAllProperties": "Voir Toutes les Propriétés",
+        "editProperty": "Modifier",
+        "deleteProperty": "Supprimer",
+        "viewAnalytics": "Voir l'Analytique"
+      }
+    },
+    "owner": {
+      "pageTitle": "Tableau de Bord Propriétaire",
+      "welcome": "Bienvenue!",
+      "welcomeSubtitle": "Gérez vos annonces et réservations.",
+      "stats": {
+        "totalProperties": "Propriétés Totales",
+        "activeBookings": "Réservations Actives",
+        "monthlyRevenue": "Revenu Mensuel",
+        "totalReviews": "Avis Totals"
+      },
+      "sections": {
+        "myProperties": "Mes Propriétés",
+        "reservations": "Réservations",
+        "analytics": "Analytique"
+      },
+      "actions": {
+        "addProperty": "Ajouter une Propriété",
+        "viewAnalytics": "Voir l'Analytique"
+      }
+    },
+    "admin": {
+      "pageTitle": "Tableau de Bord Administrateur",
+      "welcome": "Tableau de Bord Administrateur",
+      "welcomeSubtitle": "Surveillez et gérez la plateforme Property Listing Portal.",
+      "stats": {
+        "totalUsers": "Utilisateurs Totals",
+        "totalProperties": "Propriétés Totales",
+        "monthlyRevenue": "Revenu Mensuel",
+        "platformGrowth": "Croissance de la Plateforme",
+        "activeAgents": "Agents Actifs",
+        "pendingApprovals": "Approbations en Attente",
+        "totalBookings": "Réservations Totales",
+        "systemHealth": "Santé du Système"
+      },
+      "sections": {
+        "quickStats": "Statistiques Rapides",
+        "recentActivities": "Activités Récentes",
+        "topProperties": "Meilleures Propriétés",
+        "pendingApprovals": "Approbations en Attente",
+        "pendingAgents": "Approbations d'Agents en Attente",
+        "systemMetrics": "Métriques du Système",
+        "userManagement": "Gestion des Utilisateurs",
+        "propertyManagement": "Gestion des Propriétés",
+        "viewAllPendingAgents": "Voir tous les {count} agents en attente",
+        "allAgentsReviewed": "Toutes les candidatures d'agents ont été examinées!"
+      },
+      "actions": {
+        "viewUsers": "Voir les Utilisateurs",
+        "viewProperties": "Voir les Propriétés",
+        "reviewApproval": "Examiner",
+        "approveAgent": "Approuver",
+        "rejectAgent": "Rejeter",
+        "approveProperty": "Approuver",
+        "rejectProperty": "Rejeter",
+        "viewAnalytics": "Voir l'Analytique"
+      },
+      "approval": {
+        "title": "Examiner l'Approbation",
+        "approve": "Approuver",
+        "reject": "Rejeter",
+        "approving": "Approbation en cours...",
+        "rejecting": "Rejet en cours...",
+        "approveMessage": "Cette action approuvera l'élément sélectionné et notifiera le propriétaire.",
+        "rejectMessage": "Veuillez fournir une raison du rejet. Elle sera incluse dans les notifications et les emails.",
+        "reason": "Raison du Rejet",
+        "reasonPlaceholder": "Entrez une raison claire pour le rejet...",
+        "approveSuccess": "Approuvé avec succès",
+        "rejectSuccess": "Rejeté avec succès",
+        "approveFailed": "Échec de l'approbation",
+        "rejectFailed": "Échec du rejet",
+        "reasonRequired": "Veuillez fournir une raison pour le rejet"
+      },
+      "metrics": {
+        "revenue": "Revenu",
+        "growth": "Croissance",
+        "activeUsers": "Utilisateurs Actifs",
+        "newSignups": "Nouveaux Inscrits",
+        "bookingRate": "Taux de Réservation",
+        "averageRating": "Évaluation Moyenne",
+        "bookings": "Réservations",
+        "rating": "Évaluation"
+      }
+    },
+    "common": {
+      "noData": "Aucune donnée disponible",
+      "loading": "Chargement...",
+      "loadingData": "Chargement des données...",
+      "error": "Une erreur s'est produite",
+      "errorLoading": "Erreur lors du chargement des données",
+      "success": "Succès",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "delete": "Supprimer",
+      "edit": "Modifier",
+      "add": "Ajouter",
+      "search": "Rechercher",
+      "filter": "Filtrer",
+      "sort": "Trier",
+      "export": "Exporter",
+      "import": "Importer",
+      "viewAll": "Voir Tout",
+      "viewMore": "Voir Plus",
+      "readMore": "Lire Plus",
+      "showMore": "Afficher Plus",
+      "showLess": "Afficher Moins",
+      "view": "Afficher",
+      "download": "Télécharger",
+      "share": "Partager",
+      "contact": "Contacter",
+      "message": "Message",
+      "status": "Statut",
+      "date": "Date",
+      "time": "Heure",
+      "property": "Propriété",
+      "properties": "Propriétés",
+      "booking": "Réservation",
+      "bookings": "Réservations",
+      "price": "Prix",
+      "currency": "XAF",
+      "confirmed": "Confirmé",
+      "pending": "En Attente",
+      "completed": "Complété",
+      "cancelled": "Annulé",
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "inProgress": "En Cours",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "draft": "Brouillon",
+      "published": "Publié",
+      "archived": "Archivé",
+      "quickActions": "Actions Rapides",
+      "pending": "En Attente",
+      "you": "Vous",
+      "notifications": "Notifications",
+      "noNotifications": "Aucune notification",
+      "viewDetails": "Voir les Détails",
+      "browseProperties": "Parcourir les Propriétés"
+    }
   }
 }

@@ -8,6 +8,8 @@ interface LogoProps {
   variant?: 'horizontal' | 'vertical' | 'mark-only';
   /** Use 'dark' theme for dark backgrounds (e.g., footer) */
   theme?: 'light' | 'dark';
+  /** Render as plain content (no internal Link) when parent already provides navigation */
+  disableLink?: boolean;
 }
 
 /**
@@ -20,7 +22,7 @@ interface LogoProps {
  * - Fav-Icon: Just the icon mark
  * - Profile: Icon in a circle (for avatars)
  */
-export function Logo({ className = '', showText = true, variant = 'horizontal', theme }: LogoProps) {
+export function Logo({ className = '', showText = true, variant = 'horizontal', theme, disableLink = false }: LogoProps) {
   // Auto-detect dark theme from className if not explicitly set
   const isDark = theme === 'dark' || className.includes('text-white');
 
@@ -53,11 +55,27 @@ export function Logo({ className = '', showText = true, variant = 'horizontal', 
 
   const src = getLogoSrc();
   const { width, height } = getLogoDimensions();
+  const wrapperClass = `flex items-center ${variant === 'vertical' ? 'flex-col text-center' : ''} ${className}`;
+
+  if (disableLink) {
+    return (
+      <div className={wrapperClass}>
+        <Image
+          src={src}
+          alt="Property Listing Portal"
+          width={width}
+          height={height}
+          className="object-contain"
+          priority
+        />
+      </div>
+    );
+  }
 
   return (
     <Link
       href="/"
-      className={`flex items-center ${variant === 'vertical' ? 'flex-col text-center' : ''} ${className}`}
+      className={wrapperClass}
     >
       <Image
         src={src}

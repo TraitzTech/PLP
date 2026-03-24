@@ -40,8 +40,10 @@ function getProfilePhotoUrl(imagePath: string): string {
 
 export default function EditAgentPage() {
   const router = useRouter();
-  const params = useParams();
+  const params = useParams<{ id: string; locale: string }>();
   const agentId = params.id as string;
+  const locale = params?.locale === "fr" ? "fr" : "en";
+  const withLocale = (path: string) => `/${locale}${path.startsWith("/") ? path : `/${path}`}`;
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -236,7 +238,7 @@ export default function EditAgentPage() {
 
       await agentService.updateAgent(agentId, updateData);
       toast.success("Agent updated successfully");
-      router.push("/admin/agents");
+      router.push(withLocale("/admin/agents"));
     } catch (error: any) {
       console.error("Error updating agent:", error);
       

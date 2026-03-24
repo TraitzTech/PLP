@@ -1,4 +1,3 @@
-import './globals.css';
 import type { Metadata } from 'next';
 import { Urbanist } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -40,7 +39,7 @@ import { SupportWidget } from '@/components/support/SupportWidget';
 import { PushNotificationProvider } from '@/components/push-notification-provider';
 import { MaintenanceWrapper } from '@/components/maintenance/maintenance-wrapper';
 
-export default async function RootLayout({
+export default async function LocaleLayout({
                                              children,
                                              params
                                          }: {
@@ -52,25 +51,23 @@ export default async function RootLayout({
     const messages = await getMessages(validLocale);
 
     return (
-        <html lang={validLocale} suppressHydrationWarning>
-        <body className={`${urbanist.variable} font-urbanist antialiased`}>
-        <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-        >
-            <TranslationProvider messages={messages}>
-                <PushNotificationProvider>
-                    <MaintenanceWrapper>
-                        {children}
-                    </MaintenanceWrapper>
-                </PushNotificationProvider>
-                <SupportWidget />
-            </TranslationProvider>
-            <Toaster />
-        </ThemeProvider>
-        </body>
-        </html>
+        <div lang={validLocale} className={`${urbanist.variable} font-urbanist antialiased min-h-screen`}>
+            <ThemeProvider
+                attribute="class"
+                defaultTheme="light"
+                enableSystem
+                disableTransitionOnChange
+            >
+                <TranslationProvider messages={messages}>
+                    <PushNotificationProvider>
+                        <MaintenanceWrapper>
+                            {children}
+                        </MaintenanceWrapper>
+                    </PushNotificationProvider>
+                    <SupportWidget />
+                </TranslationProvider>
+                <Toaster />
+            </ThemeProvider>
+        </div>
     );
 }
