@@ -301,6 +301,70 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
     }
   };
 
+  const getShareUrl = () => {
+    const locale = getLocaleFromPath();
+    const path = pathname?.startsWith(`/${locale}/`) ? pathname : `/${locale}${pathname?.startsWith('/') ? '' : '/'}${pathname || ''}`;
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      return `${window.location.origin}${path}`;
+    }
+    return path;
+  };
+
+  const copyToClipboard = async (text: string) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', 'true');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  };
+
+  const handleShare = async () => {
+    try {
+      const url = getShareUrl();
+      const formatted = formatPrice(property.price);
+
+      const purposeLines: string[] = [];
+      if (isForRent) purposeLines.push(`For rent: ${formatted} / month`);
+      if (isForSale) purposeLines.push(`For sale: ${formatted}`);
+      if (purposeLines.length === 0) purposeLines.push(`Price: ${formatted}`);
+
+      const rawDescription = String((property as any)?.description ?? '').replace(/\s+/g, ' ').trim();
+      const shortDescription =
+        rawDescription.length > 0
+          ? rawDescription.length > 160
+            ? `${rawDescription.slice(0, 160)}…`
+            : rawDescription
+          : '';
+
+      const locationLine = [property.city, property.region].filter(Boolean).join(', ') || property.location || '';
+
+      const message = [
+        property.title,
+        locationLine,
+        ...purposeLines,
+        shortDescription ? `\n${shortDescription}` : '',
+        `\nView: ${url}`,
+      ]
+        .filter((line) => typeof line === 'string' && line.trim().length > 0)
+        .join('\n');
+
+      await copyToClipboard(message);
+      toast.success('Share message copied to clipboard');
+    } catch (error) {
+      console.error('Share failed:', error);
+      toast.error('Failed to copy share message');
+    }
+  };
+
   const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect fill='%23f3f4f6' width='800' height='600'/%3E%3Ctext x='50%25' y='50%25' font-size='24' text-anchor='middle' dy='.3em' fill='%23999'%3EImage coming soon%3C/text%3E%3C/svg%3E";
   const images = property?.images?.length ? property.images : [placeholderImage];
   const videos: string[] = Array.isArray(property?.videos) ? property.videos.filter(Boolean) : [];
@@ -759,7 +823,7 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
               <Heart className={`w-4 h-4 mr-2 ${isFavorite ? 'fill-current' : ''}`} />
               Save
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleShare}>
               <Share2 className="w-4 h-4 mr-2" />
               Share
             </Button>
