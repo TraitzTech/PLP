@@ -303,6 +303,7 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
 
   const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect fill='%23f3f4f6' width='800' height='600'/%3E%3Ctext x='50%25' y='50%25' font-size='24' text-anchor='middle' dy='.3em' fill='%23999'%3EImage coming soon%3C/text%3E%3C/svg%3E";
   const images = property?.images?.length ? property.images : [placeholderImage];
+  const videos: string[] = Array.isArray(property?.videos) ? property.videos.filter(Boolean) : [];
   // Use facilities objects if available, otherwise fallback to amenities strings
   const facilities = property?.facilities && Array.isArray(property.facilities) && property.facilities.length > 0
     ? property.facilities
@@ -318,6 +319,28 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
       prev === 0 ? images.length - 1 : prev - 1
     );
   };
+
+  // Auto-advance gallery images every few seconds (landing property detail page).
+  useEffect(() => {
+    if (images.length <= 1) return;
+    if (typeof window === "undefined") return;
+
+    const prefersReducedMotion =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReducedMotion) return;
+
+    // Reset to first image when the image set changes
+    setCurrentImageIndex(0);
+
+    const intervalId = window.setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }, 6000);
+
+    return () => window.clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [images.length]);
 
   const calculateTotal = () => {
     if (!checkIn || !checkOut) return 0;
@@ -788,6 +811,24 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
           )}
         </div>
       </div>
+
+      {/* Videos */}
+      {videos.length > 0 && (
+        <div className="mb-10">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Videos</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {videos.map((src, index) => (
+              <video
+                key={index}
+                src={src}
+                controls
+                preload="metadata"
+                className="w-full rounded-2xl bg-black shadow-sm"
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}

@@ -24,10 +24,13 @@ import { listingImageService } from "@/services/listingImageService";
 import { listingVideoService } from "@/services/listingVideoService";
 import { settingsService } from "@/services/settingsService";
 import { LocationPicker } from "@/components/properties/location-picker";
+import { resolveListingImageObjectSrc, resolveListingVideoObjectSrc } from "@/lib/listingMedia";
 
 export default function EditAdminPropertyPage() {
   const params = useParams();
   const router = useRouter();
+  const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+  const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [property, setProperty] = useState<AdminProperty | null>(null);
@@ -43,6 +46,8 @@ export default function EditAdminPropertyPage() {
   const [deletingVideoIds, setDeletingVideoIds] = useState<number[]>([]);
   const [launchRentalsOnly, setLaunchRentalsOnly] = useState(true);
   const [launchSalesEnabled, setLaunchSalesEnabled] = useState(false);
+  const [allowedCities, setAllowedCities] = useState<string[]>([]);
+  const [enforceCityScope, setEnforceCityScope] = useState(true);
   const [formData, setFormData] = useState<any>({
     agent_id: 0,
     title: "",
@@ -106,12 +111,26 @@ export default function EditAdminPropertyPage() {
       // Fetch property types
       const [typesRes, launchSettings] = await Promise.all([
         propertyTypeService.getAllPropertyTypes(),
-        settingsService.getPublicSettings(['launch_rentals_only', 'launch_sales_enabled']),
+        settingsService.getPublicSettings([
+          'launch_rentals_only',
+          'launch_sales_enabled',
+          'launch_enforce_city_scope',
+          'launch_rollout_cities',
+        ]),
       ]);
       const rentalsOnly = launchSettings.launch_rentals_only !== false;
       const salesEnabled = launchSettings.launch_sales_enabled === true;
+      const enforceCity = launchSettings.launch_enforce_city_scope !== false;
+      const rolloutCitiesRaw = Array.isArray(launchSettings.launch_rollout_cities)
+        ? launchSettings.launch_rollout_cities
+        : [];
+      const rolloutCities = rolloutCitiesRaw
+        .map((value) => String(value ?? '').trim())
+        .filter(Boolean);
       setLaunchRentalsOnly(rentalsOnly);
       setLaunchSalesEnabled(salesEnabled);
+      setEnforceCityScope(enforceCity);
+      setAllowedCities(rolloutCities);
       setPropertyTypes(
         Array.isArray(typesRes)
           ? typesRes.filter((type) => type.status === 1 || type.status === true || type.id === propertyData.property_type_id)
@@ -125,7 +144,7 @@ export default function EditAdminPropertyPage() {
       // Fetch existing images
       try {
         const imagesRes = await listingImageService.getImagesByListing(params.id as string);
-        setExistingImages(imagesRes.data || []);
+        setExistingImages(Array.isArray(imagesRes) ? imagesRes : (imagesRes?.data || []));
       } catch (error) {
         console.error("Error fetching images:", error);
         setExistingImages([]);
@@ -233,7 +252,20 @@ export default function EditAdminPropertyPage() {
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    const files = Array.from(e.target.files || []).filter((file) => {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not a valid image file`);
+        return false;
+      }
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        toast.error(`${file.name} is larger than 5MB`);
+        return false;
+      }
+      return true;
+    });
+
+    if (files.length === 0) return;
+
     setNewImageFiles((prev) => [...prev, ...files]);
     
     files.forEach((file) => {
@@ -246,7 +278,20 @@ export default function EditAdminPropertyPage() {
   };
 
   const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    const files = Array.from(e.target.files || []).filter((file) => {
+      if (!file.type.startsWith("video/")) {
+        toast.error(`${file.name} is not a valid video file`);
+        return false;
+      }
+      if (file.size > MAX_VIDEO_SIZE_BYTES) {
+        toast.error(`${file.name} is larger than 50MB`);
+        return false;
+      }
+      return true;
+    });
+
+    if (files.length === 0) return;
+
     setNewVideoFiles((prev) => [...prev, ...files]);
   };
 
@@ -288,17 +333,11 @@ export default function EditAdminPropertyPage() {
   };
 
   const getImageUrl = (image: ListingImage): string => {
-    if (image.image_path) {
-      return `${process.env.NEXT_PUBLIC_API_URL}/../storage/listing_images/${image.image_path}`;
-    }
-    return image.url || image.image_url || '';
+    return resolveListingImageObjectSrc(image) || '';
   };
 
   const getVideoUrl = (video: ListingVideo): string => {
-    if (video.video_url && !video.video_url.startsWith('http')) {
-      return `${process.env.NEXT_PUBLIC_API_URL}/../storage/listing_videos/${video.video_url}`;
-    }
-    return video.url || video.video_url || '';
+    return resolveListingVideoObjectSrc(video) || '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -328,24 +367,26 @@ export default function EditAdminPropertyPage() {
       
       // Upload new images if any
       if (newImageFiles.length > 0) {
-        try {
-          await propertyManagementService.uploadPropertyImages(property.id, newImageFiles);
-          toast.success("Images uploaded successfully");
-        } catch (error) {
-          console.error("Error uploading images:", error);
-          toast.error("Property updated but failed to upload some images");
-        }
+        toast.info("Uploading images in the background…", { duration: 4000 });
+        propertyManagementService
+          .uploadPropertyImages(property.id, newImageFiles)
+          .then(() => toast.success("Images uploaded successfully"))
+          .catch((error) => {
+            console.error("Error uploading images:", error);
+            toast.error(error?.message || "Property updated but some images failed to upload");
+          });
       }
 
       // Upload new videos if any
       if (newVideoFiles.length > 0) {
-        try {
-          await propertyManagementService.uploadPropertyVideos(property.id, newVideoFiles);
-          toast.success("Videos uploaded successfully");
-        } catch (error) {
-          console.error("Error uploading videos:", error);
-          toast.error("Property updated but failed to upload some videos");
-        }
+        toast.info("Uploading videos in the background…", { duration: 5000 });
+        propertyManagementService
+          .uploadPropertyVideos(property.id, newVideoFiles)
+          .then(() => toast.success("Videos uploaded successfully"))
+          .catch((error) => {
+            console.error("Error uploading videos:", error);
+            toast.error(error?.message || "Property updated but some videos failed to upload");
+          });
       }
 
       toast.success("Property updated successfully");
@@ -566,13 +607,43 @@ export default function EditAdminPropertyPage() {
 
                 <div>
                   <Label htmlFor="city">City *</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) => handleInputChange("city", e.target.value)}
-                    placeholder="City"
-                    required
-                  />
+                  {allowedCities.length > 0 ? (
+                    <>
+                      <Select
+                        value={formData.city}
+                        onValueChange={(value) => handleInputChange("city", value)}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select a city" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from(
+                            new Set([
+                              ...(formData.city ? [String(formData.city)] : []),
+                              ...allowedCities,
+                            ])
+                          ).map((city) => (
+                            <SelectItem key={city} value={city}>
+                              {city}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {enforceCityScope
+                          ? "City options are restricted by admin settings."
+                          : "City options are suggested from admin settings."}
+                      </p>
+                    </>
+                  ) : (
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={(e) => handleInputChange("city", e.target.value)}
+                      placeholder="City"
+                      required
+                    />
+                  )}
                 </div>
 
                 <div>
@@ -1046,7 +1117,7 @@ export default function EditAdminPropertyPage() {
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-plp-purple transition-colors">
                     <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                     <p className="text-sm text-gray-600">Click to upload images</p>
-                    <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB each</p>
+                    <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB each</p>
                   </div>
                   <Input
                     id="newImages"

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, MapPin, Calendar, Edit, Trash2, CheckCircle, XCircle, Star, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Edit, Trash2, CheckCircle, XCircle, Star, AlertCircle, Loader2, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { propertyManagementService } from "@/services/propertyManagementService";
 import { PropertyMap } from "@/components/properties/property-map";
@@ -48,14 +48,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
-// Helper function to construct image URL
-function getImageUrl(imagePath: string): string {
-  if (imagePath && !imagePath.startsWith('http')) {
-    return `${process.env.NEXT_PUBLIC_API_URL}/../storage/listing_images/${imagePath}`;
-  }
-  return imagePath || '';
-}
+import { resolveListingImageObjectSrc, resolveListingVideoObjectSrc } from "@/lib/listingMedia";
 
 // Normalize boolean values (handles 0, 1, true, false, string "1", "true")
 function normalizeBoolean(value: any): boolean {
@@ -230,6 +223,81 @@ export default function AdminPropertyDetailsPage() {
   // Get data from property object
   const facilities = property.facilities || [];
   const images = property.images || [];
+  const videos = property.videos || [];
+  const isApproved = normalizeBoolean((property as any).is_approved);
+
+  const getLocaleFromParams = () => {
+    const raw = (params as any)?.locale;
+    if (Array.isArray(raw)) return raw[0] || "en";
+    return raw || "en";
+  };
+
+  const getPublicPropertyUrl = () => {
+    const locale = getLocaleFromParams();
+    const path = `/${locale}/property/${property.id}`;
+    if (typeof window !== "undefined" && window.location?.origin) {
+      return `${window.location.origin}${path}`;
+    }
+    return path;
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "true");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    } catch (e) {
+      throw e;
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      const url = getPublicPropertyUrl();
+      const isForRent = normalizeBoolean((property as any).for_rent);
+      const isForPurchase = normalizeBoolean((property as any).for_purchase);
+      const formattedPrice = formatPrice(property.price);
+
+      const purposeLines: string[] = [];
+      if (isForRent) purposeLines.push(`For rent: ${formattedPrice} / month`);
+      if (isForPurchase) purposeLines.push(`For sale: ${formattedPrice}`);
+      if (purposeLines.length === 0) purposeLines.push(`Price: ${formattedPrice}`);
+
+      const rawDescription = String((property as any).description ?? "").replace(/\s+/g, " ").trim();
+      const shortDescription =
+        rawDescription.length > 0
+          ? rawDescription.length > 160
+            ? `${rawDescription.slice(0, 160)}…`
+            : rawDescription
+          : "";
+
+      const message = [
+        property.title,
+        `${property.city}, ${property.region}`,
+        ...purposeLines,
+        shortDescription ? `\n${shortDescription}` : "",
+        `\nView: ${url}`,
+      ]
+        .filter((line) => typeof line === "string" && line.trim().length > 0)
+        .join("\n");
+
+      await copyToClipboard(message);
+      toast.success("Share message copied to clipboard");
+    } catch (e) {
+      toast.error("Failed to copy share message. Please copy manually.");
+    }
+  };
 
   return (
     <DashboardLayout userType="admin">
@@ -256,6 +324,12 @@ export default function AdminPropertyDetailsPage() {
               <Edit className="mr-2 h-4 w-4" />
               Edit
             </Button>
+            {isApproved && (
+              <Button variant="outline" onClick={handleShare}>
+                <Share2 className="mr-2 h-4 w-4" />
+                Share
+              </Button>
+            )}
             <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
               <Trash2 className="mr-2 h-4 w-4" />
               Delete
@@ -349,7 +423,7 @@ export default function AdminPropertyDetailsPage() {
                     <CarouselItem key={image.id} className="md:basis-1/2 lg:basis-1/3">
                       <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
                         <img
-                          src={getImageUrl(image.image_path || '')}
+                          src={resolveListingImageObjectSrc(image) || ""}
                           alt={property.title}
                           className="object-cover w-full h-full"
                           onError={(e) => {
@@ -363,6 +437,32 @@ export default function AdminPropertyDetailsPage() {
                 <CarouselPrevious />
                 <CarouselNext />
               </Carousel>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Videos */}
+        {videos.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Property Videos ({videos.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {videos
+                  .map((video) => ({ video, src: resolveListingVideoObjectSrc(video) }))
+                  .filter((item) => Boolean(item.src))
+                  .map(({ video, src }) => (
+                    <div key={video.id} className="aspect-video rounded-lg overflow-hidden bg-black">
+                      <video
+                        src={src as string}
+                        controls
+                        preload="metadata"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  ))}
+              </div>
             </CardContent>
           </Card>
         )}

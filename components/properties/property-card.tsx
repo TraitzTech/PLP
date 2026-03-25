@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { AdminProperty, Listing } from '@/services/types';
 import { authService } from '@/services/authService';
 import { savedPropertyService } from '@/services/savedPropertyService';
+import { resolveListingImageSrc } from '@/lib/listingMedia';
 import { 
   getPropertyTypeSummary, 
   getPropertyPurposeBadges, 
@@ -77,13 +78,8 @@ export function PropertyCard({ property }: PropertyCardProps) {
   };
 
   const getImageUrl = (prop: AdminProperty | Listing): string => {
-    if ('images' in prop && prop.images && prop.images.length > 0) {
-      const imagePath = prop.images[0].image_path || prop.images[0].image_url || prop.images[0].url;
-      if (imagePath) {
-        if (imagePath.startsWith('http')) return imagePath;
-        return `${process.env.NEXT_PUBLIC_API_URL}/../storage/listing_images/${imagePath}`;
-      }
-    }
+    const resolved = resolveListingImageSrc(prop);
+    if (resolved) return resolved;
     return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" font-size="16" text-anchor="middle" dy=".3em" fill="%23999"%3ENo image%3C/text%3E%3C/svg%3E';
   };
 

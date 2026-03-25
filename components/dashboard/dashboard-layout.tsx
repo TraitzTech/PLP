@@ -14,7 +14,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Chrome as Home, Calendar, Heart, MessageSquare, Settings, User, LogOut, Menu, X, Building2, ChartBar as BarChart3, Plus, Users, Shield, Bell, Star, Globe, Check } from 'lucide-react';
+import { Chrome as Home, Calendar, Heart, MessageSquare, Settings, User, LogOut, Menu, X, Building2, ChartBar as BarChart3, Plus, Users, Shield, Bell, Star, Globe, Check, AlertCircle } from 'lucide-react';
 import { FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { authService } from '@/services/authService';
@@ -114,6 +114,7 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [isAuthorized, setIsAuthorized] = useState(false);
+    const [agentApprovalBlock, setAgentApprovalBlock] = useState<null | { status: string; message: string }>(null);
     const pathname = usePathname();
     const router = useRouter();
     const pathnameRef = useRef(pathname);
@@ -176,6 +177,18 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                             router.replace(`/${locale}/dashboard`);
                         }
                         return;
+                    }
+
+                    if (userType === 'agent' && actualUserType === 'agent') {
+                        const status = String((user as any)?.agent_status || '').toLowerCase();
+                        if (status && status !== 'approved') {
+                            const message =
+                                status === 'rejected'
+                                    ? 'Your agent account was rejected. Please contact support for next steps.'
+                                    : 'Your agent account is pending admin approval. Dashboard access is disabled until approval.';
+                            setAgentApprovalBlock({ status, message });
+                            return;
+                        }
                     }
                     
                     setIsAuthorized(true);
@@ -256,6 +269,41 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
     };
 
     const currentLang = languages.find((l) => l.code === currentLocale) ?? languages[0];
+
+    if (agentApprovalBlock) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+                <div className="max-w-lg w-full bg-white border border-amber-100 rounded-2xl shadow-sm p-6">
+                    <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+                        <div>
+                            <h1 className="text-lg font-semibold text-gray-900">Dashboard Locked</h1>
+                            <p className="text-sm text-gray-600 mt-1">{agentApprovalBlock.message}</p>
+                        </div>
+                    </div>
+                    <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                        <Button variant="secondary" onClick={() => router.replace(localizedPath('/'))}>
+                            {t('nav.home')}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={async () => {
+                                try {
+                                    await authService.logout();
+                                } catch (e) {
+                                    // ignore
+                                } finally {
+                                    router.replace(localizedPath('/auth/signin'));
+                                }
+                            }}
+                        >
+                            {t('auth.signOut')}
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     // Show shimmer skeleton while checking authorization (only on initial load)
     if (!isAuthorized) {

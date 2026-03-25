@@ -170,12 +170,7 @@ export const propertyManagementService = {
 
       const response = await apiClient.post(
         `${BASE_URL}/${propertyId}/images`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        formData
       );
 
       return response.data.data || response.data || [];
@@ -190,7 +185,7 @@ export const propertyManagementService = {
    */
   async deletePropertyImage(imageId: string | number): Promise<void> {
     try {
-      await apiClient.delete(`${BASE_URL}/images/${imageId}`);
+      await apiClient.delete(`${BASE_URL}/${imageId}/images`);
     } catch (error) {
       console.error(`Error deleting image ${imageId}:`, error);
       throw error;
@@ -221,17 +216,30 @@ export const propertyManagementService = {
 
       const response = await apiClient.post(
         `${BASE_URL}/${propertyId}/videos`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        formData
       );
       return response.data;
-    } catch (error) {
-      console.error(`Failed to upload videos for property ${propertyId}:`, error);
-      throw error;
+    } catch (error: any) {
+      const status = error?.status ?? error?.response?.status;
+      const rawData = error?.data ?? error?.response?.data;
+      const firstValidationError =
+        Array.isArray(rawData?.errors) && rawData.errors.length > 0 ? rawData.errors[0] : undefined;
+
+      const message =
+        (typeof error?.message === "string" && error.message.trim().length > 0 && error.message) ||
+        (typeof rawData?.message === "string" && rawData.message) ||
+        (typeof firstValidationError === "string" && firstValidationError) ||
+        (typeof rawData === "string" && rawData) ||
+        (status === 413 ? "Video upload too large. Please upload smaller videos." : "") ||
+        "Failed to upload videos. Please try again.";
+
+      const enriched =
+        error && typeof error === "object"
+          ? Object.assign(error, { status, message })
+          : { status, message };
+
+      console.error(`Failed to upload videos for property ${propertyId}:`, enriched);
+      throw enriched;
     }
   },
 
@@ -240,7 +248,7 @@ export const propertyManagementService = {
    */
   async deletePropertyVideo(videoId: string | number): Promise<void> {
     try {
-      await apiClient.delete(`${BASE_URL}/videos/${videoId}`);
+      await apiClient.delete(`${BASE_URL}/${videoId}/videos`);
     } catch (error) {
       console.error(`Error deleting video ${videoId}:`, error);
       throw error;

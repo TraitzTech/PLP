@@ -6,6 +6,7 @@ import { Footer } from "@/components/navigation/footer";
 import { PropertyDetailsWrapper } from "@/components/properties/property-details-wrapper";
 import { publicPropertyService } from "@/services/publicPropertyService";
 import { listingImageService } from "@/services/listingImageService";
+import { listingVideoService } from "@/services/listingVideoService";
 import type { AdminProperty } from "@/services/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -16,6 +17,16 @@ function getImageUrl(imagePath?: string): string {
         return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ddd' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='16' text-anchor='middle' dy='.3em' fill='%23999'%3ENo image%3C/text%3E%3C/svg%3E";
     }
     return `${process.env.NEXT_PUBLIC_API_URL}/../storage/listing_images/${imagePath}`;
+}
+
+function getVideoUrl(videoPathOrUrl?: string): string | null {
+    if (!videoPathOrUrl) return null;
+    if (videoPathOrUrl.startsWith("http")) return videoPathOrUrl;
+    return `${process.env.NEXT_PUBLIC_API_URL}/../storage/listing_videos/${videoPathOrUrl}`;
+}
+
+function isNonEmptyString(value: unknown): value is string {
+    return typeof value === "string" && value.trim().length > 0;
 }
 
 // Shimmer placeholder for page
@@ -73,6 +84,21 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
                 console.log("Images fetched for property:", images);
 
+                // Fetch videos (optional)
+                let videos: string[] = [];
+                try {
+                    const vidRes = await listingVideoService.getVideosByListing(prop.id);
+                    videos = (vidRes.data || [])
+                        .map((v: any) => getVideoUrl(v.video_url || v.video_path))
+                        .filter(isNonEmptyString);
+                } catch (err) {
+                    videos = (prop as any)?.videos
+                        ? ((prop as any).videos as any[])
+                            .map((v: any) => getVideoUrl(v.video_url || v.video_path))
+                            .filter(isNonEmptyString)
+                        : [];
+                }
+
                 // Determine price unit based on property type
                 const getPriceUnit = (type: string | undefined): string => {
                     const normalizedType = type?.toLowerCase() || "";
@@ -94,6 +120,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                     rating: Number((prop as any)?.average_rating ?? (prop as any)?.rating ?? 0),
                     reviews: Number((prop as any)?.reviews_count ?? (prop as any)?.reviews?.length ?? 0),
                     images: images.length ? images : [getImageUrl()],
+                    videos: videos,
                     amenities: (prop?.facilities || []).map((f: any) => f.name).filter(Boolean),
                     facilities: prop?.facilities || [],
                     type: prop?.property_type?.name || "Property",

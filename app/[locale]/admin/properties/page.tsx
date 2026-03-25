@@ -58,6 +58,7 @@ import { toast } from 'sonner';
 import { propertyManagementService } from "@/services/propertyManagementService";
 import { TableLoader } from "@/components/ui/shimmer-loaders";
 import type { AdminProperty } from "@/services/types";
+import { resolveListingImageSrc } from "@/lib/listingMedia";
 
 export default function AdminPropertiesPage() {
   const router = useRouter();
@@ -292,6 +293,7 @@ export default function AdminPropertiesPage() {
                     <table className="w-full">
                       <thead className="bg-muted">
                         <tr>
+                          <th className="px-6 py-3 text-left text-sm font-medium">Photo</th>
                           <th className="px-6 py-3 text-left text-sm font-medium">Title</th>
                           <th className="px-6 py-3 text-left text-sm font-medium">Agent</th>
                           <th className="px-6 py-3 text-left text-sm font-medium">Location</th>
@@ -306,6 +308,18 @@ export default function AdminPropertiesPage() {
                       <tbody>
                         {filteredProperties.map((property) => (
                           <tr key={property.id} className="border-t hover:bg-muted/50">
+                            <td className="px-6 py-4">
+                              {resolveListingImageSrc(property) ? (
+                                <img
+                                  src={resolveListingImageSrc(property) as string}
+                                  alt={property.title}
+                                  className="w-10 h-10 rounded-md object-cover bg-gray-100 border"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-md bg-gradient-to-br from-plp-purple to-plp-pink" />
+                              )}
+                            </td>
                             <td className="px-6 py-4 font-medium text-sm">{property.title}</td>
                             <td className="px-6 py-4 text-sm">
                               {property.agent?.user.name || "N/A"}

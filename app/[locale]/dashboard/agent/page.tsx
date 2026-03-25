@@ -17,6 +17,7 @@ import { activityService } from '@/services/activityService';
 import type { Listing, PendingApproval } from '@/services/types';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser } from '@/lib/agentHelpers';
+import { resolveListingImageSrc } from '@/lib/listingMedia';
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "XAF", minimumFractionDigits: 0 }).format(amount);
@@ -319,16 +320,35 @@ export default function AgentDashboard() {
                       className="p-3 rounded-lg border hover:bg-gray-50 transition cursor-pointer"
                       onClick={() => router.push(`/dashboard/agent/properties/${property.id}`)}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-medium text-sm text-gray-900 line-clamp-1">
-                          {property.title}
-                        </h4>
-                        <Badge variant={property.is_approved ? "default" : "secondary"} className="text-xs">
-                          {property.is_approved ? t('dashboards.common.active') : t('dashboards.common.pending')}
-                        </Badge>
+                      <div className="flex items-center gap-3">
+                        {resolveListingImageSrc(property) ? (
+                          <img
+                            src={resolveListingImageSrc(property) as string}
+                            alt={property.title}
+                            className="w-12 h-12 rounded-lg object-cover bg-gray-100 border"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-plp-purple to-plp-pink flex items-center justify-center">
+                            <Building2 className="w-5 h-5 text-white opacity-80" />
+                          </div>
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between mb-1 gap-2">
+                            <h4 className="font-medium text-sm text-gray-900 line-clamp-1">
+                              {property.title}
+                            </h4>
+                            <Badge variant={property.is_approved ? "default" : "secondary"} className="text-xs flex-shrink-0">
+                              {property.is_approved ? t('dashboards.common.active') : t('dashboards.common.pending')}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-gray-600 line-clamp-1">{property.location}</p>
+                          <p className="text-sm font-semibold text-plp-purple mt-1">
+                            {formatCurrency(Number(property.price))}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-xs text-gray-600 mb-2">{property.location}</p>
-                      <p className="text-sm font-semibold text-plp-purple">{formatCurrency(Number(property.price))}</p>
                     </div>
                   ))}
                 </div>
@@ -403,29 +423,42 @@ export default function AgentDashboard() {
               </div>
             ) : properties.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {properties.slice(0, 4).map((property, index) => (
-                <div 
-                  key={property.id} 
-                  className="border rounded-lg overflow-hidden hover:shadow-md transition cursor-pointer"
-                  onClick={() => router.push(`/dashboard/agent/properties/${property.id}`)}
-                >
-                  <div className="w-full h-32 bg-gradient-to-br from-plp-purple to-plp-pink flex items-center justify-center">
-                    <Building2 className="w-8 h-8 text-white opacity-70" />
-                  </div>
-                  <div className="p-3">
-                    <div className="flex items-start justify-between mb-1">
-                      <h3 className="font-semibold text-sm text-gray-900 line-clamp-2">{property.title}</h3>
+              {properties.slice(0, 4).map((property) => {
+                const imageSrc = resolveListingImageSrc(property);
+
+                return (
+                  <div 
+                    key={property.id} 
+                    className="border rounded-lg overflow-hidden hover:shadow-md transition cursor-pointer"
+                    onClick={() => router.push(`/dashboard/agent/properties/${property.id}`)}
+                  >
+                    {imageSrc ? (
+                      <img
+                        src={imageSrc}
+                        alt={property.title}
+                        className="w-full h-32 object-cover bg-gray-100"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-32 bg-gradient-to-br from-plp-purple to-plp-pink flex items-center justify-center">
+                        <Building2 className="w-8 h-8 text-white opacity-70" />
+                      </div>
+                    )}
+                    <div className="p-3">
+                      <div className="flex items-start justify-between mb-1">
+                        <h3 className="font-semibold text-sm text-gray-900 line-clamp-2">{property.title}</h3>
+                      </div>
+                      <p className="text-xs text-gray-600 mb-2 line-clamp-1">{property.location}, {property.city}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-plp-purple">{formatCurrency(Number(property.price))}</p>
+                        <Badge variant={property.is_approved ? "default" : "secondary"} className="text-xs">
+                          {property.is_approved ? 'OK' : 'Pending'}
+                        </Badge>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-600 mb-2 line-clamp-1">{property.location}, {property.city}</p>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-plp-purple">{formatCurrency(Number(property.price))}</p>
-                      <Badge variant={property.is_approved ? "default" : "secondary"} className="text-xs">
-                        {property.is_approved ? 'OK' : 'Pending'}
-                      </Badge>
-                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             ) : (
             <div className="text-center py-12">

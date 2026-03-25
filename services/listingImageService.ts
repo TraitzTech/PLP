@@ -41,12 +41,7 @@ export const listingImageService = {
 
       const response = await apiClient.post(
         `/listings/${listingId}/images`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        formData
       );
 
       return response.data.data || response.data || [];

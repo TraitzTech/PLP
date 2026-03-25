@@ -13,10 +13,27 @@ export function TranslationProvider({ messages, children }: { messages: Messages
 export function useTranslations() {
   const messages = useContext(TranslationContext);
   if (!messages) {
-    return (key: string, fallback?: string) => fallback ?? key;
+    return (key: string, valuesOrFallback?: Record<string, any> | string, maybeFallback?: string) => {
+      const fallback = typeof valuesOrFallback === 'string' ? valuesOrFallback : maybeFallback;
+      return fallback ?? key;
+    };
   }
 
-  return (key: string, fallback?: string) => {
+  const interpolate = (template: string, values?: Record<string, any>) => {
+    if (!values) return template;
+    return template.replace(/\{(\w+)\}/g, (match, key) => {
+      if (Object.prototype.hasOwnProperty.call(values, key)) {
+        const value = values[key];
+        return value === null || value === undefined ? '' : String(value);
+      }
+      return match;
+    });
+  };
+
+  return (key: string, valuesOrFallback?: Record<string, any> | string, maybeFallback?: string) => {
+    const values = typeof valuesOrFallback === 'object' && valuesOrFallback !== null ? valuesOrFallback : undefined;
+    const fallback = typeof valuesOrFallback === 'string' ? valuesOrFallback : maybeFallback;
+
     // simple dot-path resolver
     const parts = key.split('.');
     let curr: any = messages;
@@ -27,7 +44,9 @@ export function useTranslations() {
         return fallback ?? key;
       }
     }
-    return typeof curr === 'string' ? curr : (fallback ?? key);
+    if (typeof curr === 'string') {
+      return interpolate(curr, values);
+    }
+    return fallback ?? key;
   };
 }
-

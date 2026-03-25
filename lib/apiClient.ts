@@ -20,6 +20,21 @@ apiClient.interceptors.request.use(
         if (token) {
             (config.headers = config.headers || {}).Authorization = `Bearer ${token}`;
         }
+
+        // When sending FormData, let the browser/Axios set the correct multipart boundary.
+        // Our axios instance has a default JSON Content-Type, which breaks file uploads if left in place.
+        const maybeFormData = (config as any)?.data;
+        if (typeof FormData !== "undefined" && maybeFormData instanceof FormData) {
+            const headers: any = (config.headers = config.headers || {});
+            // Axios headers can be a plain object or an AxiosHeaders-like instance.
+            if (typeof headers.delete === "function") {
+                headers.delete("Content-Type");
+            } else {
+                delete headers["Content-Type"];
+                delete headers["content-type"];
+            }
+        }
+
         return config;
     },
     (error) => Promise.reject(error)
@@ -63,7 +78,7 @@ apiClient.interceptors.response.use(
             return error.message || "Unknown error";
         };
 
-        if (status === 401 || (status === 403 && responseData?.code === "AGENT_APPROVAL_REQUIRED")) {
+        if (status === 401) {
             // Token invalid/expired
             clearToken();
         }

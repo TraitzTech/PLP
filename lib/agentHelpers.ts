@@ -23,12 +23,7 @@ export async function isAgentApproved(): Promise<boolean> {
     if (!user || user.user_type !== "agent") {
       return false;
     }
-
-    // Fetch agent details
-    const agentResponse = await apiClient.get(`/manage-agents/user/${user.id}`);
-    const agent = agentResponse.data?.data;
-    
-    return agent?.status === "approved";
+    return String((user as any).agent_status || "").toLowerCase() === "approved";
   } catch (error) {
     console.error("Failed to check agent approval status:", error);
     return false;
@@ -44,9 +39,7 @@ export async function getAgentStatus() {
     if (!user || user.user_type !== "agent") {
       return null;
     }
-
-    const agentResponse = await apiClient.get(`/manage-agents/user/${user.id}`);
-    return agentResponse.data?.data?.status || null;
+    return (user as any).agent_status || null;
   } catch (error) {
     console.error("Failed to get agent status:", error);
     return null;

@@ -24,10 +24,27 @@ export const listingVideosService = {
     for (const vid of payload.videos) {
       form.append("videos[]", vid as any);
     }
-    const { data } = await apiClient.post<ListingVideosUploadResponse>(`/listings/${listingId}/videos`, form, {
-      headers: { "Content-Type": "multipart/form-data" },
-    } as any);
-    return data;
+    try {
+      const { data } = await apiClient.post<ListingVideosUploadResponse>(`/listings/${listingId}/videos`, form);
+      return data;
+    } catch (error: any) {
+      const status = error?.status ?? error?.response?.status;
+      const rawData = error?.data ?? error?.response?.data;
+      const firstValidationError =
+        Array.isArray(rawData?.errors) && rawData.errors.length > 0 ? rawData.errors[0] : undefined;
+
+      const message =
+        (typeof error?.message === "string" && error.message.trim().length > 0 && error.message) ||
+        (typeof rawData?.message === "string" && rawData.message) ||
+        (typeof firstValidationError === "string" && firstValidationError) ||
+        (typeof rawData === "string" && rawData) ||
+        (status === 413 ? "Video upload too large. Please upload smaller videos." : "") ||
+        "Failed to upload videos. Please try again.";
+
+      throw (error && typeof error === "object")
+        ? Object.assign(error, { status, message })
+        : { status, message };
+    }
   },
 
   async delete(videoId: number | string): Promise<{ status: "success"; message: "Video deleted successfully" } | { status: "error"; message: "Video not found" }> {

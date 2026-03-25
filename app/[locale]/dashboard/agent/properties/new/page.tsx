@@ -26,6 +26,7 @@ import { AREA_UNITS, HOUSE_TYPES, ZONING_OPTIONS } from "@/lib/propertyHelpers";
 
 export default function CreatePropertyPage() {
   const router = useRouter();
+  const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(true);
@@ -37,6 +38,8 @@ export default function CreatePropertyPage() {
   const [completedSteps, setCompletedSteps] = useState<boolean[]>([false, false, false, false, false]);
   const [launchRentalsOnly, setLaunchRentalsOnly] = useState(true);
   const [launchSalesEnabled, setLaunchSalesEnabled] = useState(false);
+  const [allowedCities, setAllowedCities] = useState<string[]>([]);
+  const [enforceCityScope, setEnforceCityScope] = useState(true);
 
   const [formData, setFormData] = useState<ListingCreateRequest>({
     title: "",
@@ -91,10 +94,19 @@ export default function CreatePropertyPage() {
       const launchSettings = await settingsService.getPublicSettings([
         'launch_rentals_only',
         'launch_sales_enabled',
+        'launch_enforce_city_scope',
+        'launch_rollout_cities',
       ]);
 
       const rentalsOnly = launchSettings.launch_rentals_only !== false;
       const salesEnabled = launchSettings.launch_sales_enabled === true;
+      const enforceCity = launchSettings.launch_enforce_city_scope !== false;
+      const rolloutCitiesRaw = Array.isArray(launchSettings.launch_rollout_cities)
+        ? launchSettings.launch_rollout_cities
+        : [];
+      const rolloutCities = rolloutCitiesRaw
+        .map((value) => String(value ?? '').trim())
+        .filter(Boolean);
 
       setFacilities(Array.isArray(facilitiesData) ? facilitiesData : []);
       setPropertyTypes(
@@ -104,6 +116,8 @@ export default function CreatePropertyPage() {
       );
       setLaunchRentalsOnly(rentalsOnly);
       setLaunchSalesEnabled(salesEnabled);
+      setEnforceCityScope(enforceCity);
+      setAllowedCities(rolloutCities);
       if (rentalsOnly) {
         setFormData((prev) => ({ ...prev, for_rent: true, for_purchase: false }));
       }
@@ -129,7 +143,20 @@ export default function CreatePropertyPage() {
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    const files = Array.from(e.target.files || []).filter((file) => {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not a valid image file`);
+        return false;
+      }
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        toast.error(`${file.name} is larger than 5MB`);
+        return false;
+      }
+      return true;
+    });
+
+    if (files.length === 0) return;
+
     setImageFiles((prev) => [...prev, ...files]);
 
     files.forEach((file) => {
@@ -255,20 +282,23 @@ export default function CreatePropertyPage() {
               "Please ensure your agent account is approved."
             );
           } else {
-            toast.error(imageError.response?.data?.message || "Failed to upload images");
+            toast.error(imageError?.message || imageError.response?.data?.message || "Failed to upload images");
           }
           // Don't stop the flow - property was created successfully
         }
       }
 
       if (videoFiles.length > 0) {
-        try {
-          await listingVideoService.uploadVideos(newListingId, videoFiles);
-          toast.success(`${videoFiles.length} video(s) uploaded successfully`);
-        } catch (error: any) {
-          console.error("Error uploading videos:", error);
-          toast.error("Property created but some videos failed to upload");
-        }
+        toast.info("Uploading videos in the background… you can continue browsing.", { duration: 5000 });
+        listingVideoService
+          .uploadVideos(newListingId, videoFiles)
+          .then(() => {
+            toast.success(`${videoFiles.length} video(s) uploaded successfully`);
+          })
+          .catch((error: any) => {
+            console.error("Error uploading videos:", error);
+            toast.error(error?.message || "Some videos failed to upload. You can retry from Edit Property.");
+          });
       }
 
       toast.info(
@@ -283,7 +313,7 @@ export default function CreatePropertyPage() {
       if (Array.isArray(errors) && errors.length > 0) {
         errors.forEach(err => toast.error(err));
       } else {
-        toast.error(error.response?.data?.message || "Failed to create property");
+        toast.error(error?.message || error.response?.data?.message || "Failed to create property");
       }
     } finally {
       setIsLoading(false);
@@ -722,13 +752,35 @@ export default function CreatePropertyPage() {
 
             <div>
               <Label htmlFor="city">City *</Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => handleInputChange("city", e.target.value)}
-                placeholder="e.g., Los Angeles"
-                className="mt-1"
-              />
+              {allowedCities.length > 0 ? (
+                <>
+                  <Select value={formData.city} onValueChange={(value) => handleInputChange("city", value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select a city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allowedCities.map((city) => (
+                        <SelectItem key={city} value={city}>
+                          {city}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {enforceCityScope
+                      ? "City options are restricted by admin settings."
+                      : "City options are suggested from admin settings."}
+                  </p>
+                </>
+              ) : (
+                <Input
+                  id="city"
+                  value={formData.city}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
+                  placeholder="e.g., Douala"
+                  className="mt-1"
+                />
+              )}
             </div>
 
             <div>
