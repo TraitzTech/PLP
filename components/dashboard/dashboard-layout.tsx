@@ -14,7 +14,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Chrome as Home, Calendar, Heart, MessageSquare, Settings, User, LogOut, Menu, X, Building2, ChartBar as BarChart3, Plus, Users, Shield, Bell, Star, Globe, Check, AlertCircle } from 'lucide-react';
+import { Chrome as Home, Calendar, Heart, MessageSquare, Settings, User, LogOut, Menu, X, Building2, ChartBar as BarChart3, Plus, Users, Shield, Bell, Star, Globe, Check, AlertCircle, Mail } from 'lucide-react';
 import { FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { authService } from '@/services/authService';
@@ -93,6 +93,14 @@ const adminNavItems = [
     { nameKey: 'dashboard.admin.navigation.reviews', href: '/admin/reviews', icon: Star },
     { nameKey: 'dashboard.admin.navigation.notifications', href: '/admin/notifications', icon: Bell },
     { nameKey: 'dashboard.admin.navigation.blog', href: '/admin/blog', icon: FileText },
+    {
+        nameKey: 'Emails',
+        icon: Mail,
+        submenu: [
+            { nameKey: 'Bulk Campaigns', href: '/admin/email-campaigns' },
+            { nameKey: 'Newsletter', href: '/admin/newsletter' },
+        ]
+    },
     { nameKey: 'dashboard.admin.navigation.subscriptions', href: '/admin/subscriptions', icon: Star },
     { nameKey: 'dashboard.admin.navigation.analytics', href: '/admin/analytics', icon: BarChart3 },
     { nameKey: 'dashboard.admin.navigation.profile', href: '/admin/profile', icon: User },
