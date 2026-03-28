@@ -102,6 +102,9 @@ interface DisplayReview {
 
 export function PropertyDetailsClient({ property, similarProperties, reviews: initialReviews, language = 'en' }: PropertyDetailsClientProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isManuallyNavigating, setIsManuallyNavigating] = useState(false);
+  const manualNavTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState(2);
@@ -372,28 +375,52 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
   const facilities = property?.facilities && Array.isArray(property.facilities) && property.facilities.length > 0
     ? property.facilities
     : (property?.amenities || []).map((name: string) => ({ name }));
+  const handleImageNavigation = () => {
+    setIsManuallyNavigating(true);
+    
+    // Clear existing timeout
+    if (manualNavTimeoutRef.current) {
+      clearTimeout(manualNavTimeoutRef.current);
+    }
+    
+    // Resume auto-scroll after 8 seconds of manual navigation
+    manualNavTimeoutRef.current = setTimeout(() => {
+      setIsManuallyNavigating(false);
+    }, 8000);
+  };
+
   const nextImage = () => {
     setCurrentImageIndex((prev) => 
       prev === images.length - 1 ? 0 : prev + 1
     );
+    handleImageNavigation();
   };
 
   const prevImage = () => {
     setCurrentImageIndex((prev) => 
       prev === 0 ? images.length - 1 : prev - 1
     );
+    handleImageNavigation();
   };
 
-  // Auto-advance gallery images every few seconds (landing property detail page).
+  const jumpToImage = (index: number) => {
+    setCurrentImageIndex(index);
+    handleImageNavigation();
+  };
+
+  // Auto-advance gallery images every few seconds (only when not manually navigating)
   useEffect(() => {
     if (images.length <= 1) return;
     if (typeof window === "undefined") return;
 
     const prefersReducedMotion =
       typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.matchMedia("(prefers-reduce-motion: reduce)").matches;
 
     if (prefersReducedMotion) return;
+
+    // Only set interval if not manually navigating
+    if (isManuallyNavigating) return;
 
     // Reset to first image when the image set changes
     setCurrentImageIndex(0);
@@ -404,7 +431,16 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
 
     return () => window.clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [images.length]);
+  }, [images.length, isManuallyNavigating]);
+
+  // Cleanup manual navigation timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (manualNavTimeoutRef.current) {
+        clearTimeout(manualNavTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const calculateTotal = () => {
     if (!checkIn || !checkOut) return 0;
@@ -863,29 +899,32 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
             <>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={prevImage}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white hover:text-gray-900 z-10 rounded-full w-10 h-10 transition-all duration-200"
+                aria-label="Previous image"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-5 h-5" />
               </Button>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={nextImage}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white hover:text-gray-900 z-10 rounded-full w-10 h-10 transition-all duration-200"
+                aria-label="Next image"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-5 h-5" />
               </Button>
               
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
                 {images.map((_image: string, index: number) => (
                   <button
                     key={index}
-                    onClick={() => setCurrentImageIndex(index)}
+                    onClick={() => jumpToImage(index)}
                     className={`w-2 h-2 rounded-full transition-colors ${
                       index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                    }`}
+                    } hover:bg-white`}
+                    aria-label={`Go to image ${index + 1}`}
                   />
                 ))}
               </div>
