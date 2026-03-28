@@ -540,7 +540,8 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
     const customerName = isAuthenticated ? 'Customer' : guestName.trim() || 'Guest';
     const bookingId = bookingData?.id;
 
-    const message = [
+    // English version of the message
+    const messageEN = [
       `Hello, I just made a booking on PLP for: ${propertyTitle}`,
       `City: ${propertyCity}`,
       `Check-in: ${checkInValue}`,
@@ -552,6 +553,23 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
     ]
       .filter(Boolean)
       .join('\n');
+
+    // French version of the message
+    const messageFR = [
+      `Bonjour, je viens de faire une réservation sur PLP pour: ${propertyTitle}`,
+      `Ville: ${propertyCity}`,
+      `Entrée: ${checkInValue}`,
+      `Sortie: ${checkOutValue}`,
+      `Nombre de clients: ${guestCount}`,
+      bookingId ? `ID de réservation: #${bookingId}` : null,
+      `Nom: ${customerName}`,
+      'Veuillez me informer des prochaines étapes. Merci.',
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    // Combine both versions with language separator
+    const message = `${messageEN}\n\n---\n\n${messageFR}`;
 
     const whatsappUrl = `https://wa.me/${agentPhone}?text=${encodeURIComponent(message)}`;
     window.location.href = whatsappUrl;
