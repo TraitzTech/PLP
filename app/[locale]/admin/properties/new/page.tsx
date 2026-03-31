@@ -464,6 +464,41 @@ export default function AdminCreatePropertyPage() {
               />
             </div>
           </div>
+
+          <div className="space-y-4 border-t pt-6">
+            <h3 className="font-semibold">Property Purpose</h3>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="for_rent"
+                  checked={formData.for_rent || false}
+                  onCheckedChange={(checked) => handleInputChange("for_rent", checked)}
+                  disabled={launchRentalsOnly}
+                />
+                <Label htmlFor="for_rent" className="font-normal cursor-pointer">
+                  Available for Rent/Booking
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="for_purchase"
+                  checked={formData.for_purchase || false}
+                  onCheckedChange={(checked) => handleInputChange("for_purchase", checked)}
+                  disabled={launchRentalsOnly || !launchSalesEnabled}
+                />
+                <Label htmlFor="for_purchase" className="font-normal cursor-pointer">
+                  Available for Purchase/Sale
+                </Label>
+              </div>
+            </div>
+            {launchRentalsOnly && (
+              <p className="text-sm text-amber-700">Sales are disabled for launch. Listings must be rental.</p>
+            )}
+            {!launchSalesEnabled && !launchRentalsOnly && (
+              <p className="text-sm text-amber-700">Sales are currently disabled by admin settings.</p>
+            )}
+          </div>
         </div>
       ),
     },
@@ -536,41 +571,6 @@ export default function AdminCreatePropertyPage() {
                 className="mt-1"
               />
             </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="font-semibold">Property Purpose</h3>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="for_rent"
-                  checked={formData.for_rent || false}
-                  onCheckedChange={(checked) => handleInputChange("for_rent", checked)}
-                  disabled={launchRentalsOnly}
-                />
-                <Label htmlFor="for_rent" className="font-normal cursor-pointer">
-                  Available for Rent/Booking
-                </Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="for_purchase"
-                  checked={formData.for_purchase || false}
-                  onCheckedChange={(checked) => handleInputChange("for_purchase", checked)}
-                  disabled={launchRentalsOnly || !launchSalesEnabled}
-                />
-                <Label htmlFor="for_purchase" className="font-normal cursor-pointer">
-                  Available for Purchase/Sale
-                </Label>
-              </div>
-            </div>
-            {launchRentalsOnly && (
-              <p className="text-sm text-amber-700">Sales are disabled for launch. Listings must be rental.</p>
-            )}
-            {!launchSalesEnabled && !launchRentalsOnly && (
-              <p className="text-sm text-amber-700">Sales are currently disabled by admin settings.</p>
-            )}
           </div>
 
           <div className="space-y-4">
