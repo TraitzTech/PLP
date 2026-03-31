@@ -62,6 +62,7 @@ export function BulkEmailCampaignClient() {
   const [isLoadingAudiences, setIsLoadingAudiences] = useState(true)
   const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
   const [newCampaign, setNewCampaign] = useState({
     name: '',
     subject: '',
@@ -73,7 +74,19 @@ export function BulkEmailCampaignClient() {
     action_button_style: 'primary',
     include_logo: true,
   })
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null)
+  const [editCampaignData, setEditCampaignData] = useState({
+    name: '',
+    subject: '',
+    body_html: '',
+    has_action_button: false,
+    action_button_text: '',
+    action_button_url: '',
+    action_button_style: 'primary',
+    include_logo: true,
+  })
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewHtml, setPreviewHtml] = useState('')
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
@@ -167,6 +180,66 @@ export function BulkEmailCampaignClient() {
       toast.error('Failed to create campaign')
     } finally {
       setIsCreating(false)
+    }
+  }
+
+  const handleEditCampaign = (campaign: Campaign) => {
+    setEditingCampaign(campaign)
+    setEditCampaignData({
+      name: campaign.name,
+      subject: campaign.subject,
+      body_html: campaign.body_html,
+      has_action_button: campaign.has_action_button,
+      action_button_text: campaign.action_button_text || '',
+      action_button_url: campaign.action_button_url || '',
+      action_button_style: campaign.action_button_style || 'primary',
+      include_logo: campaign.include_logo || true,
+    })
+    setEditDialogOpen(true)
+  }
+
+  const handleUpdateCampaign = async () => {
+    if (!editingCampaign) return
+
+    if (!editCampaignData.name || !editCampaignData.subject || !editCampaignData.body_html) {
+      toast.error('Please fill in all required fields')
+      return
+    }
+
+    try {
+      setIsUpdating(true)
+      const response = await fetch(`${API_BASE_URL}/admin/email-campaigns/${editingCampaign.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editCampaignData),
+      })
+      const data = await response.json()
+      if (data.status === 'success') {
+        toast.success('Campaign updated successfully')
+        setEditDialogOpen(false)
+        setEditingCampaign(null)
+        setEditCampaignData({
+          name: '',
+          subject: '',
+          body_html: '',
+          has_action_button: false,
+          action_button_text: '',
+          action_button_url: '',
+          action_button_style: 'primary',
+          include_logo: true,
+        })
+        fetchCampaigns()
+      } else {
+        toast.error(data.message || 'Failed to update campaign')
+      }
+    } catch (error) {
+      console.error('Failed to update campaign:', error)
+      toast.error('Failed to update campaign')
+    } finally {
+      setIsUpdating(false)
     }
   }
 
@@ -394,6 +467,108 @@ export function BulkEmailCampaignClient() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Campaign Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Email Campaign</DialogTitle>
+            <DialogDescription>
+              Update your email campaign details. Campaign will remain in draft status.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label>Campaign Name</Label>
+              <Input
+                placeholder="e.g., Winter Newsletter 2024"
+                value={editCampaignData.name}
+                onChange={(e) => setEditCampaignData({ ...editCampaignData, name: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label>Email Subject *</Label>
+              <Input
+                placeholder="e.g., Exclusive Winter Offers for You"
+                value={editCampaignData.subject}
+                onChange={(e) => setEditCampaignData({ ...editCampaignData, subject: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label>Email Body (HTML) *</Label>
+              <Textarea
+                placeholder="Your email content here..."
+                value={editCampaignData.body_html}
+                onChange={(e) => setEditCampaignData({ ...editCampaignData, body_html: e.target.value })}
+                className="min-h-[200px]"
+              />
+              <p className="text-sm text-gray-500 mt-2">You can use HTML to format your content</p>
+            </div>
+
+            {/* Action Button */}
+            <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="editHasActionButton"
+                  checked={editCampaignData.has_action_button}
+                  onChange={(e) => setEditCampaignData({ ...editCampaignData, has_action_button: e.target.checked })}
+                />
+                <Label htmlFor="editHasActionButton">Include Action Button</Label>
+              </div>
+
+              {editCampaignData.has_action_button && (
+                <>
+                  <Input
+                    placeholder="Button text (e.g., 'Learn More')"
+                    value={editCampaignData.action_button_text}
+                    onChange={(e) => setEditCampaignData({ ...editCampaignData, action_button_text: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Button URL (e.g., 'https://example.com')"
+                    value={editCampaignData.action_button_url}
+                    onChange={(e) => setEditCampaignData({ ...editCampaignData, action_button_url: e.target.value })}
+                  />
+                  <Select value={editCampaignData.action_button_style} onValueChange={(value) => setEditCampaignData({ ...editCampaignData, action_button_style: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="primary">Primary (Purple)</SelectItem>
+                      <SelectItem value="secondary">Secondary (Gray)</SelectItem>
+                      <SelectItem value="success">Success (Green)</SelectItem>
+                      <SelectItem value="danger">Danger (Red)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="editIncludeLogo"
+                checked={editCampaignData.include_logo}
+                onChange={(e) => setEditCampaignData({ ...editCampaignData, include_logo: e.target.checked })}
+              />
+              <Label htmlFor="editIncludeLogo">Include Company Logo in Email</Label>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateCampaign} disabled={isUpdating} className="gap-2">
+              {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Update Campaign
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Preview Dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh]">
@@ -504,6 +679,15 @@ export function BulkEmailCampaignClient() {
 
                   {campaign.status === 'draft' && (
                     <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditCampaign(campaign)}
+                        className="gap-2"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Edit
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
