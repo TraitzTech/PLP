@@ -2,6 +2,7 @@
 
 import { Navbar } from '@/components/navigation/navbar';
 import { HeroSection } from '@/components/hero/hero-section';
+import { AgentCTASection } from '@/components/sections/agent-cta-section';
 import { FeaturedProperties } from '@/components/properties/featured-properties';
 import { PropertyCategories } from '@/components/properties/property-categories';
 import { HomeDynamicSections } from '@/components/sections/home-dynamic-sections';
@@ -15,6 +16,7 @@ export default function Home() {
     <main className="min-h-screen">
       <Navbar />
       <HeroSection />
+      <AgentCTASection />
       <HomeDynamicSections />
       <PlatformGuideSection />
       <PropertyCategories />

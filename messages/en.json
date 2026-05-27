@@ -904,5 +904,105 @@
       "viewDetails": "View Details",
       "browseProperties": "Browse Properties"
     }
+  },
+  "agentCTA": {
+    "title": "Are you a {owner} or {agent}?",
+    "owner": "Property Owner",
+    "agent": "Agent",
+    "description": "Join Cameroon's fastest-growing property portal. Reach thousands of potential tenants and buyers every day. Our platform provides the tools you need to manage your listings effectively.",
+    "button": "Start Listing Today",
+    "joinedBy": "Joined by 1,000+ agents this month",
+    "verified": "Verified",
+    "topRated": "Top Rated Agent",
+    "features": {
+      "audience": {
+        "title": "Large Audience",
+        "description": "Connect with thousands of active seekers."
+      },
+      "management": {
+        "title": "Easy Management",
+        "description": "List and track properties with ease."
+      },
+      "leads": {
+        "title": "Verified Leads",
+        "description": "Get quality leads from verified users."
+      }
+    }
+  },
+  "agentSignup": {
+    "title": "Agent Registration",
+    "description": "Complete the form below to join our network of professional agents.",
+    "success": {
+      "title": "Registration Successful!",
+      "description": "Your agent account has been created and is pending admin approval",
+      "alert": "Our admin team will review your application and verify your documents. You'll receive an email once your account is approved. This typically takes 24-48 hours.",
+      "note": "You won't be able to access the agent dashboard until your account is approved.",
+      "returnHome": "Return to Home"
+    },
+    "sections": {
+      "account": "Account Information",
+      "profile": "Profile Information",
+      "location": "Location & ID Information",
+      "documents": "ID Documents"
+    },
+    "fields": {
+      "name": "Full Name *",
+      "namePlaceholder": "John Doe",
+      "email": "Email Address *",
+      "emailPlaceholder": "john@example.com",
+      "phone": "Phone Number *",
+      "phonePlaceholder": "+237680090360",
+      "gender": "Gender *",
+      "genderPlaceholder": "Select gender",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "password": "Password *",
+      "passwordPlaceholder": "At least 8 characters",
+      "passwordConfirm": "Confirm Password *",
+      "passwordConfirmPlaceholder": "Confirm your password",
+      "profilePhoto": "Profile Photo (Optional)",
+      "photoNote": "JPG or PNG, Max 2MB",
+      "bio": "Bio (Optional)",
+      "bioPlaceholder": "Tell us about your experience and expertise...",
+      "idCardNum": "ID Card Number *",
+      "idCardPlaceholder": "Enter your ID card number",
+      "country": "Country *",
+      "countryPlaceholder": "e.g., Cameroon",
+      "region": "Region/State *",
+      "regionPlaceholder": "e.g., Center",
+      "city": "City *",
+      "cityPlaceholder": "e.g., Yaounde",
+      "address": "Address *",
+      "addressPlaceholder": "Street address",
+      "idFront": "Front of ID *",
+      "idBack": "Back of ID *",
+      "idFrontPreview": "Front image preview will appear here",
+      "idBackPreview": "Back image preview will appear here",
+      "idNote": "Please upload clear images of both sides of your ID. This helps us verify your identity.",
+      "formatNote": "Supported formats: JPG, PNG. Max size: 2MB per image."
+    },
+    "submit": "Submit Registration Application",
+    "processing": "Processing Registration...",
+    "termsNote": "By submitting, you agree to our Terms of Service and Privacy Policy.",
+    "validation": {
+      "name": "Name is required",
+      "email": "Email is required",
+      "emailInvalid": "Invalid email format",
+      "password": "Password is required",
+      "passwordLength": "Password must be at least 8 characters",
+      "passwordMatch": "Passwords do not match",
+      "phone": "Phone number is required",
+      "idCard": "ID Card Number is required",
+      "country": "Country is required",
+      "region": "Region/State is required",
+      "city": "City is required",
+      "address": "Address is required",
+      "idFront": "Front of ID is required",
+      "idBack": "Back of ID is required",
+      "imageType": "Only JPG and PNG images are allowed.",
+      "imageSize": "File size must be 2MB or less.",
+      "fixErrors": "Please fix the highlighted fields before submitting."
+    }
   }
 }

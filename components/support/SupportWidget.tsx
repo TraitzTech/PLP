@@ -55,7 +55,7 @@ export function SupportWidget() {
             <span className="absolute inset-0 rounded-full animate-ping bg-plp-pink/20" aria-hidden />
           </button>
         </DialogTrigger>
-        <DialogContent className="max-w-lg p-0 overflow-hidden">
+        <DialogContent className="max-w-lg p-0 overflow-hidden max-h-[90vh] overflow-y-auto [&>button]:text-white [&>button]:opacity-100 [&>button]:z-10">
           <div className="bg-gradient-to-r from-plp-purple via-plp-pink to-plp-yellow p-5 text-white">
             <DialogHeader>
               <DialogTitle className="text-white flex items-center gap-2">
@@ -118,9 +118,18 @@ export function SupportWidget() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <span className="inline-flex items-center gap-1"><Phone className="w-4 h-4 text-plp-purple" /> {contact.primaryPhone}</span>
+                  <Link
+                    target="_blank"
+                    href={buildWhatsappMessageUrl(
+                      contact.whatsappPhone || contact.primaryPhone,
+                      `Hello PLP Support, I have a question about ${pathname || "the platform"}.`
+                    )}
+                    className="inline-flex items-center gap-1"
+                  >
+                    <Phone className="w-4 h-4 text-plp-purple" /> {contact.primaryPhone}
+                  </Link>
                   <span className="hidden md:inline">•</span>
-                  <span className="inline-flex items-center gap-1"><Mail className="w-4 h-4 text-plp-pink" /> {contact.supportEmail}</span>
+                  {/*<span className="inline-flex items-center gap-1"><Mail className="w-4 h-4 text-plp-pink" /> {contact.supportEmail}</span>*/}
                 </div>
                 <Button type="submit" disabled={!isValid || submitting} className="btn-primary inline-flex items-center gap-2">
                   <Send className="w-4 h-4" /> {submitting ? "Opening WhatsApp..." : "Chat on WhatsApp"}
