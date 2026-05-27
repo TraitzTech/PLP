@@ -1,15 +1,16 @@
-'use client'
+"use client";
 
-import { Navbar } from '@/components/navigation/navbar';
-import { HeroSection } from '@/components/hero/hero-section';
-import { AgentCTASection } from '@/components/sections/agent-cta-section';
-import { FeaturedProperties } from '@/components/properties/featured-properties';
-import { PropertyCategories } from '@/components/properties/property-categories';
-import { HomeDynamicSections } from '@/components/sections/home-dynamic-sections';
-import { PlatformGuideSection } from '@/components/sections/platform-guide-section';
-import { NewsletterSection } from '@/components/sections/newsletter-section';
-import { Footer } from '@/components/navigation/footer';
-import { NewsletterPopup } from '@/components/ui/newsletter-popup';
+import { Navbar } from "@/components/navigation/navbar";
+import { HeroSection } from "@/components/hero/hero-section";
+import { AgentCTASection } from "@/components/sections/agent-cta-section";
+import { SeekerSearchSection } from "@/components/sections/seeker-search-section";
+import { FeaturedProperties } from "@/components/properties/featured-properties";
+import { PropertyCategories } from "@/components/properties/property-categories";
+import { HomeDynamicSections } from "@/components/sections/home-dynamic-sections";
+import { PlatformGuideSection } from "@/components/sections/platform-guide-section";
+import { NewsletterSection } from "@/components/sections/newsletter-section";
+import { Footer } from "@/components/navigation/footer";
+import { NewsletterPopup } from "@/components/ui/newsletter-popup";
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
       <Navbar />
       <HeroSection />
       <AgentCTASection />
+      <SeekerSearchSection />
       <HomeDynamicSections />
       <PlatformGuideSection />
       <PropertyCategories />
