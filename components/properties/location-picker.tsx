@@ -18,11 +18,12 @@ let googleMapsPromise: Promise<void> | null = null;
 
 function loadGoogleMapsScript(apiKey: string): Promise<void> {
   if (googleMapsPromise) return googleMapsPromise;
-  if (typeof window !== "undefined" && window.google?.maps) return Promise.resolve();
+  if (typeof window !== "undefined" && window.google?.maps)
+    return Promise.resolve();
 
   googleMapsPromise = new Promise((resolve, reject) => {
     const existingScript = document.querySelector(
-      'script[src*="maps.googleapis.com/maps/api/js"]'
+      'script[src*="maps.googleapis.com/maps/api/js"]',
     );
 
     if (existingScript) {
@@ -62,7 +63,7 @@ export function LocationPicker({
   const markerRef = useRef<any>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
-  
+
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentAddress, setCurrentAddress] = useState(address || "");
@@ -101,9 +102,10 @@ export function LocationPicker({
 
     try {
       // Default to a center position (world view) or use provided coordinates
-      const defaultCenter = latitude && longitude 
-        ? { lat: latitude, lng: longitude }
-        : { lat: 20, lng: 0 }; // World center as default
+      const defaultCenter =
+        latitude && longitude
+          ? { lat: latitude, lng: longitude }
+          : { lat: 20, lng: 0 }; // World center as default
 
       const map = new window.google.maps.Map(mapRef.current, {
         zoom: latitude && longitude ? 15 : 2,
@@ -135,7 +137,7 @@ export function LocationPicker({
           {
             types: ["geocode"],
             componentRestrictions: { country: [] }, // Allow all countries
-          }
+          },
         );
 
         autocompleteRef.current.addListener("place_changed", () => {
@@ -174,11 +176,7 @@ export function LocationPicker({
     markerRef.current = marker;
   };
 
-  const handleLocationSelected = (
-    lat: number,
-    lng: number,
-    addr?: string
-  ) => {
+  const handleLocationSelected = (lat: number, lng: number, addr?: string) => {
     if (!mapInstanceRef.current) return;
 
     addMarker(mapInstanceRef.current, { lat, lng });
@@ -186,19 +184,26 @@ export function LocationPicker({
     // If address not provided, get it from reverse geocoding
     if (!addr && window.google?.maps) {
       const geocoder = new window.google.maps.Geocoder();
-      geocoder.geocode({ location: { lat, lng } }, (results: any, status: any) => {
-        if (status === "OK" && results[0]) {
-          const address = results[0].formatted_address;
-          setCurrentAddress(address);
-          onLocationSelect(lat, lng, address);
-        } else {
-          setCurrentAddress(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-          onLocationSelect(lat, lng, `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-        }
-      });
+      geocoder.geocode(
+        { location: { lat, lng } },
+        (results: any, status: any) => {
+          if (status === "OK" && results[0]) {
+            const address = results[0].formatted_address;
+            setCurrentAddress(address);
+            onLocationSelect(lat, lng, address);
+          } else {
+            setCurrentAddress(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+            onLocationSelect(lat, lng, `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+          }
+        },
+      );
     } else {
       setCurrentAddress(addr || `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-      onLocationSelect(lat, lng, addr || `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+      onLocationSelect(
+        lat,
+        lng,
+        addr || `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+      );
     }
   };
 
@@ -215,7 +220,10 @@ export function LocationPicker({
 
   if (error) {
     return (
-      <Card className="p-6 flex flex-col items-center justify-center text-center" style={{ height }}>
+      <Card
+        className="p-6 flex flex-col items-center justify-center text-center"
+        style={{ height }}
+      >
         <MapPin className="h-12 w-12 text-gray-400 mb-4" />
         <p className="text-sm text-gray-500">{error}</p>
       </Card>
@@ -224,7 +232,7 @@ export function LocationPicker({
 
   return (
     <Card className="overflow-hidden" style={{ height }}>
-      <div className="h-full flex flex-col bg-white">
+      <div className="h-full flex flex-col bg-white relative">
         {/* Search Box */}
         <div className="p-4 border-b border-gray-200 bg-white">
           <div className="flex gap-2 mb-2">
@@ -278,7 +286,9 @@ export function LocationPicker({
         {/* Instructions */}
         {isLoaded && !currentAddress && (
           <div className="absolute bottom-4 left-4 bg-white p-3 rounded shadow-lg text-xs text-gray-600 max-w-xs z-10">
-            <p className="font-medium mb-1">✓ Search above or click on the map to select a location</p>
+            <p className="font-medium mb-1">
+              ✓ Search above or click on the map to select a location
+            </p>
           </div>
         )}
       </div>

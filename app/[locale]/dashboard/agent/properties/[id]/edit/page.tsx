@@ -3,12 +3,19 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { useTranslations } from "@/components/translation-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Save, Loader2, Upload, X, Trash2 } from "lucide-react";
@@ -20,11 +27,21 @@ import { propertyTypeService } from "@/services/propertyTypeService";
 import { facilitiesService } from "@/services/facilitiesService";
 import { settingsService } from "@/services/settingsService";
 import { Badge } from "@/components/ui/badge";
-import type { Listing, PropertyType, Facility, ListingImage, ListingVideo } from "@/services/types";
+import type {
+  Listing,
+  PropertyType,
+  Facility,
+  ListingImage,
+  ListingVideo,
+} from "@/services/types";
 import { LocationPicker } from "@/components/properties/location-picker";
-import { resolveListingImageObjectSrc, resolveListingVideoObjectSrc } from "@/lib/listingMedia";
+import {
+  resolveListingImageObjectSrc,
+  resolveListingVideoObjectSrc,
+} from "@/lib/listingMedia";
 
 export default function EditPropertyPage() {
+  const t = useTranslations();
   const params = useParams();
   const router = useRouter();
   const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
@@ -89,7 +106,7 @@ export default function EditPropertyPage() {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      
+
       // Fetch property details
       const propertyRes = await listingService.getListing(params.id as string);
       const propertyData = propertyRes.data;
@@ -99,21 +116,23 @@ export default function EditPropertyPage() {
       const [typesRes, launchSettings] = await Promise.all([
         propertyTypeService.getAllPropertyTypes(),
         settingsService.getPublicSettings([
-          'launch_rentals_only',
-          'launch_sales_enabled',
-          'launch_enforce_city_scope',
-          'launch_rollout_cities',
+          "launch_rentals_only",
+          "launch_sales_enabled",
+          "launch_enforce_city_scope",
+          "launch_rollout_cities",
         ]),
       ]);
 
       const rentalsOnly = launchSettings.launch_rentals_only !== false;
       const salesEnabled = launchSettings.launch_sales_enabled === true;
       const enforceCity = launchSettings.launch_enforce_city_scope !== false;
-      const rolloutCitiesRaw = Array.isArray(launchSettings.launch_rollout_cities)
+      const rolloutCitiesRaw = Array.isArray(
+        launchSettings.launch_rollout_cities,
+      )
         ? launchSettings.launch_rollout_cities
         : [];
       const rolloutCities = rolloutCitiesRaw
-        .map((value) => String(value ?? '').trim())
+        .map((value) => String(value ?? "").trim())
         .filter(Boolean);
       setLaunchRentalsOnly(rentalsOnly);
       setLaunchSalesEnabled(salesEnabled);
@@ -121,7 +140,12 @@ export default function EditPropertyPage() {
       setAllowedCities(rolloutCities);
 
       const availableTypes = Array.isArray(typesRes)
-        ? typesRes.filter((type) => type.status === 1 || type.status === true || type.id === propertyData.property_type_id)
+        ? typesRes.filter(
+            (type) =>
+              type.status === 1 ||
+              type.status === true ||
+              type.id === propertyData.property_type_id,
+          )
         : [];
       setPropertyTypes(availableTypes);
 
@@ -130,8 +154,12 @@ export default function EditPropertyPage() {
 
       // Fetch existing images
       try {
-        const imagesRes = await listingImageService.getImagesByListing(params.id as string);
-        setExistingImages(Array.isArray(imagesRes) ? imagesRes : (imagesRes?.data || []));
+        const imagesRes = await listingImageService.getImagesByListing(
+          params.id as string,
+        );
+        setExistingImages(
+          Array.isArray(imagesRes) ? imagesRes : imagesRes?.data || [],
+        );
       } catch (error) {
         console.error("Error fetching images:", error);
         setExistingImages([]);
@@ -139,7 +167,9 @@ export default function EditPropertyPage() {
 
       // Fetch existing videos
       try {
-        const videosRes = await listingVideoService.getVideosByListing(params.id as string);
+        const videosRes = await listingVideoService.getVideosByListing(
+          params.id as string,
+        );
         setExistingVideos(videosRes.data || []);
       } catch (error) {
         console.error("Error fetching videos:", error);
@@ -150,7 +180,8 @@ export default function EditPropertyPage() {
       const normalizeBoolean = (value: any): boolean => {
         if (typeof value === "boolean") return value;
         if (typeof value === "number") return value !== 0;
-        if (typeof value === "string") return value.toLowerCase() === "true" || value === "1";
+        if (typeof value === "string")
+          return value.toLowerCase() === "true" || value === "1";
         return false;
       };
 
@@ -192,11 +223,21 @@ export default function EditPropertyPage() {
       });
 
       if (rentalsOnly) {
-        setFormData((prev: any) => ({ ...prev, for_rent: true, for_purchase: false }));
+        setFormData((prev: any) => ({
+          ...prev,
+          for_rent: true,
+          for_purchase: false,
+        }));
       }
     } catch (error: any) {
       console.error("Error fetching data:", error);
-      toast.error(error.response?.data?.message || "Failed to fetch property details");
+      toast.error(
+        error.response?.data?.message ||
+          t(
+            "dashboards.agent.properties.edit.errors.fetchDetails",
+            "Failed to fetch property details",
+          ),
+      );
       router.back();
     } finally {
       setIsLoading(false);
@@ -222,11 +263,21 @@ export default function EditPropertyPage() {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).filter((file) => {
       if (!file.type.startsWith("image/")) {
-        toast.error(`${file.name} is not a valid image file`);
+        toast.error(
+          t(
+            "dashboards.agent.properties.edit.errors.invalidImage",
+            "{name} is not a valid image file",
+          ).replace("{name}", file.name),
+        );
         return false;
       }
       if (file.size > MAX_IMAGE_SIZE_BYTES) {
-        toast.error(`${file.name} is larger than 5MB`);
+        toast.error(
+          t(
+            "dashboards.agent.properties.edit.errors.imageTooLarge",
+            "{name} is larger than 5MB",
+          ).replace("{name}", file.name),
+        );
         return false;
       }
       return true;
@@ -235,7 +286,7 @@ export default function EditPropertyPage() {
     if (files.length === 0) return;
 
     setNewImageFiles((prev) => [...prev, ...files]);
-    
+
     // Create previews
     files.forEach((file) => {
       const reader = new FileReader();
@@ -249,11 +300,21 @@ export default function EditPropertyPage() {
   const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).filter((file) => {
       if (!file.type.startsWith("video/")) {
-        toast.error(`${file.name} is not a valid video file`);
+        toast.error(
+          t(
+            "dashboards.agent.properties.edit.errors.invalidVideo",
+            "{name} is not a valid video file",
+          ).replace("{name}", file.name),
+        );
         return false;
       }
       if (file.size > MAX_VIDEO_SIZE_BYTES) {
-        toast.error(`${file.name} is larger than 50MB`);
+        toast.error(
+          t(
+            "dashboards.agent.properties.edit.errors.videoTooLarge",
+            "{name} is larger than 50MB",
+          ).replace("{name}", file.name),
+        );
         return false;
       }
       return true;
@@ -278,10 +339,20 @@ export default function EditPropertyPage() {
       setDeletingImageIds((prev) => [...prev, imageId]);
       await listingImageService.deleteImage(imageId);
       setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
-      toast.success("Image deleted successfully");
+      toast.success(
+        t(
+          "dashboards.agent.properties.edit.success.imageDeleted",
+          "Image deleted successfully",
+        ),
+      );
     } catch (error: any) {
       console.error("Error deleting image:", error);
-      toast.error("Failed to delete image");
+      toast.error(
+        t(
+          "dashboards.agent.properties.edit.errors.deleteImage",
+          "Failed to delete image",
+        ),
+      );
     } finally {
       setDeletingImageIds((prev) => prev.filter((id) => id !== imageId));
     }
@@ -292,79 +363,153 @@ export default function EditPropertyPage() {
       setDeletingVideoIds((prev) => [...prev, videoId]);
       await listingVideoService.deleteVideo(videoId);
       setExistingVideos((prev) => prev.filter((vid) => vid.id !== videoId));
-      toast.success("Video deleted successfully");
+      toast.success(
+        t(
+          "dashboards.agent.properties.edit.success.videoDeleted",
+          "Video deleted successfully",
+        ),
+      );
     } catch (error: any) {
       console.error("Error deleting video:", error);
-      toast.error("Failed to delete video");
+      toast.error(
+        t(
+          "dashboards.agent.properties.edit.errors.deleteVideo",
+          "Failed to delete video",
+        ),
+      );
     } finally {
       setDeletingVideoIds((prev) => prev.filter((id) => id !== videoId));
     }
   };
 
   const getImageUrl = (image: ListingImage): string => {
-    return resolveListingImageObjectSrc(image) || '';
+    return resolveListingImageObjectSrc(image) || "";
   };
 
   const getVideoUrl = (video: ListingVideo): string => {
-    return resolveListingVideoObjectSrc(video) || '';
+    return resolveListingVideoObjectSrc(video) || "";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!property) return;
 
     // Validate required fields
     if (!formData.title.trim()) {
-      toast.error("Title is required");
+      toast.error(
+        t(
+          "dashboards.agent.properties.edit.validation.titleRequired",
+          "Title is required",
+        ),
+      );
       return;
     }
     if (formData.price <= 0) {
-      toast.error("Price must be greater than 0");
+      toast.error(
+        t(
+          "dashboards.agent.properties.edit.validation.priceRequired",
+          "Price must be greater than 0",
+        ),
+      );
       return;
     }
     if (formData.facilities_id.length === 0) {
-      toast.error("Please select at least one facility");
+      toast.error(
+        t(
+          "dashboards.agent.properties.edit.validation.facilityRequired",
+          "Please select at least one facility",
+        ),
+      );
       return;
     }
 
     try {
       setIsSaving(true);
       await listingService.updateListing(property.id, formData);
-      
+
       // Upload new images if any
       if (newImageFiles.length > 0) {
-        toast.info("Uploading images in the background…", { duration: 4000 });
+        toast.info(
+          t(
+            "dashboards.agent.properties.edit.info.uploadingImages",
+            "Uploading images in the background...",
+          ),
+          { duration: 4000 },
+        );
         listingImageService
           .uploadImages(property.id, newImageFiles)
-          .then(() => toast.success("Images uploaded successfully"))
+          .then(() =>
+            toast.success(
+              t(
+                "dashboards.agent.properties.edit.success.imagesUploaded",
+                "Images uploaded successfully",
+              ),
+            ),
+          )
           .catch((error) => {
             console.error("Error uploading images:", error);
-            toast.error(error?.message || "Property updated but some images failed to upload");
+            toast.error(
+              error?.message ||
+                t(
+                  "dashboards.agent.properties.edit.errors.uploadImages",
+                  "Property updated but some images failed to upload",
+                ),
+            );
           });
       }
 
       // Upload new videos if any
       if (newVideoFiles.length > 0) {
-        toast.info("Uploading videos in the background…", { duration: 5000 });
+        toast.info(
+          t(
+            "dashboards.agent.properties.edit.info.uploadingVideos",
+            "Uploading videos in the background...",
+          ),
+          { duration: 5000 },
+        );
         listingVideoService
           .uploadVideos(property.id, newVideoFiles)
-          .then(() => toast.success("Videos uploaded successfully"))
+          .then(() =>
+            toast.success(
+              t(
+                "dashboards.agent.properties.edit.success.videosUploaded",
+                "Videos uploaded successfully",
+              ),
+            ),
+          )
           .catch((error) => {
             console.error("Error uploading videos:", error);
-            toast.error(error?.message || "Property updated but some videos failed to upload");
+            toast.error(
+              error?.message ||
+                t(
+                  "dashboards.agent.properties.edit.errors.uploadVideos",
+                  "Property updated but some videos failed to upload",
+                ),
+            );
           });
       }
 
-      toast.success("Property updated successfully");
+      toast.success(
+        t(
+          "dashboards.agent.properties.edit.success.updated",
+          "Property updated successfully",
+        ),
+      );
       router.push("/dashboard/agent/properties");
     } catch (error: any) {
       console.error("Error updating property:", error);
       const errors = error.response?.data?.errors;
       if (Array.isArray(errors) && errors.length > 0) {
-        errors.forEach(err => toast.error(err));
+        errors.forEach((err) => toast.error(err));
       } else {
-        toast.error(error.response?.data?.message || "Failed to update property");
+        toast.error(
+          error.response?.data?.message ||
+            t(
+              "dashboards.agent.properties.edit.errors.updateFailed",
+              "Failed to update property",
+            ),
+        );
       }
     } finally {
       setIsSaving(false);
@@ -418,16 +563,14 @@ export default function EditPropertyPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-          >
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Edit Property</h1>
-            <p className="text-muted-foreground">Update your property details</p>
+            <p className="text-muted-foreground">
+              Update your property details
+            </p>
           </div>
         </div>
 
@@ -455,7 +598,9 @@ export default function EditPropertyPage() {
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
                   placeholder="Detailed description of your property"
                   rows={4}
                   required
@@ -467,7 +612,9 @@ export default function EditPropertyPage() {
                   <Label htmlFor="propertyType">Property Type *</Label>
                   <Select
                     value={formData.property_type_id?.toString() || ""}
-                    onValueChange={(value) => handleInputChange("property_type_id", parseInt(value))}
+                    onValueChange={(value) =>
+                      handleInputChange("property_type_id", parseInt(value))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
@@ -488,7 +635,9 @@ export default function EditPropertyPage() {
                     id="price"
                     type="number"
                     value={formData.price}
-                    onChange={(e) => handleInputChange("price", parseFloat(e.target.value))}
+                    onChange={(e) =>
+                      handleInputChange("price", parseFloat(e.target.value))
+                    }
                     placeholder="Price"
                     min="0"
                     step="0.01"
@@ -512,7 +661,12 @@ export default function EditPropertyPage() {
                     id="discount_price"
                     type="number"
                     value={formData.discount_price || ""}
-                    onChange={(e) => handleInputChange("discount_price", e.target.value ? parseFloat(e.target.value) : null)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "discount_price",
+                        e.target.value ? parseFloat(e.target.value) : null,
+                      )
+                    }
                     placeholder="Discount price"
                     min="0"
                     step="0.01"
@@ -520,12 +674,19 @@ export default function EditPropertyPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="discount_percentage">Discount Percentage</Label>
+                  <Label htmlFor="discount_percentage">
+                    Discount Percentage
+                  </Label>
                   <Input
                     id="discount_percentage"
                     type="number"
                     value={formData.discount_percentage || ""}
-                    onChange={(e) => handleInputChange("discount_percentage", e.target.value ? parseInt(e.target.value) : null)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "discount_percentage",
+                        e.target.value ? parseInt(e.target.value) : null,
+                      )
+                    }
                     placeholder="Discount %"
                     min="0"
                     max="100"
@@ -547,7 +708,9 @@ export default function EditPropertyPage() {
                   <Input
                     id="region"
                     value={formData.region}
-                    onChange={(e) => handleInputChange("region", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("region", e.target.value)
+                    }
                     placeholder="Region"
                     required
                   />
@@ -559,7 +722,9 @@ export default function EditPropertyPage() {
                     <>
                       <Select
                         value={formData.city}
-                        onValueChange={(value) => handleInputChange("city", value)}
+                        onValueChange={(value) =>
+                          handleInputChange("city", value)
+                        }
                       >
                         <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Select a city" />
@@ -569,7 +734,7 @@ export default function EditPropertyPage() {
                             new Set([
                               ...(formData.city ? [String(formData.city)] : []),
                               ...allowedCities,
-                            ])
+                            ]),
                           ).map((city) => (
                             <SelectItem key={city} value={city}>
                               {city}
@@ -587,7 +752,9 @@ export default function EditPropertyPage() {
                     <Input
                       id="city"
                       value={formData.city}
-                      onChange={(e) => handleInputChange("city", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("city", e.target.value)
+                      }
                       placeholder="City"
                       required
                     />
@@ -599,7 +766,9 @@ export default function EditPropertyPage() {
                   <Input
                     id="location"
                     value={formData.location}
-                    onChange={(e) => handleInputChange("location", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("location", e.target.value)
+                    }
                     placeholder="Street address"
                     required
                   />
@@ -612,7 +781,9 @@ export default function EditPropertyPage() {
                   <Input
                     id="address"
                     value={formData.address}
-                    onChange={(e) => handleInputChange("address", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("address", e.target.value)
+                    }
                     placeholder="Complete address"
                   />
                 </div>
@@ -621,10 +792,17 @@ export default function EditPropertyPage() {
               {/* Location Picker Map */}
               <div>
                 <Label>Exact Location (Pick from Map)</Label>
-                <p className="text-sm text-muted-foreground mb-3">Search for a location or click on the map to set precise coordinates</p>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Search for a location or click on the map to set precise
+                  coordinates
+                </p>
                 <LocationPicker
-                  latitude={formData.latitude ? parseFloat(formData.latitude) : null}
-                  longitude={formData.longitude ? parseFloat(formData.longitude) : null}
+                  latitude={
+                    formData.latitude ? parseFloat(formData.latitude) : null
+                  }
+                  longitude={
+                    formData.longitude ? parseFloat(formData.longitude) : null
+                  }
                   address={formData.location}
                   onLocationSelect={(lat, lng, addr) => {
                     handleInputChange("latitude", lat);
@@ -640,12 +818,16 @@ export default function EditPropertyPage() {
               {/* Coordinate Display */}
               <div className="grid grid-cols-2 gap-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <div>
-                  <Label htmlFor="latitude" className="text-xs text-blue-900">Latitude</Label>
+                  <Label htmlFor="latitude" className="text-xs text-blue-900">
+                    Latitude
+                  </Label>
                   <Input
                     id="latitude"
                     type="number"
                     value={formData.latitude}
-                    onChange={(e) => handleInputChange("latitude", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("latitude", e.target.value)
+                    }
                     placeholder="e.g., 3.8667"
                     step="0.0001"
                     className="text-sm mt-1"
@@ -653,12 +835,16 @@ export default function EditPropertyPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="longitude" className="text-xs text-blue-900">Longitude</Label>
+                  <Label htmlFor="longitude" className="text-xs text-blue-900">
+                    Longitude
+                  </Label>
                   <Input
                     id="longitude"
                     type="number"
                     value={formData.longitude}
-                    onChange={(e) => handleInputChange("longitude", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("longitude", e.target.value)
+                    }
                     placeholder="e.g., 11.5167"
                     step="0.0001"
                     className="text-sm mt-1"
@@ -681,7 +867,12 @@ export default function EditPropertyPage() {
                     id="bedrooms"
                     type="number"
                     value={formData.bedrooms}
-                    onChange={(e) => handleInputChange("bedrooms", parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "bedrooms",
+                        parseInt(e.target.value) || 0,
+                      )
+                    }
                     placeholder="0"
                     min="0"
                   />
@@ -693,7 +884,12 @@ export default function EditPropertyPage() {
                     id="bathrooms"
                     type="number"
                     value={formData.bathrooms}
-                    onChange={(e) => handleInputChange("bathrooms", parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "bathrooms",
+                        parseInt(e.target.value) || 0,
+                      )
+                    }
                     placeholder="0"
                     min="0"
                   />
@@ -705,7 +901,12 @@ export default function EditPropertyPage() {
                     id="year_built"
                     type="number"
                     value={formData.year_built}
-                    onChange={(e) => handleInputChange("year_built", parseInt(e.target.value) || new Date().getFullYear())}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "year_built",
+                        parseInt(e.target.value) || new Date().getFullYear(),
+                      )
+                    }
                     placeholder={new Date().getFullYear().toString()}
                     min="1900"
                     max={new Date().getFullYear()}
@@ -718,7 +919,12 @@ export default function EditPropertyPage() {
                     id="star_rating"
                     type="number"
                     value={formData.star_rating}
-                    onChange={(e) => handleInputChange("star_rating", parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "star_rating",
+                        parseFloat(e.target.value) || 0,
+                      )
+                    }
                     placeholder="0"
                     min="0"
                     max="5"
@@ -735,7 +941,12 @@ export default function EditPropertyPage() {
                       id="floor_area"
                       type="number"
                       value={formData.floor_area}
-                      onChange={(e) => handleInputChange("floor_area", parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "floor_area",
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
                       placeholder="0"
                       min="0"
                       step="0.01"
@@ -743,7 +954,12 @@ export default function EditPropertyPage() {
                   </div>
                   <div>
                     <Label htmlFor="floor_area_unit">Unit</Label>
-                    <Select value={formData.floor_area_unit} onValueChange={(value) => handleInputChange("floor_area_unit", value)}>
+                    <Select
+                      value={formData.floor_area_unit}
+                      onValueChange={(value) =>
+                        handleInputChange("floor_area_unit", value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -762,7 +978,12 @@ export default function EditPropertyPage() {
                       id="land_area"
                       type="number"
                       value={formData.land_area}
-                      onChange={(e) => handleInputChange("land_area", parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "land_area",
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
                       placeholder="0"
                       min="0"
                       step="0.01"
@@ -770,7 +991,12 @@ export default function EditPropertyPage() {
                   </div>
                   <div>
                     <Label htmlFor="land_area_unit">Unit</Label>
-                    <Select value={formData.land_area_unit} onValueChange={(value) => handleInputChange("land_area_unit", value)}>
+                    <Select
+                      value={formData.land_area_unit}
+                      onValueChange={(value) =>
+                        handleInputChange("land_area_unit", value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -790,7 +1016,12 @@ export default function EditPropertyPage() {
                     id="rooms_count"
                     type="number"
                     value={formData.rooms_count}
-                    onChange={(e) => handleInputChange("rooms_count", parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "rooms_count",
+                        parseInt(e.target.value) || 0,
+                      )
+                    }
                     placeholder="0"
                     min="0"
                   />
@@ -804,9 +1035,14 @@ export default function EditPropertyPage() {
                         <Checkbox
                           id="has_restaurant"
                           checked={formData.has_restaurant}
-                          onCheckedChange={(checked) => handleInputChange("has_restaurant", checked)}
+                          onCheckedChange={(checked) =>
+                            handleInputChange("has_restaurant", checked)
+                          }
                         />
-                        <Label htmlFor="has_restaurant" className="cursor-pointer text-sm">
+                        <Label
+                          htmlFor="has_restaurant"
+                          className="cursor-pointer text-sm"
+                        >
                           Restaurant
                         </Label>
                       </div>
@@ -814,9 +1050,14 @@ export default function EditPropertyPage() {
                         <Checkbox
                           id="has_pool"
                           checked={formData.has_pool}
-                          onCheckedChange={(checked) => handleInputChange("has_pool", checked)}
+                          onCheckedChange={(checked) =>
+                            handleInputChange("has_pool", checked)
+                          }
                         />
-                        <Label htmlFor="has_pool" className="cursor-pointer text-sm">
+                        <Label
+                          htmlFor="has_pool"
+                          className="cursor-pointer text-sm"
+                        >
                           Swimming Pool
                         </Label>
                       </div>
@@ -837,7 +1078,9 @@ export default function EditPropertyPage() {
                 <Checkbox
                   id="for_rent"
                   checked={formData.for_rent}
-                  onCheckedChange={(checked) => handleInputChange("for_rent", checked)}
+                  onCheckedChange={(checked) =>
+                    handleInputChange("for_rent", checked)
+                  }
                   disabled={launchRentalsOnly}
                 />
                 <Label htmlFor="for_rent" className="cursor-pointer">
@@ -849,7 +1092,9 @@ export default function EditPropertyPage() {
                 <Checkbox
                   id="for_purchase"
                   checked={formData.for_purchase}
-                  onCheckedChange={(checked) => handleInputChange("for_purchase", checked)}
+                  onCheckedChange={(checked) =>
+                    handleInputChange("for_purchase", checked)
+                  }
                   disabled={launchRentalsOnly || !launchSalesEnabled}
                 />
                 <Label htmlFor="for_purchase" className="cursor-pointer">
@@ -872,16 +1117,25 @@ export default function EditPropertyPage() {
                     id="number_available"
                     type="number"
                     value={formData.number_available}
-                    onChange={(e) => handleInputChange("number_available", parseInt(e.target.value))}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "number_available",
+                        parseInt(e.target.value),
+                      )
+                    }
                     placeholder="Number of units"
                     min="1"
                   />
                 </div>
                 {launchRentalsOnly && (
-                  <p className="text-sm text-amber-700">Sales are disabled for launch. Listings must be rental.</p>
+                  <p className="text-sm text-amber-700">
+                    Sales are disabled for launch. Listings must be rental.
+                  </p>
                 )}
                 {!launchSalesEnabled && !launchRentalsOnly && (
-                  <p className="text-sm text-amber-700">Sales are currently disabled by admin settings.</p>
+                  <p className="text-sm text-amber-700">
+                    Sales are currently disabled by admin settings.
+                  </p>
                 )}
               </div>
 
@@ -890,7 +1144,9 @@ export default function EditPropertyPage() {
                   <Checkbox
                     id="is_available"
                     checked={formData.is_available}
-                    onCheckedChange={(checked) => handleInputChange("is_available", checked)}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("is_available", checked)
+                    }
                   />
                   <Label htmlFor="is_available" className="cursor-pointer">
                     Available for booking
@@ -901,7 +1157,9 @@ export default function EditPropertyPage() {
                   <Checkbox
                     id="is_negotiable"
                     checked={formData.is_negotiable}
-                    onCheckedChange={(checked) => handleInputChange("is_negotiable", checked)}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("is_negotiable", checked)
+                    }
                   />
                   <Label htmlFor="is_negotiable" className="cursor-pointer">
                     Price negotiable
@@ -912,7 +1170,9 @@ export default function EditPropertyPage() {
                   <Label htmlFor="status">Status</Label>
                   <Select
                     value={formData.status || "available"}
-                    onValueChange={(value) => handleInputChange("status", value)}
+                    onValueChange={(value) =>
+                      handleInputChange("status", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
@@ -941,9 +1201,14 @@ export default function EditPropertyPage() {
                     <Checkbox
                       id={`facility-${facility.id}`}
                       checked={formData.facilities_id.includes(facility.id)}
-                      onCheckedChange={() => handleFacilityToggle(facility.id.toString())}
+                      onCheckedChange={() =>
+                        handleFacilityToggle(facility.id.toString())
+                      }
                     />
-                    <Label htmlFor={`facility-${facility.id}`} className="cursor-pointer">
+                    <Label
+                      htmlFor={`facility-${facility.id}`}
+                      className="cursor-pointer"
+                    >
                       {facility.name}
                     </Label>
                   </div>
@@ -1000,8 +1265,12 @@ export default function EditPropertyPage() {
                 <Label htmlFor="newImages" className="cursor-pointer">
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-plp-purple transition-colors">
                     <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-600">Click to upload images</p>
-                    <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB each</p>
+                    <p className="text-sm text-gray-600">
+                      Click to upload images
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      PNG, JPG up to 5MB each
+                    </p>
                   </div>
                   <Input
                     id="newImages"
@@ -1034,7 +1303,9 @@ export default function EditPropertyPage() {
                       >
                         <X className="h-4 w-4" />
                       </Button>
-                      <Badge className="absolute bottom-2 left-2 bg-green-600">New</Badge>
+                      <Badge className="absolute bottom-2 left-2 bg-green-600">
+                        New
+                      </Badge>
                     </div>
                   ))}
                 </div>
@@ -1046,7 +1317,9 @@ export default function EditPropertyPage() {
           {existingVideos.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Current Virtual Tour Videos ({existingVideos.length})</CardTitle>
+                <CardTitle>
+                  Current Virtual Tour Videos ({existingVideos.length})
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1092,8 +1365,13 @@ export default function EditPropertyPage() {
                 <Label htmlFor="newVideos" className="cursor-pointer">
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-plp-purple transition-colors">
                     <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-600">Click to upload virtual tour videos</p>
-                    <p className="text-xs text-gray-400 mt-1">Use walkthrough or aerial clips (MP4, WebM up to 50MB each)</p>
+                    <p className="text-sm text-gray-600">
+                      Click to upload virtual tour videos
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Use walkthrough or aerial clips (MP4, WebM up to 50MB
+                      each)
+                    </p>
                   </div>
                   <Input
                     id="newVideos"
@@ -1109,7 +1387,10 @@ export default function EditPropertyPage() {
               {newVideoFiles.length > 0 && (
                 <div className="space-y-2">
                   {newVideoFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
                       <div className="flex items-center gap-2">
                         <Badge className="bg-green-600">New</Badge>
                         <span className="text-sm">{file.name}</span>

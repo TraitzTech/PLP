@@ -848,6 +848,199 @@
         "pendingApprovals": "Pending Approvals",
         "averageRating": "Average Rating"
       },
+      "clients": {
+        "backToClients": "Back to Clients",
+        "editTitle": "Edit Client",
+        "editSubtitle": "Update client information.",
+        "addTitle": "Add New Client",
+        "addSubtitle": "Create a client profile for better tracking.",
+        "profilePhotoTitle": "Profile Photo",
+        "changePhoto": "Change Photo",
+        "photoHelp": "JPG, GIF or PNG. 1MB max.",
+        "basicInfoTitle": "Basic Information",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "phone": "Phone",
+        "phonePlaceholder": "+237 6XX XXX XXX",
+        "status": "Status",
+        "statusActive": "Active",
+        "statusInactive": "Inactive",
+        "statusVip": "VIP",
+        "budgetLabel": "Budget (XAF per night)",
+        "locationLabel": "Location",
+        "locationPlaceholder": "City, Region",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "Client information...",
+        "preferencesTitle": "Client Preferences",
+        "preferredTypesLabel": "Preferred Property Types",
+        "notesLabel": "Personal Notes",
+        "notesPlaceholder": "Notes about client preferences, special requests, etc...",
+        "updating": "Updating...",
+        "update": "Update",
+        "adding": "Adding...",
+        "addClient": "Add Client",
+        "updateSuccess": "Client updated successfully!",
+        "addSuccess": "Client added successfully!",
+        "preferences": {
+          "luxuryVilla": "Luxury Villa",
+          "modernApartment": "Modern Apartment",
+          "executiveSuite": "Executive Suite",
+          "familyHome": "Family Home",
+          "studio": "Studio",
+          "poolProperty": "Property with Pool",
+          "seaView": "Sea View",
+          "cityCenter": "City Center"
+        },
+        "list": {
+          "title": "Client Management",
+          "subtitle": "Manage your client relationships and booking history.",
+          "totalClients": "Total Clients",
+          "activeClients": "Active Clients",
+          "clientRevenue": "Client Revenue",
+          "averageSpend": "Average Spend",
+          "searchPlaceholder": "Search clients...",
+          "filterPlaceholder": "Filter by status",
+          "allStatuses": "All Statuses",
+          "allClients": "All Clients",
+          "emptyTitle": "No clients found",
+          "emptyFiltered": "Try adjusting your search criteria.",
+          "emptyDefault": "You don't have any clients yet. Clients will appear here when users book your listings.",
+          "lastBooking": "Last booking",
+          "bookings": "Bookings",
+          "spent": "Spent",
+          "completed": "Completed",
+          "profileTitle": "Client Profile",
+          "infoTitle": "Information",
+          "memberSince": "Member since",
+          "statisticsTitle": "Statistics",
+          "totalBookings": "Total bookings",
+          "cancelled": "Cancelled",
+          "active": "Active",
+          "totalSpent": "Total spent",
+          "bookedProperties": "Booked Properties",
+          "sendMessage": "Send Message",
+          "errorLoading": "Failed to load clients"
+        }
+      },
+      "analytics": {
+        "title": "Analytics & Reports",
+        "subtitle": "Analyze the performance of your properties and clients.",
+        "period": {
+          "lastMonth": "Last Month",
+          "last3Months": "Last 3 Months",
+          "last6Months": "Last 6 Months",
+          "lastYear": "Last Year"
+        },
+        "export": {
+          "exportReport": "Export Report",
+          "exporting": "Exporting..."
+        },
+        "metrics": {
+          "totalRevenue": "Total Revenue",
+          "commission": "Commission",
+          "bookings": "Bookings",
+          "completed": "completed",
+          "occupancyRate": "Occupancy Rate",
+          "active": "active"
+        },
+        "charts": {
+          "revenueTrend": "Revenue Trend",
+          "bookingStatus": "Booking Status",
+          "propertyPerformance": "Property Performance",
+          "clientGrowth": "Client Growth",
+          "totalClients": "Total Clients",
+          "newClients": "New Clients"
+        },
+        "tables": {
+          "topProperties": "Top Properties",
+          "noPropertyData": "No property data yet.",
+          "bookings": "bookings",
+          "summary": "Summary"
+        },
+        "summary": {
+          "activeClients": "Active Clients",
+          "avgRating": "Avg Rating",
+          "reviews": "Reviews",
+          "listingsOverview": "Listings Overview",
+          "totalListings": "Total Listings",
+          "activeListings": "Active Listings",
+          "totalBookings": "Total Bookings",
+          "completed": "Completed"
+        },
+        "errors": {
+          "loadAnalytics": "Failed to load analytics",
+          "exportFailed": "Export failed"
+        }
+      },
+      "bookings": {
+        "title": "Reservation Management",
+        "subtitle": "Manage all reservations for your properties.",
+        "guestLabel": "Guest",
+        "stats": {
+          "totalReservations": "Total Reservations",
+          "pending": "Pending",
+          "confirmed": "Confirmed",
+          "totalRevenue": "Total Revenue"
+        },
+        "filters": {
+          "searchPlaceholder": "Search by property, guest name or email...",
+          "filterPlaceholder": "Filter by status",
+          "allStatus": "All Status"
+        },
+        "status": {
+          "completed": "Completed",
+          "cancelled": "Cancelled"
+        },
+        "empty": {
+          "title": "No reservations found",
+          "filtered": "Try adjusting your search or filter criteria.",
+          "default": "You don't have any bookings yet."
+        },
+        "labels": {
+          "checkIn": "Check-in",
+          "checkOut": "Check-out",
+          "guests": "Guests",
+          "total": "Total",
+          "booked": "Booked",
+          "specialRequests": "Special Requests",
+          "guestName": "Guest Name",
+          "email": "Email",
+          "phone": "Phone",
+          "totalPrice": "Total Price",
+          "paymentStatus": "Payment Status"
+        },
+        "actions": {
+          "details": "Details",
+          "confirm": "Confirm",
+          "reject": "Reject",
+          "complete": "Complete"
+        },
+        "dialog": {
+          "detailsTitle": "Booking Details",
+          "confirmTitle": "Confirm Booking",
+          "confirmDescription": "Are you sure you want to confirm this booking? The guest will be notified.",
+          "confirming": "Confirming...",
+          "confirmAction": "Confirm Booking",
+          "cancelTitle": "Cancel Booking",
+          "cancelDescription": "Please provide a reason for cancellation. The guest will be notified.",
+          "cancelPlaceholder": "Reason for cancellation (optional)",
+          "goBack": "Go Back",
+          "cancelling": "Cancelling...",
+          "cancelAction": "Cancel Booking"
+        },
+        "toast": {
+          "confirmed": "Booking confirmed successfully",
+          "cancelled": "Booking cancelled",
+          "completed": "Booking marked as completed"
+        },
+        "errors": {
+          "loadBookings": "Failed to load bookings",
+          "confirmFailed": "Failed to confirm booking",
+          "cancelFailed": "Failed to cancel booking",
+          "completeFailed": "Failed to complete booking"
+        }
+      },
       "sections": {
         "myProperties": "My Properties",
         "recentActivities": "Recent Activities",
@@ -861,6 +1054,179 @@
         "editProperty": "Edit",
         "deleteProperty": "Delete",
         "viewAnalytics": "View Analytics"
+      },
+      "createProperty": {
+        "pageTitle": "Create New Property",
+        "pageSubtitle": "Add a new property listing to your portfolio. Your property will be reviewed by an admin before becoming public.",
+        "submitting": "Creating Property...",
+        "submit": "Submit Property",
+        "steps": {
+          "basic": {
+            "title": "Basic Information",
+            "description": "Property title, description, and pricing"
+          },
+          "location": {
+            "title": "Location",
+            "description": "Property location details"
+          },
+          "details": {
+            "title": "Property Details",
+            "description": "Property type-specific information"
+          },
+          "facilities": {
+            "title": "Facilities",
+            "description": "Select amenities and facilities"
+          },
+          "media": {
+            "title": "Media & Images",
+            "description": "Upload photos and videos"
+          }
+        },
+        "sections": {
+          "houseDetails": "House Details",
+          "landDetails": "Land Details",
+          "hotelDetails": "Hotel Details",
+          "hotelAmenities": "Hotel Amenities",
+          "availability": "Property Availability",
+          "images": "Property Images",
+          "videos": "Virtual Tour Videos (Optional)"
+        },
+        "labels": {
+          "title": "Property Title",
+          "description": "Description",
+          "propertyType": "Property Type",
+          "unitsAvailable": "Units Available",
+          "purpose": "Purpose",
+          "forRent": "For Rent",
+          "forPurchase": "For Sale/Purchase",
+          "price": "Price",
+          "monthly": "(Monthly)",
+          "discountPrice": "Discount Price (Optional)",
+          "discountPercent": "Discount % (Optional)",
+          "region": "Region",
+          "city": "City",
+          "location": "Location/Neighborhood",
+          "address": "Full Address (Optional)",
+          "pickLocation": "Pick Location from Map",
+          "latitude": "Latitude",
+          "longitude": "Longitude",
+          "floorArea": "Floor Area",
+          "areaUnit": "Area Unit",
+          "houseType": "House Type",
+          "yearBuilt": "Year Built",
+          "landArea": "Land Area",
+          "landDimensions": "Land Dimensions",
+          "zoning": "Zoning",
+          "roomsCount": "Number of Rooms",
+          "starRating": "Star Rating",
+          "star": "Star",
+          "hasRestaurant": "Has Restaurant",
+          "hasPool": "Has Swimming Pool",
+          "availableForBooking": "Property is available for booking",
+          "negotiable": "Price is negotiable",
+          "image": "image",
+          "video": "video",
+          "pluralSuffix": "s"
+        },
+        "placeholders": {
+          "title": "e.g., Luxury Villa with Ocean View",
+          "description": "Describe your property in detail...",
+          "selectPropertyType": "Select property type",
+          "selectCity": "Select a city",
+          "region": "e.g., California",
+          "city": "e.g., Douala",
+          "location": "e.g., Downtown LA",
+          "address": "e.g., 123 Main Street, Apt 4B",
+          "latitude": "e.g., 34.0522",
+          "longitude": "e.g., -118.2437",
+          "price": "0.00",
+          "discountPercent": "0",
+          "floorArea": "e.g., 120.5",
+          "yearBuilt": "e.g., 2020",
+          "landArea": "e.g., 1500",
+          "landDimensions": "e.g., 30m x 50m",
+          "selectType": "Select type",
+          "selectZoning": "Select zoning",
+          "roomsCount": "e.g., 45",
+          "selectRating": "Select rating"
+        },
+        "info": {
+          "salesDisabledLaunch": "Sales are disabled for launch. Listings must be rental.",
+          "salesDisabledAdmin": "Sales are currently disabled by admin settings.",
+          "monthlyRent": "Price will be shown as monthly rent",
+          "purchasePrice": "Price will be shown as purchase price",
+          "bothPurposes": "Property available for both rent and purchase",
+          "locationHelp": "Enter the complete location details of your property to help customers find it easily.",
+          "cityRestricted": "City options are restricted by admin settings.",
+          "citySuggested": "City options are suggested from admin settings.",
+          "mapAddress": "This will be used to show the property on a map",
+          "pickLocation": "Search for a location or click on the map to automatically get the coordinates",
+          "facilitiesHelp": "Select at least one facility to better describe your property to potential customers.",
+          "facilityCount": "facility/amenities selected",
+          "mediaHelp": "High-quality images and videos help attract more customers. Media is optional but highly recommended.",
+          "videoFormats": "Use short walkthrough or aerial clips (MP4, WebM, Ogg)",
+          "uploadingVideos": "Uploading videos in the background... you can continue browsing.",
+          "submitted": "Your property has been submitted. An admin will review it before it becomes public."
+        },
+        "empty": {
+          "selectType": "Select a property type to see specific fields",
+          "selectPreviousType": "Please select a property type in the previous step"
+        },
+        "validation": {
+          "titleRequired": "Please enter a property title",
+          "descriptionRequired": "Please enter a property description",
+          "typeRequired": "Please select a property type",
+          "priceRequired": "Please enter a valid price",
+          "purposeRequired": "Please select at least one purpose (rent or purchase)",
+          "locationRequired": "Please fill in all required location fields",
+          "bedroomsRequired": "Please enter number of bedrooms",
+          "bathroomsRequired": "Please enter number of bathrooms",
+          "landAreaRequired": "Please enter land area",
+          "roomsRequired": "Please enter number of rooms",
+          "facilityRequired": "Please select at least one facility"
+        },
+        "errors": {
+          "loadFormData": "Failed to load form data",
+          "invalidImage": "{name} is not a valid image file",
+          "imageTooLarge": "{name} is larger than 5MB",
+          "imagePermission": "You don't have permission to upload images. Please ensure your agent account is approved.",
+          "uploadImages": "Failed to upload images",
+          "uploadVideos": "Some videos failed to upload. You can retry from Edit Property.",
+          "createFailed": "Failed to create property"
+        },
+        "success": {
+          "created": "Property created successfully!",
+          "imagesUploaded": "{count} image(s) uploaded successfully",
+          "videosUploaded": "{count} video(s) uploaded successfully"
+        },
+        "options": {
+          "areaUnits": {
+            "sqm": "Square Meters (sqm)",
+            "sqft": "Square Feet (sqft)",
+            "acres": "Acres",
+            "hectares": "Hectares"
+          },
+          "houseTypes": {
+            "detached": "Detached",
+            "semi-detached": "Semi-Detached",
+            "terrace": "Terrace",
+            "bungalow": "Bungalow",
+            "villa": "Villa",
+            "cottage": "Cottage"
+          },
+          "zoning": {
+            "residential": "Residential",
+            "commercial": "Commercial",
+            "industrial": "Industrial",
+            "agricultural": "Agricultural",
+            "mixed": "Mixed Use"
+          }
+        },
+        "actions": {
+          "uploadImages": "Click to upload images",
+          "dragAndDrop": "or drag and drop",
+          "uploadVideos": "Click to upload virtual tour videos"
+        }
       }
     },
     "owner": {
@@ -885,7 +1251,49 @@
     },
     "admin": {
       "pageTitle": "Admin Dashboard",
-      "welcome": "Admin Dashboard",
+      "createProperty": {
+        "pageTitle": "Create Property (Admin)",
+        "pageSubtitle": "Create a property on behalf of an agent and have it approved immediately.",
+        "submitting": "Creating Property...",
+        "submit": "Create Property",
+        "steps": {
+          "agentBasic": {
+            "title": "Agent & Basic Info",
+            "description": "Assign agent and enter property details"
+          }
+        },
+        "validation": {
+          "agentRequired": "Please select an agent",
+          "titleRequired": "Please enter a property title",
+          "descriptionRequired": "Please enter a property description",
+          "typeRequired": "Please select a property type",
+          "priceRequired": "Please enter a valid price",
+          "purposeRequired": "Please select at least one purpose (rent or purchase)",
+          "locationRequired": "Please fill in all location fields",
+          "facilityRequired": "Please select at least one facility"
+        },
+        "errors": {
+          "loadFormData": "Failed to load form data",
+          "invalidImage": "{name} is not a valid image file",
+          "imageTooLarge": "{name} is larger than 5MB",
+          "invalidVideo": "{name} is not a valid video file",
+          "videoTooLarge": "{name} is larger than 50MB",
+          "uploadImages": "Property created but some images failed to upload",
+          "uploadVideos": "Property created but some videos failed to upload",
+          "createFailed": "Failed to create property"
+        },
+        "info": {
+          "uploadingVideos": "Uploading videos in the background... you can continue browsing."
+        },
+        "success": {
+          "created": "Property created and approved successfully!",
+          "imagesUploaded": "{count} image(s) uploaded successfully",
+          "videosUploaded": "{count} video(s) uploaded successfully"
+        }
+      },
+        "properties": "Properties",
+        "retry": "Retry",
+        "notAvailable": "N/A",
       "welcomeSubtitle": "Monitor and manage the Property Listing Portal platform.",
       "stats": {
         "totalUsers": "Total Users",

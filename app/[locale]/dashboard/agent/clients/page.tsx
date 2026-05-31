@@ -1,25 +1,52 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Search, Filter, MessageSquare, Phone, Mail, Calendar, Eye } from 'lucide-react';
-import agentDashboardService, { AgentClient, AgentClientsSummary } from '@/services/agentDashboardService';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from "react";
+import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { useTranslations } from "@/components/translation-provider";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Users,
+  Search,
+  Filter,
+  MessageSquare,
+  Phone,
+  Mail,
+  Calendar,
+  Eye,
+} from "lucide-react";
+import agentDashboardService, {
+  AgentClient,
+  AgentClientsSummary,
+} from "@/services/agentDashboardService";
+import { useRouter } from "next/navigation";
 
 export default function AgentClientsPage() {
+  const t = useTranslations();
   const [clients, setClients] = useState<AgentClient[]>([]);
   const [summary, setSummary] = useState<AgentClientsSummary | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedClient, setSelectedClient] = useState<AgentClient | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedClient, setSelectedClient] = useState<AgentClient | null>(
+    null,
+  );
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,17 +58,23 @@ export default function AgentClientsPage() {
       setError(null);
       const response = await agentDashboardService.getClients({
         search: searchTerm || undefined,
-        status: statusFilter !== 'all' ? statusFilter : undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined,
       });
       setClients(response.data.clients);
       setSummary(response.data.summary);
     } catch (err: any) {
-      console.error('Failed to fetch clients:', err);
-      setError(err?.message || 'Failed to load clients');
+      console.error("Failed to fetch clients:", err);
+      setError(
+        err?.message ||
+          t(
+            "dashboards.agent.clients.list.errorLoading",
+            "Failed to load clients",
+          ),
+      );
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter, t]);
 
   useEffect(() => {
     fetchClients();
@@ -49,34 +82,34 @@ export default function AgentClientsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800';
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "inactive":
+        return "bg-gray-100 text-gray-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-CM', {
-      style: 'currency',
-      currency: 'XAF',
+    return new Intl.NumberFormat("fr-CM", {
+      style: "currency",
+      currency: "XAF",
       minimumFractionDigits: 0,
     }).format(amount);
   };
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    if (!dateString) return t("dashboards.common.notAvailable", "N/A");
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const getInitials = (firstName?: string, lastName?: string) => {
-    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase() || '?';
+    return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "?";
   };
 
   const handleMessageClient = (client: AgentClient) => {
@@ -89,8 +122,15 @@ export default function AgentClientsPage() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Client Management</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your client relationships and booking history.</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+              {t("dashboards.agent.clients.list.title", "Client Management")}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              {t(
+                "dashboards.agent.clients.list.subtitle",
+                "Manage your client relationships and booking history.",
+              )}
+            </p>
           </div>
         </div>
 
@@ -100,10 +140,19 @@ export default function AgentClientsPage() {
             <CardContent className="p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">Total Clients</p>
-                  <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                    {loading ? <Skeleton className="h-7 w-12" /> : summary?.total_clients ?? 0}
+                  <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">
+                    {t(
+                      "dashboards.agent.clients.list.totalClients",
+                      "Total Clients",
+                    )}
                   </p>
+                  <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
+                    {loading ? (
+                      <Skeleton className="h-7 w-12" />
+                    ) : (
+                      (summary?.total_clients ?? 0)
+                    )}
+                  </div>
                 </div>
                 <Users className="w-7 h-7 md:w-8 md:h-8 text-plp-purple" />
               </div>
@@ -113,10 +162,19 @@ export default function AgentClientsPage() {
             <CardContent className="p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">Active Clients</p>
-                  <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                    {loading ? <Skeleton className="h-7 w-12" /> : summary?.active_clients ?? 0}
+                  <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">
+                    {t(
+                      "dashboards.agent.clients.list.activeClients",
+                      "Active Clients",
+                    )}
                   </p>
+                  <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
+                    {loading ? (
+                      <Skeleton className="h-7 w-12" />
+                    ) : (
+                      (summary?.active_clients ?? 0)
+                    )}
+                  </div>
                 </div>
                 <Users className="w-7 h-7 md:w-8 md:h-8 text-plp-pink" />
               </div>
@@ -126,10 +184,19 @@ export default function AgentClientsPage() {
             <CardContent className="p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">Client Revenue</p>
-                  <p className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">
-                    {loading ? <Skeleton className="h-7 w-20" /> : formatCurrency(summary?.total_revenue ?? 0)}
+                  <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">
+                    {t(
+                      "dashboards.agent.clients.list.clientRevenue",
+                      "Client Revenue",
+                    )}
                   </p>
+                  <div className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">
+                    {loading ? (
+                      <Skeleton className="h-7 w-20" />
+                    ) : (
+                      formatCurrency(summary?.total_revenue ?? 0)
+                    )}
+                  </div>
                 </div>
                 <Calendar className="w-7 h-7 md:w-8 md:h-8 text-plp-yellow" />
               </div>
@@ -139,10 +206,19 @@ export default function AgentClientsPage() {
             <CardContent className="p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">Average Spend</p>
-                  <p className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">
-                    {loading ? <Skeleton className="h-7 w-20" /> : formatCurrency(summary?.average_spending ?? 0)}
+                  <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">
+                    {t(
+                      "dashboards.agent.clients.list.averageSpend",
+                      "Average Spend",
+                    )}
                   </p>
+                  <div className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">
+                    {loading ? (
+                      <Skeleton className="h-7 w-20" />
+                    ) : (
+                      formatCurrency(summary?.average_spending ?? 0)
+                    )}
+                  </div>
                 </div>
                 <Calendar className="w-7 h-7 md:w-8 md:h-8 text-green-500" />
               </div>
@@ -158,7 +234,10 @@ export default function AgentClientsPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
-                    placeholder="Search clients..."
+                    placeholder={t(
+                      "dashboards.agent.clients.list.searchPlaceholder",
+                      "Search clients...",
+                    )}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -168,12 +247,26 @@ export default function AgentClientsPage() {
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full md:w-48">
                   <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue
+                    placeholder={t(
+                      "dashboards.agent.clients.list.filterPlaceholder",
+                      "Filter by status",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="all">
+                    {t(
+                      "dashboards.agent.clients.list.allStatuses",
+                      "All Statuses",
+                    )}
+                  </SelectItem>
+                  <SelectItem value="active">
+                    {t("dashboards.agent.clients.statusActive", "Active")}
+                  </SelectItem>
+                  <SelectItem value="inactive">
+                    {t("dashboards.agent.clients.statusInactive", "Inactive")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -183,13 +276,18 @@ export default function AgentClientsPage() {
         {/* Clients List */}
         <Card>
           <CardHeader>
-            <CardTitle>All Clients</CardTitle>
+            <CardTitle>
+              {t("dashboards.agent.clients.list.allClients", "All Clients")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
+                  <div
+                    key={i}
+                    className="flex items-center gap-4 p-4 border rounded-lg"
+                  >
                     <Skeleton className="w-12 h-12 md:w-16 md:h-16 rounded-full" />
                     <div className="flex-1 space-y-2">
                       <Skeleton className="h-4 w-32" />
@@ -203,24 +301,42 @@ export default function AgentClientsPage() {
             ) : error ? (
               <div className="p-8 text-center text-red-500">
                 <p>{error}</p>
-                <Button variant="outline" className="mt-4" onClick={fetchClients}>
-                  Retry
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={fetchClients}
+                >
+                  {t("dashboards.common.retry", "Retry")}
                 </Button>
               </div>
             ) : clients.length === 0 ? (
               <div className="p-8 md:p-12 text-center">
                 <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No clients found</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  {t(
+                    "dashboards.agent.clients.list.emptyTitle",
+                    "No clients found",
+                  )}
+                </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  {searchTerm || statusFilter !== 'all'
-                    ? 'Try adjusting your search criteria.'
-                    : 'You don\'t have any clients yet. Clients will appear here when users book your listings.'}
+                  {searchTerm || statusFilter !== "all"
+                    ? t(
+                        "dashboards.agent.clients.list.emptyFiltered",
+                        "Try adjusting your search criteria.",
+                      )
+                    : t(
+                        "dashboards.agent.clients.list.emptyDefault",
+                        "You don't have any clients yet. Clients will appear here when users book your listings.",
+                      )}
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {clients.map((client) => (
-                  <div key={client.id} className="flex flex-col md:flex-row md:items-center gap-4 p-4 border rounded-lg">
+                  <div
+                    key={client.id}
+                    className="flex flex-col md:flex-row md:items-center gap-4 p-4 border rounded-lg"
+                  >
                     <Avatar className="w-12 h-12 md:w-16 md:h-16">
                       <AvatarImage src={client.profile_image || undefined} />
                       <AvatarFallback>
@@ -252,7 +368,11 @@ export default function AgentClientsPage() {
                       {client.last_booking_date && (
                         <p className="text-xs text-gray-500 dark:text-gray-500">
                           <Calendar className="w-3.5 h-3.5 mr-1 inline" />
-                          Last booking: {formatDate(client.last_booking_date)}
+                          {t(
+                            "dashboards.agent.clients.list.lastBooking",
+                            "Last booking",
+                          )}
+                          : {formatDate(client.last_booking_date)}
                         </p>
                       )}
                     </div>
@@ -260,18 +380,34 @@ export default function AgentClientsPage() {
                     <div className="flex flex-col items-end gap-2">
                       <div className="grid grid-cols-3 gap-3 text-sm text-center">
                         <div>
-                          <p className="font-semibold text-gray-900 dark:text-white">{client.total_bookings}</p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">Bookings</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            {client.total_bookings}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {t(
+                              "dashboards.agent.clients.list.bookings",
+                              "Bookings",
+                            )}
+                          </p>
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900 dark:text-white">
                             {formatCurrency(client.total_spent)}
                           </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">Spent</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {t("dashboards.agent.clients.list.spent", "Spent")}
+                          </p>
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900 dark:text-white">{client.completed_bookings}</p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">Completed</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            {client.completed_bookings}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {t(
+                              "dashboards.agent.clients.list.completed",
+                              "Completed",
+                            )}
+                          </p>
                         </div>
                       </div>
 
@@ -306,23 +442,39 @@ export default function AgentClientsPage() {
         <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Client Profile</DialogTitle>
+              <DialogTitle>
+                {t(
+                  "dashboards.agent.clients.list.profileTitle",
+                  "Client Profile",
+                )}
+              </DialogTitle>
             </DialogHeader>
             {selectedClient && (
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
                   <Avatar className="w-16 h-16 md:w-20 md:h-20">
-                    <AvatarImage src={selectedClient.profile_image || undefined} />
+                    <AvatarImage
+                      src={selectedClient.profile_image || undefined}
+                    />
                     <AvatarFallback>
-                      {getInitials(selectedClient.first_name, selectedClient.last_name)}
+                      {getInitials(
+                        selectedClient.first_name,
+                        selectedClient.last_name,
+                      )}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                       {selectedClient.first_name} {selectedClient.last_name}
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400">{selectedClient.email}</p>
-                    {selectedClient.phone && <p className="text-gray-600 dark:text-gray-400">{selectedClient.phone}</p>}
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {selectedClient.email}
+                    </p>
+                    {selectedClient.phone && (
+                      <p className="text-gray-600 dark:text-gray-400">
+                        {selectedClient.phone}
+                      </p>
+                    )}
                     <div className="flex items-center gap-2 mt-2">
                       <Badge className={getStatusColor(selectedClient.status)}>
                         {selectedClient.status}
@@ -333,43 +485,125 @@ export default function AgentClientsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Information</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                      {t(
+                        "dashboards.agent.clients.list.infoTitle",
+                        "Information",
+                      )}
+                    </h4>
                     <div className="space-y-2 text-sm">
-                      <p><span className="text-gray-600 dark:text-gray-400">Member since:</span> {formatDate(selectedClient.joined_date)}</p>
-                      <p><span className="text-gray-600 dark:text-gray-400">Last booking:</span> {formatDate(selectedClient.last_booking_date)}</p>
+                      <p>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {t(
+                            "dashboards.agent.clients.list.memberSince",
+                            "Member since",
+                          )}
+                          :
+                        </span>{" "}
+                        {formatDate(selectedClient.joined_date)}
+                      </p>
+                      <p>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {t(
+                            "dashboards.agent.clients.list.lastBooking",
+                            "Last booking",
+                          )}
+                          :
+                        </span>{" "}
+                        {formatDate(selectedClient.last_booking_date)}
+                      </p>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Statistics</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                      {t(
+                        "dashboards.agent.clients.list.statisticsTitle",
+                        "Statistics",
+                      )}
+                    </h4>
                     <div className="space-y-2 text-sm">
-                      <p><span className="text-gray-600 dark:text-gray-400">Total bookings:</span> {selectedClient.total_bookings}</p>
-                      <p><span className="text-gray-600 dark:text-gray-400">Completed:</span> {selectedClient.completed_bookings}</p>
-                      <p><span className="text-gray-600 dark:text-gray-400">Cancelled:</span> {selectedClient.cancelled_bookings}</p>
-                      <p><span className="text-gray-600 dark:text-gray-400">Active:</span> {selectedClient.active_bookings}</p>
-                      <p><span className="text-gray-600 dark:text-gray-400">Total spent:</span> {formatCurrency(selectedClient.total_spent)}</p>
+                      <p>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {t(
+                            "dashboards.agent.clients.list.totalBookings",
+                            "Total bookings",
+                          )}
+                          :
+                        </span>{" "}
+                        {selectedClient.total_bookings}
+                      </p>
+                      <p>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {t(
+                            "dashboards.agent.clients.list.completed",
+                            "Completed",
+                          )}
+                          :
+                        </span>{" "}
+                        {selectedClient.completed_bookings}
+                      </p>
+                      <p>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {t(
+                            "dashboards.agent.clients.list.cancelled",
+                            "Cancelled",
+                          )}
+                          :
+                        </span>{" "}
+                        {selectedClient.cancelled_bookings}
+                      </p>
+                      <p>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {t("dashboards.agent.clients.list.active", "Active")}:
+                        </span>{" "}
+                        {selectedClient.active_bookings}
+                      </p>
+                      <p>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {t(
+                            "dashboards.agent.clients.list.totalSpent",
+                            "Total spent",
+                          )}
+                          :
+                        </span>{" "}
+                        {formatCurrency(selectedClient.total_spent)}
+                      </p>
                     </div>
                   </div>
                 </div>
 
                 {selectedClient.booked_listings.length > 0 && (
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Booked Properties</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                      {t(
+                        "dashboards.agent.clients.list.bookedProperties",
+                        "Booked Properties",
+                      )}
+                    </h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedClient.booked_listings.map((listing) => (
-                        <Badge key={listing} variant="outline">{listing}</Badge>
+                        <Badge key={listing} variant="outline">
+                          {listing}
+                        </Badge>
                       ))}
                     </div>
                   </div>
                 )}
 
                 <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                  <Button className="flex-1" onClick={() => {
-                    setIsViewDialogOpen(false);
-                    handleMessageClient(selectedClient);
-                  }}>
+                  <Button
+                    className="flex-1"
+                    onClick={() => {
+                      setIsViewDialogOpen(false);
+                      handleMessageClient(selectedClient);
+                    }}
+                  >
                     <MessageSquare className="w-4 h-4 mr-2" />
-                    Send Message
+                    {t(
+                      "dashboards.agent.clients.list.sendMessage",
+                      "Send Message",
+                    )}
                   </Button>
                 </div>
               </div>

@@ -1,13 +1,26 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
+import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { useTranslations } from "@/components/translation-provider";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,17 +30,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
-import { toast as sonnerToast } from 'sonner';
-import { 
-  MessageSquare, 
-  Send, 
-  Search, 
-  MoreVertical, 
-  Paperclip, 
+} from "@/components/ui/alert-dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
+import {
+  MessageSquare,
+  Send,
+  Search,
+  MoreVertical,
+  Paperclip,
   Image as ImageIcon,
   Plus,
   X,
@@ -43,22 +56,28 @@ import {
   CheckCheck,
   Reply,
   Trash2,
-  ArrowLeft
-} from 'lucide-react';
-import messageService, { 
-  Conversation, 
-  Message, 
+  ArrowLeft,
+} from "lucide-react";
+import messageService, {
+  Conversation,
+  Message,
   User,
-  SendMessageData 
-} from '@/services/messageService';
-import { authService } from '@/services/authService';
+  SendMessageData,
+} from "@/services/messageService";
+import { authService } from "@/services/authService";
 
 const SWIPE_THRESHOLD_PX = 70;
 const REPLY_META_REGEX = /^\[\[reply:(\d+)\]\]\n?/;
 
 export default function AgentMessagesPage() {
+  const t = useTranslations();
   const resolveUserId = (value: any): number | null => {
-    const candidates = [value?.id, value?.user_id, value?.data?.id, value?.user?.id];
+    const candidates = [
+      value?.id,
+      value?.user_id,
+      value?.data?.id,
+      value?.user?.id,
+    ];
     for (const candidate of candidates) {
       const parsed = Number(candidate);
       if (Number.isFinite(parsed) && parsed > 0) {
@@ -75,34 +94,38 @@ export default function AgentMessagesPage() {
 
   // State for conversations and messages
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [newMessage, setNewMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [userSearchTerm, setUserSearchTerm] = useState("");
   const [searchedUsers, setSearchedUsers] = useState<User[]>([]);
-  
+
   // Loading states
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [searchingUsers, setSearchingUsers] = useState(false);
-  
+
   // Attachment state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  
+
   // UI state
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
-  const [starredConversations, setStarredConversations] = useState<Set<number>>(new Set());
-  const [chatSearchTerm, setChatSearchTerm] = useState('');
+  const [starredConversations, setStarredConversations] = useState<Set<number>>(
+    new Set(),
+  );
+  const [chatSearchTerm, setChatSearchTerm] = useState("");
   const [showMediaOnly, setShowMediaOnly] = useState(false);
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
-  const [deleteConfirmMessage, setDeleteConfirmMessage] = useState<Message | null>(null);
-  
+  const [deleteConfirmMessage, setDeleteConfirmMessage] =
+    useState<Message | null>(null);
+
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -110,9 +133,18 @@ export default function AgentMessagesPage() {
   const lastMessageIdRef = useRef<number>(0);
   const touchStartXRef = useRef<number | null>(null);
   const messageRefsRef = useRef<Record<number, HTMLDivElement | null>>({});
-  const pendingDeletesRef = useRef<Record<number, { message: Message; index: number; timeoutId: ReturnType<typeof setTimeout> }>>({});
+  const pendingDeletesRef = useRef<
+    Record<
+      number,
+      {
+        message: Message;
+        index: number;
+        timeoutId: ReturnType<typeof setTimeout>;
+      }
+    >
+  >({});
   const accessErrorRef = useRef<string | null>(null);
-  
+
   const { toast } = useToast();
 
   const extractApiErrorMessage = useCallback((error: any, fallback: string) => {
@@ -124,35 +156,41 @@ export default function AgentMessagesPage() {
     );
   }, []);
 
-  const notifyApiError = useCallback((error: any, fallback: string, onlyOnce = false) => {
-    const message = extractApiErrorMessage(error, fallback);
-    const status = Number(error?.response?.status || 0);
+  const notifyApiError = useCallback(
+    (error: any, fallback: string, onlyOnce = false) => {
+      const message = extractApiErrorMessage(error, fallback);
+      const status = Number(error?.response?.status || 0);
 
-    if (onlyOnce && accessErrorRef.current === message) {
-      return;
-    }
+      if (onlyOnce && accessErrorRef.current === message) {
+        return;
+      }
 
-    if (onlyOnce) {
-      accessErrorRef.current = message;
-    }
+      if (onlyOnce) {
+        accessErrorRef.current = message;
+      }
 
-    const shouldShowToast = status === 401 || status === 403 || status === 422 || !onlyOnce;
-    if (shouldShowToast) {
-      toast({
-        title: 'Action blocked',
-        description: message,
-        variant: 'destructive',
-      });
-    }
-  }, [extractApiErrorMessage, toast]);
+      const shouldShowToast =
+        status === 401 || status === 403 || status === 422 || !onlyOnce;
+      if (shouldShowToast) {
+        toast({
+          title: "Action blocked",
+          description: message,
+          variant: "destructive",
+        });
+      }
+    },
+    [extractApiErrorMessage, toast, t],
+  );
 
   const parseMessageContent = (rawMessage?: string) => {
-    const original = rawMessage || '';
+    const original = rawMessage || "";
     const metaMatch = original.match(REPLY_META_REGEX);
     const replyToId = metaMatch ? Number(metaMatch[1]) : null;
 
-    let bodyText = metaMatch ? original.replace(REPLY_META_REGEX, '') : original;
-    bodyText = bodyText.replace(/^(\s*↪\s*)+/, '').trimStart();
+    let bodyText = metaMatch
+      ? original.replace(REPLY_META_REGEX, "")
+      : original;
+    bodyText = bodyText.replace(/^(\s*↪\s*)+/, "").trimStart();
 
     return { replyToId, bodyText };
   };
@@ -166,10 +204,10 @@ export default function AgentMessagesPage() {
     const element = messageRefsRef.current[messageId];
     if (!element) return;
 
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    element.classList.add('ring-2', 'ring-plp-pink', 'ring-offset-2');
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
+    element.classList.add("ring-2", "ring-plp-pink", "ring-offset-2");
     setTimeout(() => {
-      element.classList.remove('ring-2', 'ring-plp-pink', 'ring-offset-2');
+      element.classList.remove("ring-2", "ring-plp-pink", "ring-offset-2");
     }, 1200);
   };
 
@@ -178,12 +216,12 @@ export default function AgentMessagesPage() {
     const initializeCurrentUserId = async () => {
       let resolvedUserId: number | null = null;
 
-      const userData = localStorage.getItem('user');
+      const userData = localStorage.getItem("user");
       if (userData) {
         try {
           resolvedUserId = resolveUserId(JSON.parse(userData));
         } catch (e) {
-          console.error('Error parsing user data:', e);
+          console.error("Error parsing user data:", e);
         }
       }
 
@@ -192,7 +230,7 @@ export default function AgentMessagesPage() {
           const user = await authService.getCurrentUser();
           resolvedUserId = resolveUserId(user);
         } catch (e) {
-          console.error('Error fetching current user:', e);
+          console.error("Error fetching current user:", e);
         }
       }
 
@@ -202,22 +240,22 @@ export default function AgentMessagesPage() {
     };
 
     initializeCurrentUserId();
-    
+
     // Load starred conversations from localStorage
-    const savedStarred = localStorage.getItem('starredConversations');
+    const savedStarred = localStorage.getItem("starredConversations");
     if (savedStarred) {
       try {
         setStarredConversations(new Set(JSON.parse(savedStarred)));
       } catch (e) {
-        console.error('Error loading starred conversations:', e);
+        console.error("Error loading starred conversations:", e);
       }
     }
-    
+
     // Request notification permission
-    if ('Notification' in window && Notification.permission === 'default') {
+    if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
-    
+
     return () => {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
@@ -227,37 +265,47 @@ export default function AgentMessagesPage() {
 
   // Auto-scroll to bottom when messages change
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  const playTone = useCallback((frequency: number, duration = 0.12, gain = 0.02) => {
-    if (!notificationsEnabled || typeof window === 'undefined') return;
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
+  const playTone = useCallback(
+    (frequency: number, duration = 0.12, gain = 0.02) => {
+      if (!notificationsEnabled || typeof window === "undefined") return;
+      const AudioContextClass =
+        window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
 
-    const context = new AudioContextClass();
-    const oscillator = context.createOscillator();
-    const gainNode = context.createGain();
+      const context = new AudioContextClass();
+      const oscillator = context.createOscillator();
+      const gainNode = context.createGain();
 
-    oscillator.type = 'sine';
-    oscillator.frequency.value = frequency;
-    gainNode.gain.value = gain;
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency;
+      gainNode.gain.value = gain;
 
-    oscillator.connect(gainNode);
-    gainNode.connect(context.destination);
+      oscillator.connect(gainNode);
+      gainNode.connect(context.destination);
 
-    oscillator.start();
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
-    oscillator.stop(context.currentTime + duration);
+      oscillator.start();
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.0001,
+        context.currentTime + duration,
+      );
+      oscillator.stop(context.currentTime + duration);
 
-    setTimeout(() => {
-      context.close().catch(() => {});
-    }, duration * 1000 + 50);
-  }, [notificationsEnabled]);
+      setTimeout(
+        () => {
+          context.close().catch(() => {});
+        },
+        duration * 1000 + 50,
+      );
+    },
+    [notificationsEnabled],
+  );
 
   const playIncomingSound = useCallback(() => {
     playTone(620, 0.13, 0.02);
@@ -269,15 +317,22 @@ export default function AgentMessagesPage() {
   }, [playTone]);
 
   // Show web notification
-  const showWebNotification = useCallback((title: string, body: string) => {
-    if ('Notification' in window && Notification.permission === 'granted' && notificationsEnabled) {
-      new Notification(title, {
-        body,
-        icon: '/logo-images/PlpLisitng-Fav-Icon-8.png',
-        tag: 'message-notification',
-      });
-    }
-  }, [notificationsEnabled]);
+  const showWebNotification = useCallback(
+    (title: string, body: string) => {
+      if (
+        "Notification" in window &&
+        Notification.permission === "granted" &&
+        notificationsEnabled
+      ) {
+        new Notification(title, {
+          body,
+          icon: "/logo-images/PlpLisitng-Fav-Icon-8.png",
+          tag: "message-notification",
+        });
+      }
+    },
+    [notificationsEnabled],
+  );
 
   // Fetch conversations
   const fetchConversations = useCallback(async () => {
@@ -286,71 +341,121 @@ export default function AgentMessagesPage() {
       setConversations(response.data.conversations);
       accessErrorRef.current = null;
     } catch (error) {
-      console.error('Error fetching conversations:', error);
+      console.error("Error fetching conversations:", error);
       setConversations([]);
-      notifyApiError(error, 'Failed to load conversations', true);
+      notifyApiError(
+        error,
+        t(
+          "dashboards.agent.messages.errors.loadConversations",
+          "Failed to load conversations",
+        ),
+        true,
+      );
     } finally {
       setLoadingConversations(false);
     }
   }, [notifyApiError]);
 
   // Fetch messages for a conversation
-  const fetchMessages = useCallback(async (userId: number, showLoading = true) => {
-    if (showLoading) setLoadingMessages(true);
-    try {
-      const response = await messageService.getConversation(userId);
-      const newMessages = response.data.messages;
-      
-      // Check for new messages and play sound
-      if (!showLoading && newMessages.length > 0) {
-        const latestMessage = newMessages[newMessages.length - 1];
-        const latestSenderId = resolveMessageSenderId(latestMessage);
-        if (latestMessage.id > lastMessageIdRef.current && latestSenderId !== currentUserId) {
-          playIncomingSound();
-          showWebNotification(
-            'New Message from Client', 
-            `${latestMessage.sender?.first_name || 'Client'}: ${messageService.getMessagePreview(latestMessage)}`
-          );
+  const fetchMessages = useCallback(
+    async (userId: number, showLoading = true) => {
+      if (showLoading) setLoadingMessages(true);
+      try {
+        const response = await messageService.getConversation(userId);
+        const newMessages = response.data.messages;
+
+        // Check for new messages and play sound
+        if (!showLoading && newMessages.length > 0) {
+          const latestMessage = newMessages[newMessages.length - 1];
+          const latestSenderId = resolveMessageSenderId(latestMessage);
+          if (
+            latestMessage.id > lastMessageIdRef.current &&
+            latestSenderId !== currentUserId
+          ) {
+            playIncomingSound();
+            showWebNotification(
+              t(
+                "dashboards.agent.messages.notifications.newMessageTitle",
+                "New Message from Client",
+              ),
+              `${latestMessage.sender?.first_name || t("dashboards.agent.messages.notifications.client", "Client")}: ${messageService.getMessagePreview(latestMessage)}`,
+            );
+          }
         }
+
+        // Update last message ID
+        if (newMessages.length > 0) {
+          lastMessageIdRef.current = newMessages[newMessages.length - 1].id;
+        }
+
+        setMessages(newMessages);
+        accessErrorRef.current = null;
+
+        // Mark conversation as read
+        await messageService.markConversationAsRead(userId);
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+        setMessages([]);
+        notifyApiError(
+          error,
+          t(
+            "dashboards.agent.messages.errors.loadMessages",
+            "Failed to load messages",
+          ),
+          true,
+        );
+      } finally {
+        setLoadingMessages(false);
       }
-      
-      // Update last message ID
-      if (newMessages.length > 0) {
-        lastMessageIdRef.current = newMessages[newMessages.length - 1].id;
-      }
-      
-      setMessages(newMessages);
-      accessErrorRef.current = null;
-      
-      // Mark conversation as read
-      await messageService.markConversationAsRead(userId);
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      setMessages([]);
-      notifyApiError(error, 'Failed to load messages', true);
-    } finally {
-      setLoadingMessages(false);
-    }
-  }, [currentUserId, playIncomingSound, showWebNotification, notifyApiError]);
+    },
+    [currentUserId, playIncomingSound, showWebNotification, notifyApiError],
+  );
 
   // Fetch unread count
   const fetchUnreadCount = useCallback(async () => {
     try {
       const response = await messageService.getUnreadCount();
       const newCount = response.data.unread_count;
-      
+
       // If unread count increased, there might be a new message
-      if (newCount > unreadCount && notificationsEnabled && !selectedConversation) {
+      if (
+        newCount > unreadCount &&
+        notificationsEnabled &&
+        !selectedConversation
+      ) {
         playIncomingSound();
-        showWebNotification('New Client Message', 'You have unread messages from clients');
+        showWebNotification(
+          t(
+            "dashboards.agent.messages.notifications.newClientTitle",
+            "New Client Message",
+          ),
+          t(
+            "dashboards.agent.messages.notifications.unreadClients",
+            "You have unread messages from clients",
+          ),
+        );
       }
-      
+
       setUnreadCount(newCount);
     } catch (error) {
-      console.error('Error fetching unread count:', error);
-      notifyApiError(error, 'Failed to load unread message count', true);
+      console.error("Error fetching unread count:", error);
+      notifyApiError(
+        error,
+        t(
+          "dashboards.agent.messages.errors.loadUnreadCount",
+          "Failed to load unread message count",
+        ),
+        true,
+      );
     }
-  }, [unreadCount, notificationsEnabled, selectedConversation, playIncomingSound, showWebNotification, notifyApiError]);
+  }, [
+    unreadCount,
+    notificationsEnabled,
+    selectedConversation,
+    playIncomingSound,
+    showWebNotification,
+    notifyApiError,
+  ]);
 
   // Initial load
   useEffect(() => {
@@ -382,11 +487,16 @@ export default function AgentMessagesPage() {
         clearInterval(pollingIntervalRef.current);
       }
     };
-  }, [selectedConversation, fetchConversations, fetchUnreadCount, fetchMessages]);
+  }, [
+    selectedConversation,
+    fetchConversations,
+    fetchUnreadCount,
+    fetchMessages,
+  ]);
 
   // Toggle starred conversation
   const toggleStarred = (userId: number) => {
-    setStarredConversations(prev => {
+    setStarredConversations((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(userId)) {
         newSet.delete(userId);
@@ -395,8 +505,11 @@ export default function AgentMessagesPage() {
       }
       // Save to localStorage - convert Set to Array for JSON
       const arrayFromSet: number[] = [];
-      newSet.forEach(id => arrayFromSet.push(id));
-      localStorage.setItem('starredConversations', JSON.stringify(arrayFromSet));
+      newSet.forEach((id) => arrayFromSet.push(id));
+      localStorage.setItem(
+        "starredConversations",
+        JSON.stringify(arrayFromSet),
+      );
       return newSet;
     });
   };
@@ -414,7 +527,10 @@ export default function AgentMessagesPage() {
 
     setSendingMessage(true);
     try {
-      const outgoingText = buildReplyMessage(replyToMessage?.id ?? null, newMessage.trim()).trim();
+      const outgoingText = buildReplyMessage(
+        replyToMessage?.id ?? null,
+        newMessage.trim(),
+      ).trim();
 
       const messageData: SendMessageData = {
         receiver_id: selectedConversation.user.id,
@@ -428,33 +544,43 @@ export default function AgentMessagesPage() {
         sender_id: currentUserId || 0,
         receiver_id: selectedConversation.user.id,
         message: outgoingText,
-        message_type: 'text',
+        message_type: "text",
         is_read: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, optimisticMsg]);
+      setMessages((prev) => [...prev, optimisticMsg]);
       setTimeout(scrollToBottom, 50);
 
       const response = await messageService.sendMessage(messageData);
-      
+
       // Replace optimistic message with real one
-      setMessages(prev => prev.map(m => m.id === optimisticMsg.id ? response.data.message : m));
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === optimisticMsg.id ? response.data.message : m,
+        ),
+      );
       lastMessageIdRef.current = response.data.message.id;
       playOutgoingSound();
-      
+
       // Clear input
-      setNewMessage('');
+      setNewMessage("");
       setReplyToMessage(null);
       clearFileSelection();
-      
+
       // Refresh conversations to update last message
       fetchConversations();
-      
+
       // Scroll to bottom
       setTimeout(scrollToBottom, 100);
     } catch (error: any) {
-      notifyApiError(error, 'Failed to send message');
+      notifyApiError(
+        error,
+        t(
+          "dashboards.agent.messages.errors.sendMessage",
+          "Failed to send message",
+        ),
+      );
     } finally {
       setSendingMessage(false);
     }
@@ -479,7 +605,9 @@ export default function AgentMessagesPage() {
       return restored;
     });
 
-    toast({ title: 'Message restored' });
+    toast({
+      title: t("dashboards.agent.messages.toasts.restored", "Message restored"),
+    });
   };
 
   const confirmDeleteMessage = () => {
@@ -488,7 +616,9 @@ export default function AgentMessagesPage() {
     const messageToDelete = deleteConfirmMessage;
     setDeleteConfirmMessage(null);
 
-    const originalIndex = messages.findIndex((msg) => msg.id === messageToDelete.id);
+    const originalIndex = messages.findIndex(
+      (msg) => msg.id === messageToDelete.id,
+    );
     setMessages((prev) => prev.filter((msg) => msg.id !== messageToDelete.id));
 
     const timeoutId = setTimeout(async () => {
@@ -498,14 +628,25 @@ export default function AgentMessagesPage() {
         setMessages((prev) => {
           if (prev.some((msg) => msg.id === messageToDelete.id)) return prev;
           const restored = [...prev];
-          const insertAt = Math.max(0, Math.min(originalIndex, restored.length));
+          const insertAt = Math.max(
+            0,
+            Math.min(originalIndex, restored.length),
+          );
           restored.splice(insertAt, 0, messageToDelete);
           return restored;
         });
         toast({
-          title: 'Delete failed',
-          description: error?.response?.data?.message || 'Could not delete message',
-          variant: 'destructive',
+          title: t(
+            "dashboards.agent.messages.toasts.deleteFailed",
+            "Delete failed",
+          ),
+          description:
+            error?.response?.data?.message ||
+            t(
+              "dashboards.agent.messages.errors.deleteMessage",
+              "Could not delete message",
+            ),
+          variant: "destructive",
         });
       } finally {
         delete pendingDeletesRef.current[messageToDelete.id];
@@ -518,13 +659,19 @@ export default function AgentMessagesPage() {
       timeoutId,
     };
 
-    sonnerToast('Message deleted', {
-      description: 'Undo available for 5 seconds',
-      action: {
-        label: 'Undo',
-        onClick: () => undoDeleteMessage(messageToDelete.id),
+    sonnerToast(
+      t("dashboards.agent.messages.toasts.deleted", "Message deleted"),
+      {
+        description: t(
+          "dashboards.agent.messages.toasts.undoAvailable",
+          "Undo available for 5 seconds",
+        ),
+        action: {
+          label: t("dashboards.agent.messages.actions.undo", "Undo"),
+          onClick: () => undoDeleteMessage(messageToDelete.id),
+        },
       },
-    });
+    );
   };
 
   // Handle file selection
@@ -535,9 +682,15 @@ export default function AgentMessagesPage() {
     // Validate file size (10MB max)
     if (file.size > 10 * 1024 * 1024) {
       toast({
-        title: 'File too large',
-        description: 'Maximum file size is 10MB',
-        variant: 'destructive',
+        title: t(
+          "dashboards.agent.messages.errors.fileTooLarge",
+          "File too large",
+        ),
+        description: t(
+          "dashboards.agent.messages.errors.maxFileSize",
+          "Maximum file size is 10MB",
+        ),
+        variant: "destructive",
       });
       return;
     }
@@ -545,7 +698,7 @@ export default function AgentMessagesPage() {
     setSelectedFile(file);
 
     // Create preview for images
-    if (file.type.startsWith('image/')) {
+    if (file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setFilePreview(reader.result as string);
@@ -561,7 +714,7 @@ export default function AgentMessagesPage() {
     setSelectedFile(null);
     setFilePreview(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -569,12 +722,15 @@ export default function AgentMessagesPage() {
   const loadInitialUsers = useCallback(async () => {
     setSearchingUsers(true);
     try {
-      const response = await messageService.searchUsers('');
+      const response = await messageService.searchUsers("");
       setSearchedUsers(response.data.users);
       accessErrorRef.current = null;
     } catch (error) {
-      console.error('Error loading initial users:', error);
-      notifyApiError(error, 'Failed to load users');
+      console.error("Error loading initial users:", error);
+      notifyApiError(
+        error,
+        t("dashboards.agent.messages.errors.loadUsers", "Failed to load users"),
+      );
     } finally {
       setSearchingUsers(false);
     }
@@ -594,8 +750,14 @@ export default function AgentMessagesPage() {
       setSearchedUsers(response.data.users);
       accessErrorRef.current = null;
     } catch (error) {
-      console.error('Error searching users:', error);
-      notifyApiError(error, 'Failed to search users');
+      console.error("Error searching users:", error);
+      notifyApiError(
+        error,
+        t(
+          "dashboards.agent.messages.errors.searchUsers",
+          "Failed to search users",
+        ),
+      );
     } finally {
       setSearchingUsers(false);
     }
@@ -603,8 +765,10 @@ export default function AgentMessagesPage() {
 
   // Start new conversation with user
   const handleStartConversation = (user: User) => {
-    const existingConversation = conversations.find(c => c.user.id === user.id);
-    
+    const existingConversation = conversations.find(
+      (c) => c.user.id === user.id,
+    );
+
     if (existingConversation) {
       handleSelectConversation(existingConversation);
     } else {
@@ -613,8 +777,8 @@ export default function AgentMessagesPage() {
         user,
         last_message: {
           id: 0,
-          message: '',
-          message_type: 'text',
+          message: "",
+          message_type: "text",
           is_read: true,
           created_at: new Date().toISOString(),
           sender_id: currentUserId || 0,
@@ -624,16 +788,17 @@ export default function AgentMessagesPage() {
       setSelectedConversation(newConversation);
       setMessages([]);
     }
-    
+
     setShowNewChatDialog(false);
-    setUserSearchTerm('');
+    setUserSearchTerm("");
     setSearchedUsers([]);
   };
 
   // Sort and filter conversations
   const filteredConversations = conversations
-    .filter(conv => {
-      const fullName = `${conv.user.first_name} ${conv.user.last_name}`.toLowerCase();
+    .filter((conv) => {
+      const fullName =
+        `${conv.user.first_name} ${conv.user.last_name}`.toLowerCase();
       return fullName.includes(searchTerm.toLowerCase());
     })
     .sort((a, b) => {
@@ -646,36 +811,47 @@ export default function AgentMessagesPage() {
       if (a.unread_count > 0 && b.unread_count === 0) return -1;
       if (a.unread_count === 0 && b.unread_count > 0) return 1;
       // Then by date
-      return new Date(b.last_message.created_at).getTime() - new Date(a.last_message.created_at).getTime();
+      return (
+        new Date(b.last_message.created_at).getTime() -
+        new Date(a.last_message.created_at).getTime()
+      );
     });
 
   // Format time
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
-    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
+    const diffInDays = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
     if (diffInDays === 0) {
-      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     } else if (diffInDays === 1) {
-      return 'Yesterday';
+      return t("dashboards.agent.messages.dates.yesterday", "Yesterday");
     } else if (diffInDays < 7) {
-      return date.toLocaleDateString('en-US', { weekday: 'short' });
+      return date.toLocaleDateString("en-US", { weekday: "short" });
     } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
     }
   };
 
   // Format message time
   const formatMessageTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(timestamp).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getApiOrigin = () => {
-    const fallback = 'http://localhost:8000';
+    const fallback = "http://localhost:8000";
     const configured = process.env.NEXT_PUBLIC_API_URL || `${fallback}/api`;
     try {
       return new URL(configured).origin;
@@ -685,13 +861,14 @@ export default function AgentMessagesPage() {
   };
 
   const normalizeAttachmentUrl = (rawUrl: string) => {
-    if (!rawUrl) return '';
-    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) return rawUrl;
+    if (!rawUrl) return "";
+    if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://"))
+      return rawUrl;
 
     const origin = getApiOrigin();
-    if (rawUrl.startsWith('/storage/')) return `${origin}${rawUrl}`;
-    if (rawUrl.startsWith('storage/')) return `${origin}/${rawUrl}`;
-    return `${origin}/storage/${rawUrl.replace(/^\/+/, '')}`;
+    if (rawUrl.startsWith("/storage/")) return `${origin}${rawUrl}`;
+    if (rawUrl.startsWith("storage/")) return `${origin}/${rawUrl}`;
+    return `${origin}/storage/${rawUrl.replace(/^\/+/, "")}`;
   };
 
   const formatDateHeader = (timestamp: string) => {
@@ -701,32 +878,34 @@ export default function AgentMessagesPage() {
     yesterday.setDate(today.getDate() - 1);
 
     const messageDay = messageDate.toDateString();
-    if (messageDay === today.toDateString()) return 'Today';
-    if (messageDay === yesterday.toDateString()) return 'Yesterday';
-    return messageDate.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+    if (messageDay === today.toDateString())
+      return t("dashboards.agent.messages.dates.today", "Today");
+    if (messageDay === yesterday.toDateString())
+      return t("dashboards.agent.messages.dates.yesterday", "Yesterday");
+    return messageDate.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
   const visibleMessages = useMemo(() => {
     const query = chatSearchTerm.trim().toLowerCase();
     return messages.filter((msg) => {
-      const isMedia = msg.message_type !== 'text' || !!msg.attachment_url;
+      const isMedia = msg.message_type !== "text" || !!msg.attachment_url;
       if (showMediaOnly && !isMedia) return false;
 
       if (!query) return true;
       const { bodyText } = parseMessageContent(msg.message);
-      const content = `${bodyText} ${msg.attachment_name || ''}`.toLowerCase();
+      const content = `${bodyText} ${msg.attachment_name || ""}`.toLowerCase();
       return content.includes(query);
     });
   }, [messages, chatSearchTerm, showMediaOnly]);
 
   const groupedMessages = useMemo(() => {
     const groups: Array<{ label: string; items: Message[] }> = [];
-    let currentLabel = '';
+    let currentLabel = "";
 
     visibleMessages.forEach((msg) => {
       const label = formatDateHeader(msg.created_at);
@@ -745,7 +924,11 @@ export default function AgentMessagesPage() {
     touchStartXRef.current = e.changedTouches[0]?.clientX ?? null;
   };
 
-  const onMessageTouchEnd = (e: React.TouchEvent<HTMLDivElement>, message: Message, isOwnMessage: boolean) => {
+  const onMessageTouchEnd = (
+    e: React.TouchEvent<HTMLDivElement>,
+    message: Message,
+    isOwnMessage: boolean,
+  ) => {
     const startX = touchStartXRef.current;
     if (startX === null) return;
 
@@ -766,37 +949,33 @@ export default function AgentMessagesPage() {
     const attachmentUrl = normalizeAttachmentUrl(message.attachment_url);
 
     switch (message.message_type) {
-      case 'image':
+      case "image":
         return (
           <div className="mt-2">
             <img
               src={attachmentUrl}
-              alt={message.attachment_name || 'Image'}
+              alt={message.attachment_name || "Image"}
               className="max-w-xs rounded-lg cursor-pointer hover:opacity-90"
-              onClick={() => window.open(attachmentUrl, '_blank')}
+              onClick={() => window.open(attachmentUrl, "_blank")}
             />
           </div>
         );
-      case 'video':
+      case "video":
         return (
           <div className="mt-2">
-            <video
-              src={attachmentUrl}
-              controls
-              className="max-w-xs rounded-lg"
-            >
+            <video src={attachmentUrl} controls className="max-w-xs rounded-lg">
               Your browser does not support video playback.
             </video>
           </div>
         );
-      case 'audio':
+      case "audio":
         return (
           <div className="mt-2 flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <Volume2 className="w-4 h-4" />
             <audio src={attachmentUrl} controls className="h-8" />
           </div>
         );
-      case 'file':
+      case "file":
         return (
           <a
             href={attachmentUrl}
@@ -807,7 +986,7 @@ export default function AgentMessagesPage() {
           >
             <FileIcon className="w-4 h-4" />
             <span className="text-sm truncate max-w-[150px]">
-              {message.attachment_name || 'File'}
+              {message.attachment_name || "File"}
             </span>
             <span className="text-xs text-gray-500">
               {messageService.formatFileSize(message.attachment_size)}
@@ -822,15 +1001,15 @@ export default function AgentMessagesPage() {
 
   // Get user initials
   const getInitials = (firstName?: string, lastName?: string) => {
-    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase() || '?';
+    return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "?";
   };
 
   // Get priority badge color
   const getPriorityColor = (unreadCount: number, isStarred: boolean) => {
-    if (isStarred) return 'text-yellow-500';
-    if (unreadCount >= 3) return 'text-red-500';
-    if (unreadCount >= 1) return 'text-orange-500';
-    return 'text-gray-300';
+    if (isStarred) return "text-yellow-500";
+    if (unreadCount >= 3) return "text-red-500";
+    if (unreadCount >= 1) return "text-orange-500";
+    return "text-gray-300";
   };
 
   return (
@@ -838,11 +1017,13 @@ export default function AgentMessagesPage() {
       <div className="h-[calc(100vh-160px)] md:h-[calc(100vh-200px)]">
         <div className="flex h-full bg-white dark:bg-gray-900 rounded-lg shadow-sm border overflow-hidden">
           {/* Conversations List */}
-          <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-r border-gray-200 dark:border-gray-700 flex-col`}>
+          <div
+            className={`${selectedConversation ? "hidden md:flex" : "flex"} w-full md:w-80 border-r border-gray-200 dark:border-gray-700 flex-col`}
+          >
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Client Messages
+                  {t("dashboards.agent.messages.title", "Client Messages")}
                   {unreadCount > 0 && (
                     <Badge className="ml-2 bg-plp-purple text-white">
                       {unreadCount}
@@ -853,8 +1034,20 @@ export default function AgentMessagesPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                    title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
+                    onClick={() =>
+                      setNotificationsEnabled(!notificationsEnabled)
+                    }
+                    title={
+                      notificationsEnabled
+                        ? t(
+                            "dashboards.agent.messages.actions.disableNotifications",
+                            "Disable notifications",
+                          )
+                        : t(
+                            "dashboards.agent.messages.actions.enableNotifications",
+                            "Enable notifications",
+                          )
+                    }
                   >
                     {notificationsEnabled ? (
                       <Bell className="w-4 h-4" />
@@ -862,12 +1055,15 @@ export default function AgentMessagesPage() {
                       <BellOff className="w-4 h-4 text-gray-400" />
                     )}
                   </Button>
-                  <Dialog open={showNewChatDialog} onOpenChange={(open) => {
-                    setShowNewChatDialog(open);
-                    if (open) {
-                      loadInitialUsers();
-                    }
-                  }}>
+                  <Dialog
+                    open={showNewChatDialog}
+                    onOpenChange={(open) => {
+                      setShowNewChatDialog(open);
+                      if (open) {
+                        loadInitialUsers();
+                      }
+                    }}
+                  >
                     <DialogTrigger asChild>
                       <Button variant="ghost" size="sm">
                         <Plus className="w-4 h-4" />
@@ -875,11 +1071,19 @@ export default function AgentMessagesPage() {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Start New Conversation</DialogTitle>
+                        <DialogTitle>
+                          {t(
+                            "dashboards.agent.messages.startConversation",
+                            "Start New Conversation",
+                          )}
+                        </DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
                         <Input
-                          placeholder="Search clients or users..."
+                          placeholder={t(
+                            "dashboards.agent.messages.searchUsersPlaceholder",
+                            "Search clients or users...",
+                          )}
                           value={userSearchTerm}
                           onChange={(e) => handleSearchUsers(e.target.value)}
                         />
@@ -891,30 +1095,41 @@ export default function AgentMessagesPage() {
                           <ScrollArea className="h-64">
                             {searchedUsers.length > 0 ? (
                               searchedUsers.map((user) => (
-                              <div
-                                key={user.id}
-                                onClick={() => handleStartConversation(user)}
-                                className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer"
-                              >
-                                <Avatar>
-                                  <AvatarImage src={user.profile_image} />
-                                  <AvatarFallback>
-                                    {getInitials(user.first_name, user.last_name)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-medium">
-                                    {user.first_name} {user.last_name}
-                                  </p>
-                                  <p className="text-sm text-gray-500 capitalize">
-                                    {user.user_type}
-                                  </p>
+                                <div
+                                  key={user.id}
+                                  onClick={() => handleStartConversation(user)}
+                                  className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer"
+                                >
+                                  <Avatar>
+                                    <AvatarImage src={user.profile_image} />
+                                    <AvatarFallback>
+                                      {getInitials(
+                                        user.first_name,
+                                        user.last_name,
+                                      )}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-medium">
+                                      {user.first_name} {user.last_name}
+                                    </p>
+                                    <p className="text-sm text-gray-500 capitalize">
+                                      {user.user_type}
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
                               ))
                             ) : (
                               <p className="text-center text-gray-500 py-4">
-                                {userSearchTerm.length >= 2 ? 'No users found' : 'No users available'}
+                                {userSearchTerm.length >= 2
+                                  ? t(
+                                      "dashboards.agent.messages.empty.noUsersFound",
+                                      "No users found",
+                                    )
+                                  : t(
+                                      "dashboards.agent.messages.empty.noUsersAvailable",
+                                      "No users available",
+                                    )}
                               </p>
                             )}
                           </ScrollArea>
@@ -927,14 +1142,17 @@ export default function AgentMessagesPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Search conversations..."
+                  placeholder={t(
+                    "dashboards.agent.messages.searchConversationsPlaceholder",
+                    "Search conversations...",
+                  )}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            
+
             <ScrollArea className="flex-1">
               {loadingConversations ? (
                 <div className="p-4 space-y-4">
@@ -951,8 +1169,18 @@ export default function AgentMessagesPage() {
               ) : filteredConversations.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
                   <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No client messages yet</p>
-                  <p className="text-sm mt-1">Messages from clients will appear here</p>
+                  <p>
+                    {t(
+                      "dashboards.agent.messages.empty.noMessages",
+                      "No client messages yet",
+                    )}
+                  </p>
+                  <p className="text-sm mt-1">
+                    {t(
+                      "dashboards.agent.messages.empty.messagesAppearHere",
+                      "Messages from clients will appear here",
+                    )}
+                  </p>
                 </div>
               ) : (
                 filteredConversations.map((conversation) => (
@@ -960,22 +1188,26 @@ export default function AgentMessagesPage() {
                     key={conversation.user.id}
                     onClick={() => handleSelectConversation(conversation)}
                     className={`p-4 border-b border-gray-100 dark:border-gray-800 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                      selectedConversation?.user.id === conversation.user.id 
-                        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' 
-                        : ''
+                      selectedConversation?.user.id === conversation.user.id
+                        ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                        : ""
                     }`}
                   >
                     <div className="flex items-start space-x-3">
                       <Avatar className="w-10 h-10">
                         <AvatarImage src={conversation.user.profile_image} />
                         <AvatarFallback>
-                          {getInitials(conversation.user.first_name, conversation.user.last_name)}
+                          {getInitials(
+                            conversation.user.first_name,
+                            conversation.user.last_name,
+                          )}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                            {conversation.user.first_name} {conversation.user.last_name}
+                            {conversation.user.first_name}{" "}
+                            {conversation.user.last_name}
                           </h3>
                           <div className="flex items-center gap-1">
                             <button
@@ -985,9 +1217,13 @@ export default function AgentMessagesPage() {
                               }}
                               className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
                             >
-                              <Star 
+                              <Star
                                 className={`w-4 h-4 ${getPriorityColor(conversation.unread_count, starredConversations.has(conversation.user.id))}`}
-                                fill={starredConversations.has(conversation.user.id) ? 'currentColor' : 'none'}
+                                fill={
+                                  starredConversations.has(conversation.user.id)
+                                    ? "currentColor"
+                                    : "none"
+                                }
                               />
                             </button>
                             {conversation.unread_count > 0 && (
@@ -1001,7 +1237,9 @@ export default function AgentMessagesPage() {
                           {conversation.user.user_type}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                          {messageService.getMessagePreview(conversation.last_message)}
+                          {messageService.getMessagePreview(
+                            conversation.last_message,
+                          )}
                         </p>
                         <p className="text-xs text-gray-400 mt-1">
                           {formatTime(conversation.last_message.created_at)}
@@ -1015,7 +1253,9 @@ export default function AgentMessagesPage() {
           </div>
 
           {/* Chat Area */}
-          <div className={`${selectedConversation ? 'flex' : 'hidden md:flex'} flex-1 flex-col`}>
+          <div
+            className={`${selectedConversation ? "flex" : "hidden md:flex"} flex-1 flex-col`}
+          >
             {selectedConversation ? (
               <>
                 {/* Chat Header */}
@@ -1031,45 +1271,80 @@ export default function AgentMessagesPage() {
                         <ArrowLeft className="w-5 h-5" />
                       </Button>
                       <Avatar className="w-8 h-8 md:w-10 md:h-10 shrink-0">
-                        <AvatarImage src={selectedConversation.user.profile_image} />
+                        <AvatarImage
+                          src={selectedConversation.user.profile_image}
+                        />
                         <AvatarFallback>
-                          {getInitials(selectedConversation.user.first_name, selectedConversation.user.last_name)}
+                          {getInitials(
+                            selectedConversation.user.first_name,
+                            selectedConversation.user.last_name,
+                          )}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
                         <h3 className="font-medium text-gray-900 dark:text-white text-sm md:text-base truncate">
-                          {selectedConversation.user.first_name} {selectedConversation.user.last_name}
+                          {selectedConversation.user.first_name}{" "}
+                          {selectedConversation.user.last_name}
                         </h3>
                         <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 capitalize truncate">
-                          <span className="hidden sm:inline">{selectedConversation.user.user_type} • {selectedConversation.user.email}</span>
-                          <span className="sm:hidden">{selectedConversation.user.user_type}</span>
+                          <span className="hidden sm:inline">
+                            {selectedConversation.user.user_type} •{" "}
+                            {selectedConversation.user.email}
+                          </span>
+                          <span className="sm:hidden">
+                            {selectedConversation.user.user_type}
+                          </span>
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-1 md:space-x-2 shrink-0">
                       <Input
-                        placeholder="Search..."
+                        placeholder={t(
+                          "dashboards.agent.messages.searchHeaderPlaceholder",
+                          "Search...",
+                        )}
                         value={chatSearchTerm}
                         onChange={(e) => setChatSearchTerm(e.target.value)}
                         className="hidden sm:block w-32 md:w-44 h-8"
                       />
                       <Button
-                        variant={showMediaOnly ? 'default' : 'ghost'}
+                        variant={showMediaOnly ? "default" : "ghost"}
                         size="sm"
-                        onClick={() => setShowMediaOnly(prev => !prev)}
-                        title="Toggle media only"
+                        onClick={() => setShowMediaOnly((prev) => !prev)}
+                        title={t(
+                          "dashboards.agent.messages.actions.toggleMediaOnly",
+                          "Toggle media only",
+                        )}
                       >
                         <ImageIcon className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => toggleStarred(selectedConversation.user.id)}
-                        title={starredConversations.has(selectedConversation.user.id) ? 'Unstar' : 'Star'}
+                        onClick={() =>
+                          toggleStarred(selectedConversation.user.id)
+                        }
+                        title={
+                          starredConversations.has(selectedConversation.user.id)
+                            ? t(
+                                "dashboards.agent.messages.actions.unstar",
+                                "Unstar",
+                              )
+                            : t(
+                                "dashboards.agent.messages.actions.star",
+                                "Star",
+                              )
+                        }
                       >
-                        <Star 
-                          className={`w-4 h-4 ${starredConversations.has(selectedConversation.user.id) ? 'text-yellow-500' : ''}`}
-                          fill={starredConversations.has(selectedConversation.user.id) ? 'currentColor' : 'none'}
+                        <Star
+                          className={`w-4 h-4 ${starredConversations.has(selectedConversation.user.id) ? "text-yellow-500" : ""}`}
+                          fill={
+                            starredConversations.has(
+                              selectedConversation.user.id,
+                            )
+                              ? "currentColor"
+                              : "none"
+                          }
                         />
                       </Button>
                       <Button
@@ -1081,11 +1356,18 @@ export default function AgentMessagesPage() {
                             fetchMessages(selectedConversation.user.id);
                           }
                         }}
-                        title="Refresh"
+                        title={t(
+                          "dashboards.agent.messages.actions.refresh",
+                          "Refresh",
+                        )}
                       >
                         <RefreshCw className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="hidden sm:inline-flex"
+                      >
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </div>
@@ -1097,7 +1379,10 @@ export default function AgentMessagesPage() {
                   {loadingMessages ? (
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
-                        <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
+                        <div
+                          key={i}
+                          className={`flex ${i % 2 === 0 ? "justify-end" : "justify-start"}`}
+                        >
                           <Skeleton className="h-16 w-48 rounded-lg" />
                         </div>
                       ))}
@@ -1106,14 +1391,27 @@ export default function AgentMessagesPage() {
                     <div className="h-full flex items-center justify-center">
                       <div className="text-center text-gray-500">
                         <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No matching messages</p>
-                        <p className="text-sm mt-1">Try clearing search/media filters.</p>
+                        <p>
+                          {t(
+                            "dashboards.agent.messages.empty.noMatchingMessages",
+                            "No matching messages",
+                          )}
+                        </p>
+                        <p className="text-sm mt-1">
+                          {t(
+                            "dashboards.agent.messages.empty.clearFilters",
+                            "Try clearing search/media filters.",
+                          )}
+                        </p>
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-1">
                       {groupedMessages.map((group, groupIndex) => (
-                        <div key={`${group.label}-${group.items[0]?.id ?? groupIndex}`} className="space-y-1">
+                        <div
+                          key={`${group.label}-${group.items[0]?.id ?? groupIndex}`}
+                          className="space-y-1"
+                        >
                           <div className="flex justify-center py-2">
                             <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
                               {group.label}
@@ -1121,13 +1419,17 @@ export default function AgentMessagesPage() {
                           </div>
                           {group.items.map((message, index) => {
                             const senderId = resolveMessageSenderId(message);
-                            const isOwnMessage = currentUserId !== null && senderId === currentUserId;
+                            const isOwnMessage =
+                              currentUserId !== null &&
+                              senderId === currentUserId;
                             return (
                               <div
                                 key={`msg-${message.id}-${index}`}
-                                className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} w-full`}
+                                className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} w-full`}
                                 onTouchStart={onMessageTouchStart}
-                                onTouchEnd={(e) => onMessageTouchEnd(e, message, isOwnMessage)}
+                                onTouchEnd={(e) =>
+                                  onMessageTouchEnd(e, message, isOwnMessage)
+                                }
                                 ref={(el) => {
                                   messageRefsRef.current[message.id] = el;
                                 }}
@@ -1135,50 +1437,80 @@ export default function AgentMessagesPage() {
                                 <div
                                   className={`max-w-[75%] lg:max-w-[65%] px-3 py-1.5 rounded-lg ${
                                     isOwnMessage
-                                      ? 'bg-plp-purple text-white rounded-br-none'
-                                      : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-none'
+                                      ? "bg-plp-purple text-white rounded-br-none"
+                                      : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-none"
                                   }`}
                                 >
                                   {(() => {
-                                    const { replyToId, bodyText } = parseMessageContent(message.message);
-                                    const repliedMessage = replyToId ? messages.find((msg) => msg.id === replyToId) : null;
+                                    const { replyToId, bodyText } =
+                                      parseMessageContent(message.message);
+                                    const repliedMessage = replyToId
+                                      ? messages.find(
+                                          (msg) => msg.id === replyToId,
+                                        )
+                                      : null;
                                     const repliedPreview = repliedMessage
-                                      ? (parseMessageContent(repliedMessage.message).bodyText || repliedMessage.attachment_name || 'Media')
-                                      : 'Original message';
+                                      ? parseMessageContent(
+                                          repliedMessage.message,
+                                        ).bodyText ||
+                                        repliedMessage.attachment_name ||
+                                        t(
+                                          "dashboards.agent.messages.labels.media",
+                                          "Media",
+                                        )
+                                      : t(
+                                          "dashboards.agent.messages.labels.originalMessage",
+                                          "Original message",
+                                        );
 
                                     return (
                                       <>
                                         {replyToId && (
                                           <button
                                             type="button"
-                                            onClick={() => scrollToReferencedMessage(replyToId)}
+                                            onClick={() =>
+                                              scrollToReferencedMessage(
+                                                replyToId,
+                                              )
+                                            }
                                             className={`w-full text-left mb-1 rounded-md px-2 py-1 border-l-2 ${
                                               isOwnMessage
-                                                ? 'bg-white/15 border-white/50 hover:bg-white/20'
-                                                : 'bg-black/5 border-plp-purple/50 hover:bg-black/10'
+                                                ? "bg-white/15 border-white/50 hover:bg-white/20"
+                                                : "bg-black/5 border-plp-purple/50 hover:bg-black/10"
                                             }`}
                                           >
                                             <div className="flex items-center gap-1 text-[10px] font-medium opacity-90">
                                               <Reply className="w-3 h-3" />
-                                              Replied message
+                                              {t(
+                                                "dashboards.agent.messages.labels.repliedMessage",
+                                                "Replied message",
+                                              )}
                                             </div>
-                                            <div className="text-xs truncate opacity-80">{repliedPreview}</div>
+                                            <div className="text-xs truncate opacity-80">
+                                              {repliedPreview}
+                                            </div>
                                           </button>
                                         )}
                                         {bodyText && (
-                                          <p className="text-sm whitespace-pre-wrap break-words">{bodyText}</p>
+                                          <p className="text-sm whitespace-pre-wrap break-words">
+                                            {bodyText}
+                                          </p>
                                         )}
                                       </>
                                     );
                                   })()}
                                   {renderAttachment(message)}
-                                  <div className={`flex items-center gap-1 mt-0.5 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                                  <div
+                                    className={`flex items-center gap-1 mt-0.5 ${isOwnMessage ? "justify-end" : "justify-start"}`}
+                                  >
                                     {!isOwnMessage && (
                                       <Button
                                         variant="ghost"
                                         size="sm"
                                         className="h-5 px-1"
-                                        onClick={() => setReplyToMessage(message)}
+                                        onClick={() =>
+                                          setReplyToMessage(message)
+                                        }
                                       >
                                         <Reply className="w-3 h-3" />
                                       </Button>
@@ -1188,23 +1520,28 @@ export default function AgentMessagesPage() {
                                         variant="ghost"
                                         size="sm"
                                         className="h-5 px-1 text-red-300 hover:text-red-200"
-                                        onClick={() => requestDeleteMessage(message)}
+                                        onClick={() =>
+                                          requestDeleteMessage(message)
+                                        }
                                       >
                                         <Trash2 className="w-3 h-3" />
                                       </Button>
                                     )}
-                                    <span className={`text-[10px] leading-none ${
-                                      isOwnMessage ? 'text-purple-200' : 'text-gray-400'
-                                    }`}>
+                                    <span
+                                      className={`text-[10px] leading-none ${
+                                        isOwnMessage
+                                          ? "text-purple-200"
+                                          : "text-gray-400"
+                                      }`}
+                                    >
                                       {formatMessageTime(message.created_at)}
                                     </span>
-                                    {isOwnMessage && (
-                                      message.is_read ? (
+                                    {isOwnMessage &&
+                                      (message.is_read ? (
                                         <CheckCheck className="w-3.5 h-3.5 text-blue-300" />
                                       ) : (
                                         <Check className="w-3.5 h-3.5 text-purple-200" />
-                                      )
-                                    )}
+                                      ))}
                                   </div>
                                 </div>
                               </div>
@@ -1222,19 +1559,29 @@ export default function AgentMessagesPage() {
                   <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                     <div className="flex items-center gap-3">
                       {filePreview ? (
-                        <img src={filePreview} alt="Preview" className="w-16 h-16 object-cover rounded" />
+                        <img
+                          src={filePreview}
+                          alt="Preview"
+                          className="w-16 h-16 object-cover rounded"
+                        />
                       ) : (
                         <div className="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
                           <FileIcon className="w-8 h-8 text-gray-500" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+                        <p className="text-sm font-medium truncate">
+                          {selectedFile.name}
+                        </p>
                         <p className="text-xs text-gray-500">
                           {messageService.formatFileSize(selectedFile.size)}
                         </p>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={clearFileSelection}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearFileSelection}
+                      >
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
@@ -1246,9 +1593,19 @@ export default function AgentMessagesPage() {
                   {replyToMessage && (
                     <div className="mb-2 p-2 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-between">
                       <div className="text-xs text-gray-600 dark:text-gray-300 truncate">
-                        Replying to: {parseMessageContent(replyToMessage.message).bodyText || replyToMessage.attachment_name || 'Media'}
+                        {t(
+                          "dashboards.agent.messages.labels.replyingTo",
+                          "Replying to:",
+                        )}{" "}
+                        {parseMessageContent(replyToMessage.message).bodyText ||
+                          replyToMessage.attachment_name ||
+                          t("dashboards.agent.messages.labels.media", "Media")}
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => setReplyToMessage(null)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setReplyToMessage(null)}
+                      >
                         <X className="w-3 h-3" />
                       </Button>
                     </div>
@@ -1274,9 +1631,10 @@ export default function AgentMessagesPage() {
                       size="sm"
                       onClick={() => {
                         if (fileInputRef.current) {
-                          fileInputRef.current.accept = 'image/*';
+                          fileInputRef.current.accept = "image/*";
                           fileInputRef.current.click();
-                          fileInputRef.current.accept = 'image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt';
+                          fileInputRef.current.accept =
+                            "image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt";
                         }
                       }}
                       disabled={sendingMessage}
@@ -1285,11 +1643,14 @@ export default function AgentMessagesPage() {
                     </Button>
                     <div className="flex-1">
                       <Textarea
-                        placeholder="Type your message..."
+                        placeholder={t(
+                          "dashboards.agent.messages.messagePlaceholder",
+                          "Type your message...",
+                        )}
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyPress={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
+                          if (e.key === "Enter" && !e.shiftKey) {
                             e.preventDefault();
                             handleSendMessage();
                           }
@@ -1298,9 +1659,11 @@ export default function AgentMessagesPage() {
                         disabled={sendingMessage}
                       />
                     </div>
-                    <Button 
+                    <Button
                       onClick={handleSendMessage}
-                      disabled={(!newMessage.trim() && !selectedFile) || sendingMessage}
+                      disabled={
+                        (!newMessage.trim() && !selectedFile) || sendingMessage
+                      }
                       className="btn-primary"
                     >
                       {sendingMessage ? (
@@ -1316,14 +1679,27 @@ export default function AgentMessagesPage() {
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center text-gray-500">
                   <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium">Select a conversation</p>
-                  <p className="text-sm mt-1">Choose a client conversation from the list or start a new one</p>
+                  <p className="text-lg font-medium">
+                    {t(
+                      "dashboards.agent.messages.empty.selectConversation",
+                      "Select a conversation",
+                    )}
+                  </p>
+                  <p className="text-sm mt-1">
+                    {t(
+                      "dashboards.agent.messages.empty.chooseConversation",
+                      "Choose a client conversation from the list or start a new one",
+                    )}
+                  </p>
                   <Button
                     className="mt-4"
                     onClick={() => setShowNewChatDialog(true)}
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    New Conversation
+                    {t(
+                      "dashboards.agent.messages.startConversation",
+                      "New Conversation",
+                    )}
                   </Button>
                 </div>
               </div>
@@ -1331,18 +1707,34 @@ export default function AgentMessagesPage() {
           </div>
         </div>
       </div>
-      <AlertDialog open={!!deleteConfirmMessage} onOpenChange={(open) => !open && setDeleteConfirmMessage(null)}>
+      <AlertDialog
+        open={!!deleteConfirmMessage}
+        onOpenChange={(open) => !open && setDeleteConfirmMessage(null)}
+      >
         <AlertDialogContent className="border-plp-purple/20">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-plp-purple">Delete Message</AlertDialogTitle>
+            <AlertDialogTitle className="text-plp-purple">
+              {t(
+                "dashboards.agent.messages.deleteDialog.title",
+                "Delete Message",
+              )}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This message will be removed. You can undo within 5 seconds after confirming.
+              {t(
+                "dashboards.agent.messages.deleteDialog.description",
+                "This message will be removed. You can undo within 5 seconds after confirming.",
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-plp-pink hover:bg-plp-pink/90" onClick={confirmDeleteMessage}>
-              Delete
+            <AlertDialogCancel>
+              {t("common.cancel", "Cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-plp-pink hover:bg-plp-pink/90"
+              onClick={confirmDeleteMessage}
+            >
+              {t("common.delete", "Delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

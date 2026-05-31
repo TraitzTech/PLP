@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { useTranslations } from "@/components/translation-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,13 +43,14 @@ import {
   Loader2,
   Eye,
 } from "lucide-react";
-import { toast } from 'sonner';
+import { toast } from "sonner";
 import { listingService } from "@/services/listingService";
 import { TableLoader } from "@/components/ui/shimmer-loaders";
 import type { Listing } from "@/services/types";
 import { resolveListingImageSrc } from "@/lib/listingMedia";
 
 export default function AgentPropertiesPage() {
+  const t = useTranslations();
   const router = useRouter();
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,7 +66,7 @@ export default function AgentPropertiesPage() {
         per_page: 15,
         page: currentPage,
       });
-    
+
       // Handle both possible response structures
       const listingsData = response?.data || response;
       setListings(Array.isArray(listingsData) ? listingsData : []);
@@ -73,7 +75,11 @@ export default function AgentPropertiesPage() {
     } catch (error: any) {
       console.error("Error fetching listings:", error);
       toast.error(
-        error.response?.data?.message || "Failed to fetch listings"
+        error.response?.data?.message ||
+          t(
+            "dashboards.agent.properties.errors.fetchListings",
+            "Failed to fetch listings",
+          ),
       );
       setListings([]);
     } finally {
@@ -102,13 +108,22 @@ export default function AgentPropertiesPage() {
     try {
       setIsDeleting(true);
       await listingService.deleteListing(deleteListingId);
-      toast.success("Listing deleted successfully");
+      toast.success(
+        t(
+          "dashboards.agent.properties.success.deleted",
+          "Listing deleted successfully",
+        ),
+      );
       setDeleteListingId(null);
       fetchListings();
     } catch (error: any) {
       console.error("Error deleting listing:", error);
       toast.error(
-        error.response?.data?.message || "Failed to delete listing"
+        error.response?.data?.message ||
+          t(
+            "dashboards.agent.properties.errors.deleteListing",
+            "Failed to delete listing",
+          ),
       );
     } finally {
       setIsDeleting(false);
@@ -118,12 +133,13 @@ export default function AgentPropertiesPage() {
   const filteredListings = listings.filter(
     (listing) =>
       listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      listing.location.toLowerCase().includes(searchQuery.toLowerCase())
+      listing.location.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const getStatusBadge = (status: string | number | boolean) => {
     const statusStr = String(status).toLowerCase();
-    const isAvailable = statusStr === "1" || statusStr === "available" || statusStr === "true";
+    const isAvailable =
+      statusStr === "1" || statusStr === "available" || statusStr === "true";
 
     return (
       <Badge variant={isAvailable ? "default" : "destructive"}>
@@ -133,7 +149,7 @@ export default function AgentPropertiesPage() {
   };
 
   const formatPrice = (price: string | number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat("en-US", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     }).format(Number(price));
@@ -144,14 +160,21 @@ export default function AgentPropertiesPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">My Listings</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {t("dashboards.agent.properties.title", "My Listings")}
+            </h1>
             <p className="text-muted-foreground">
-              Manage your property listings
+              {t(
+                "dashboards.agent.properties.subtitle",
+                "Manage your property listings",
+              )}
             </p>
           </div>
-          <Button onClick={() => router.push("/dashboard/agent/properties/new")}>
+          <Button
+            onClick={() => router.push("/dashboard/agent/properties/new")}
+          >
             <Plus className="mr-2 h-4 w-4" />
-            Add Listing
+            {t("dashboards.agent.properties.addListing", "Add Listing")}
           </Button>
         </div>
 
@@ -159,7 +182,8 @@ export default function AgentPropertiesPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5" />
-              All Listings ({filteredListings.length})
+              {t("dashboards.agent.properties.allListings", "All Listings")} (
+              {filteredListings.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -167,7 +191,10 @@ export default function AgentPropertiesPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search listings..."
+                  placeholder={t(
+                    "dashboards.agent.properties.searchPlaceholder",
+                    "Search listings...",
+                  )}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleSearchKeyPress}
@@ -176,7 +203,7 @@ export default function AgentPropertiesPage() {
               </div>
               <Button onClick={handleSearch} variant="secondary">
                 <Search className="mr-2 h-4 w-4" />
-                Search
+                {t("dashboards.agent.properties.search", "Search")}
               </Button>
             </div>
 
@@ -184,11 +211,22 @@ export default function AgentPropertiesPage() {
               <TableLoader rows={10} columns={7} />
             ) : filteredListings.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">No listings found</p>
+                <p className="text-muted-foreground">
+                  {t(
+                    "dashboards.agent.properties.empty.title",
+                    "No listings found",
+                  )}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {searchQuery
-                    ? "Try adjusting your search"
-                    : "Create your first listing to get started"}
+                    ? t(
+                        "dashboards.agent.properties.empty.filtered",
+                        "Try adjusting your search",
+                      )
+                    : t(
+                        "dashboards.agent.properties.empty.default",
+                        "Create your first listing to get started",
+                      )}
                 </p>
               </div>
             ) : (
@@ -197,20 +235,68 @@ export default function AgentPropertiesPage() {
                   <table className="w-full">
                     <thead className="bg-muted">
                       <tr>
-                        <th className="px-6 py-3 text-left text-sm font-medium">Photo</th>
-                        <th className="px-6 py-3 text-left text-sm font-medium">Title</th>
-                        <th className="px-6 py-3 text-left text-sm font-medium">Location</th>
-                        <th className="px-6 py-3 text-left text-sm font-medium">Type</th>
-                        <th className="px-6 py-3 text-left text-sm font-medium">Price</th>
-                        <th className="px-6 py-3 text-left text-sm font-medium">Status</th>
-                        <th className="px-6 py-3 text-left text-sm font-medium">Featured</th>
-                        <th className="px-6 py-3 text-left text-sm font-medium">Approved</th>
-                        <th className="px-6 py-3 text-right text-sm font-medium">Actions</th>
+                        <th className="px-6 py-3 text-left text-sm font-medium">
+                          {t(
+                            "dashboards.agent.properties.columns.photo",
+                            "Photo",
+                          )}
+                        </th>
+                        <th className="px-6 py-3 text-left text-sm font-medium">
+                          {t(
+                            "dashboards.agent.properties.columns.title",
+                            "Title",
+                          )}
+                        </th>
+                        <th className="px-6 py-3 text-left text-sm font-medium">
+                          {t(
+                            "dashboards.agent.properties.columns.location",
+                            "Location",
+                          )}
+                        </th>
+                        <th className="px-6 py-3 text-left text-sm font-medium">
+                          {t(
+                            "dashboards.agent.properties.columns.type",
+                            "Type",
+                          )}
+                        </th>
+                        <th className="px-6 py-3 text-left text-sm font-medium">
+                          {t(
+                            "dashboards.agent.properties.columns.price",
+                            "Price",
+                          )}
+                        </th>
+                        <th className="px-6 py-3 text-left text-sm font-medium">
+                          {t(
+                            "dashboards.agent.properties.columns.status",
+                            "Status",
+                          )}
+                        </th>
+                        <th className="px-6 py-3 text-left text-sm font-medium">
+                          {t(
+                            "dashboards.agent.properties.columns.featured",
+                            "Featured",
+                          )}
+                        </th>
+                        <th className="px-6 py-3 text-left text-sm font-medium">
+                          {t(
+                            "dashboards.agent.properties.columns.approved",
+                            "Approved",
+                          )}
+                        </th>
+                        <th className="px-6 py-3 text-right text-sm font-medium">
+                          {t(
+                            "dashboards.agent.properties.columns.actions",
+                            "Actions",
+                          )}
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredListings.map((listing) => (
-                        <tr key={listing.id} className="border-t hover:bg-muted/50">
+                        <tr
+                          key={listing.id}
+                          className="border-t hover:bg-muted/50"
+                        >
                           <td className="px-6 py-4">
                             {resolveListingImageSrc(listing) ? (
                               <img
@@ -223,7 +309,9 @@ export default function AgentPropertiesPage() {
                               <div className="w-10 h-10 rounded-md bg-gradient-to-br from-plp-purple to-plp-pink" />
                             )}
                           </td>
-                          <td className="px-6 py-4 font-medium text-sm">{listing.title}</td>
+                          <td className="px-6 py-4 font-medium text-sm">
+                            {listing.title}
+                          </td>
                           <td className="px-6 py-4 text-sm text-gray-600">
                             {listing.city}, {listing.region}
                           </td>
@@ -258,34 +346,50 @@ export default function AgentPropertiesPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuLabel>
+                                  {t(
+                                    "dashboards.agent.properties.actions.menu",
+                                    "Actions",
+                                  )}
+                                </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   onClick={() =>
                                     router.push(
-                                      `/dashboard/agent/properties/${listing.id}`
+                                      `/dashboard/agent/properties/${listing.id}`,
                                     )
                                   }
                                 >
                                   <Eye className="mr-2 h-4 w-4" />
-                                  View
+                                  {t(
+                                    "dashboards.agent.properties.actions.view",
+                                    "View",
+                                  )}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() =>
                                     router.push(
-                                      `/dashboard/agent/properties/${listing.id}/edit`
+                                      `/dashboard/agent/properties/${listing.id}/edit`,
                                     )
                                   }
                                 >
                                   <Edit className="mr-2 h-4 w-4" />
-                                  Edit
+                                  {t(
+                                    "dashboards.agent.properties.actions.edit",
+                                    "Edit",
+                                  )}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  onClick={() => setDeleteListingId(String(listing.id))}
+                                  onClick={() =>
+                                    setDeleteListingId(String(listing.id))
+                                  }
                                   className="text-red-600"
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
+                                  {t(
+                                    "dashboards.agent.properties.actions.delete",
+                                    "Delete",
+                                  )}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -308,14 +412,23 @@ export default function AgentPropertiesPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t(
+                "dashboards.agent.properties.deleteDialog.title",
+                "Are you sure?",
+              )}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the listing
-              and remove it from the system.
+              {t(
+                "dashboards.agent.properties.deleteDialog.description",
+                "This action cannot be undone. This will permanently delete the listing and remove it from the system.",
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>
+              {t("dashboards.common.cancel", "Cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteListing}
               disabled={isDeleting}
@@ -324,10 +437,10 @@ export default function AgentPropertiesPage() {
               {isDeleting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
+                  {t("dashboards.agent.properties.deleting", "Deleting...")}
                 </>
               ) : (
-                "Delete"
+                t("dashboards.common.delete", "Delete")
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

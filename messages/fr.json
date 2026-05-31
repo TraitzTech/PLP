@@ -861,6 +861,179 @@
         "editProperty": "Modifier",
         "deleteProperty": "Supprimer",
         "viewAnalytics": "Voir l'Analytique"
+      },
+      "createProperty": {
+        "pageTitle": "Créer une Nouvelle Propriété",
+        "pageSubtitle": "Ajoutez une nouvelle annonce à votre portefeuille. Votre propriété sera examinée par un administrateur avant d'être publiée.",
+        "submitting": "Création de la propriété...",
+        "submit": "Soumettre la propriété",
+        "steps": {
+          "basic": {
+            "title": "Informations de Base",
+            "description": "Titre, description et prix de la propriété"
+          },
+          "location": {
+            "title": "Localisation",
+            "description": "Détails de l'emplacement de la propriété"
+          },
+          "details": {
+            "title": "Détails de la Propriété",
+            "description": "Informations spécifiques au type de propriété"
+          },
+          "facilities": {
+            "title": "Équipements",
+            "description": "Sélectionnez les commodités et équipements"
+          },
+          "media": {
+            "title": "Médias et Images",
+            "description": "Téléchargez des photos et des vidéos"
+          }
+        },
+        "sections": {
+          "houseDetails": "Détails de la Maison",
+          "landDetails": "Détails du Terrain",
+          "hotelDetails": "Détails de l'Hôtel",
+          "hotelAmenities": "Commodités de l'Hôtel",
+          "availability": "Disponibilité de la Propriété",
+          "images": "Images de la Propriété",
+          "videos": "Vidéos de Visite Virtuelle (Optionnel)"
+        },
+        "labels": {
+          "title": "Titre de la Propriété",
+          "description": "Description",
+          "propertyType": "Type de Propriété",
+          "unitsAvailable": "Unités Disponibles",
+          "purpose": "Objectif",
+          "forRent": "À Louer",
+          "forPurchase": "À Vendre/Acheter",
+          "price": "Prix",
+          "monthly": "(Mensuel)",
+          "discountPrice": "Prix Réduit (Optionnel)",
+          "discountPercent": "Remise % (Optionnel)",
+          "region": "Région",
+          "city": "Ville",
+          "location": "Localisation/Quartier",
+          "address": "Adresse Complète (Optionnel)",
+          "pickLocation": "Choisir l'Emplacement sur la Carte",
+          "latitude": "Latitude",
+          "longitude": "Longitude",
+          "floorArea": "Surface au Sol",
+          "areaUnit": "Unité de Surface",
+          "houseType": "Type de Maison",
+          "yearBuilt": "Année de Construction",
+          "landArea": "Surface du Terrain",
+          "landDimensions": "Dimensions du Terrain",
+          "zoning": "Zonage",
+          "roomsCount": "Nombre de Chambres",
+          "starRating": "Classement en Étoiles",
+          "star": "Étoile",
+          "hasRestaurant": "A un Restaurant",
+          "hasPool": "A une Piscine",
+          "availableForBooking": "La propriété est disponible à la réservation",
+          "negotiable": "Prix négociable",
+          "image": "image",
+          "video": "vidéo",
+          "pluralSuffix": "s"
+        },
+        "placeholders": {
+          "title": "ex. Villa de luxe avec vue sur l'océan",
+          "description": "Décrivez votre propriété en détail...",
+          "selectPropertyType": "Sélectionnez le type de propriété",
+          "selectCity": "Sélectionnez une ville",
+          "region": "ex. Californie",
+          "city": "ex. Douala",
+          "location": "ex. Centre-ville",
+          "address": "ex. 123 Rue Principale, Apt 4B",
+          "latitude": "ex. 34.0522",
+          "longitude": "ex. -118.2437",
+          "price": "0.00",
+          "discountPercent": "0",
+          "floorArea": "ex. 120.5",
+          "yearBuilt": "ex. 2020",
+          "landArea": "ex. 1500",
+          "landDimensions": "ex. 30m x 50m",
+          "selectType": "Sélectionnez un type",
+          "selectZoning": "Sélectionnez le zonage",
+          "roomsCount": "ex. 45",
+          "selectRating": "Sélectionnez une note"
+        },
+        "info": {
+          "salesDisabledLaunch": "Les ventes sont désactivées pour le lancement. Les annonces doivent être en location.",
+          "salesDisabledAdmin": "Les ventes sont actuellement désactivées par les paramètres administrateur.",
+          "monthlyRent": "Le prix sera affiché comme loyer mensuel",
+          "purchasePrice": "Le prix sera affiché comme prix d'achat",
+          "bothPurposes": "Propriété disponible à la location et à l'achat",
+          "locationHelp": "Saisissez les détails complets de l'emplacement pour aider les clients à trouver facilement la propriété.",
+          "cityRestricted": "Les options de ville sont limitées par les paramètres administrateur.",
+          "citySuggested": "Les options de ville sont suggérées à partir des paramètres administrateur.",
+          "mapAddress": "Ceci sera utilisé pour afficher la propriété sur une carte",
+          "pickLocation": "Recherchez un lieu ou cliquez sur la carte pour obtenir automatiquement les coordonnées",
+          "facilitiesHelp": "Sélectionnez au moins un équipement pour mieux décrire votre propriété aux clients potentiels.",
+          "facilityCount": "équipement(s) sélectionné(s)",
+          "mediaHelp": "Des images et vidéos de haute qualité attirent plus de clients. Les médias sont optionnels mais fortement recommandés.",
+          "videoFormats": "Utilisez de courtes visites ou des clips aériens (MP4, WebM, Ogg)",
+          "uploadingVideos": "Téléchargement des vidéos en arrière-plan... vous pouvez continuer à naviguer.",
+          "submitted": "Votre propriété a été soumise. Un administrateur la vérifiera avant sa publication."
+        },
+        "empty": {
+          "selectType": "Sélectionnez un type de propriété pour voir les champs spécifiques",
+          "selectPreviousType": "Veuillez sélectionner un type de propriété à l'étape précédente"
+        },
+        "validation": {
+          "titleRequired": "Veuillez saisir un titre de propriété",
+          "descriptionRequired": "Veuillez saisir une description de propriété",
+          "typeRequired": "Veuillez sélectionner un type de propriété",
+          "priceRequired": "Veuillez saisir un prix valide",
+          "purposeRequired": "Veuillez sélectionner au moins un objectif (location ou achat)",
+          "locationRequired": "Veuillez remplir tous les champs d'emplacement requis",
+          "bedroomsRequired": "Veuillez saisir le nombre de chambres",
+          "bathroomsRequired": "Veuillez saisir le nombre de salles de bain",
+          "landAreaRequired": "Veuillez saisir la surface du terrain",
+          "roomsRequired": "Veuillez saisir le nombre de chambres",
+          "facilityRequired": "Veuillez sélectionner au moins un équipement"
+        },
+        "errors": {
+          "loadFormData": "Échec du chargement des données du formulaire",
+          "invalidImage": "{name} n'est pas un fichier image valide",
+          "imageTooLarge": "{name} dépasse 5 Mo",
+          "imagePermission": "Vous n'avez pas la permission de téléverser des images. Veuillez vous assurer que votre compte agent est approuvé.",
+          "uploadImages": "Échec du téléversement des images",
+          "uploadVideos": "Certaines vidéos n'ont pas pu être téléversées. Vous pouvez réessayer depuis Modifier la propriété.",
+          "createFailed": "Échec de la création de la propriété"
+        },
+        "success": {
+          "created": "Propriété créée avec succès !",
+          "imagesUploaded": "{count} image(s) téléversée(s) avec succès",
+          "videosUploaded": "{count} vidéo(s) téléversée(s) avec succès"
+        },
+        "options": {
+          "areaUnits": {
+            "sqm": "Mètres carrés (m²)",
+            "sqft": "Pieds carrés (pi²)",
+            "acres": "Acres",
+            "hectares": "Hectares"
+          },
+          "houseTypes": {
+            "detached": "Maison individuelle",
+            "semi-detached": "Maison jumelée",
+            "terrace": "Maison en rangée",
+            "bungalow": "Bungalow",
+            "villa": "Villa",
+            "cottage": "Cottage"
+          },
+          "zoning": {
+            "residential": "Résidentiel",
+            "commercial": "Commercial",
+            "industrial": "Industriel",
+            "agricultural": "Agricole",
+            "mixed": "Usage mixte"
+          }
+        },
+        "actions": {
+          "uploadImages": "Cliquez pour téléverser des images",
+          "dragAndDrop": "ou glissez-déposez",
+          "uploadVideos": "Cliquez pour téléverser des vidéos de visite virtuelle"
+        }
       }
     },
     "owner": {
@@ -885,6 +1058,46 @@
     },
     "admin": {
       "pageTitle": "Tableau de Bord Administrateur",
+      "properties": {
+        "pageTitle": "Créer une Propriété (Admin)",
+        "pageSubtitle": "Créez une propriété pour le compte d'un agent et faites-la approuver immédiatement.",
+        "submitting": "Création de la propriété...",
+        "submit": "Créer la propriété",
+        "steps": {
+          "agentBasic": {
+            "title": "Agent et Infos de Base",
+            "description": "Attribuez un agent et saisissez les détails de la propriété"
+          }
+        },
+        "validation": {
+          "agentRequired": "Veuillez sélectionner un agent",
+          "titleRequired": "Veuillez saisir un titre de propriété",
+          "descriptionRequired": "Veuillez saisir une description de propriété",
+          "typeRequired": "Veuillez sélectionner un type de propriété",
+          "priceRequired": "Veuillez saisir un prix valide",
+          "purposeRequired": "Veuillez sélectionner au moins un objectif (location ou achat)",
+          "locationRequired": "Veuillez remplir tous les champs d'emplacement",
+          "facilityRequired": "Veuillez sélectionner au moins un équipement"
+        },
+        "errors": {
+          "loadFormData": "Échec du chargement des données du formulaire",
+          "invalidImage": "{name} n'est pas un fichier image valide",
+          "imageTooLarge": "{name} dépasse 5 Mo",
+          "invalidVideo": "{name} n'est pas un fichier vidéo valide",
+          "videoTooLarge": "{name} dépasse 50 Mo",
+          "uploadImages": "La propriété a été créée mais certaines images n'ont pas pu être téléversées",
+          "uploadVideos": "La propriété a été créée mais certaines vidéos n'ont pas pu être téléversées",
+          "createFailed": "Échec de la création de la propriété"
+        },
+        "info": {
+          "uploadingVideos": "Téléchargement des vidéos en arrière-plan... vous pouvez continuer à naviguer."
+        },
+        "success": {
+          "created": "Propriété créée et approuvée avec succès !",
+          "imagesUploaded": "{count} image(s) téléversée(s) avec succès",
+          "videosUploaded": "{count} vidéo(s) téléversée(s) avec succès"
+        }
+      },
       "welcome": "Tableau de Bord Administrateur",
       "welcomeSubtitle": "Surveillez et gérez la plateforme Property Listing Portal.",
       "stats": {
@@ -995,7 +1208,6 @@
       "published": "Publié",
       "archived": "Archivé",
       "quickActions": "Actions Rapides",
-      "pending": "En Attente",
       "you": "Vous",
       "notifications": "Notifications",
       "noNotifications": "Aucune notification",
