@@ -9,7 +9,6 @@ import { usePathname } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { useTranslations } from "@/components/translation-provider";
 import { publicPropertyService } from "@/services/publicPropertyService";
-import { listingImageService } from "@/services/listingImageService";
 import type { AdminProperty } from "@/services/types";
 
 // Helper function to get image URL from backend storage
@@ -64,49 +63,9 @@ export function FeaturedProperties() {
           (property: any) => property.is_featured === true,
         );
 
-        // Fetch images for each property
-        const propertiesWithImages = await Promise.all(
-          fetchedProperties.slice(0, 8).map(async (property) => {
-            try {
-              const imagesResponse =
-                await listingImageService.getImagesByListing(property.id);
-              const images =
-                (imagesResponse as any).data || (imagesResponse as any) || [];
-
-              // Ensure images have the correct structure
-              const formattedImages = Array.isArray(images)
-                ? images.map((img: any) => ({
-                    id: img.id,
-                    image_path: img.image_path || img.image_url || img.url,
-                    image_url: img.image_url || img.image_path || img.url,
-                    url: img.url || img.image_path || img.image_url,
-                  }))
-                : [];
-
-              // Merge with existing images if property already has them
-              const mergedImages = [
-                ...(property.images || []),
-                ...formattedImages,
-              ];
-
-              return {
-                ...property,
-                images: mergedImages,
-              };
-            } catch (err) {
-              console.error(
-                `Failed to fetch images for property ${property.id}:`,
-                err,
-              );
-              return {
-                ...property,
-                images: property.images || [],
-              };
-            }
-          }),
-        );
-
-        setProperties(propertiesWithImages);
+        // The /listings endpoint already eager-loads each property's images,
+        // so no per-property image fetch is needed here.
+        setProperties(fetchedProperties.slice(0, 8));
       } catch (err) {
         console.error("Error fetching featured properties:", err);
         setError(t("featured.error", "Failed to load featured properties"));

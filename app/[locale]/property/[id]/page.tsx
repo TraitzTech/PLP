@@ -5,8 +5,6 @@ import { Navbar } from "@/components/navigation/navbar";
 import { Footer } from "@/components/navigation/footer";
 import { PropertyDetailsWrapper } from "@/components/properties/property-details-wrapper";
 import { publicPropertyService } from "@/services/publicPropertyService";
-import { listingImageService } from "@/services/listingImageService";
-import { listingVideoService } from "@/services/listingVideoService";
 import type { AdminProperty } from "@/services/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -69,35 +67,16 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
                 const response = await publicPropertyService.getProperty(id);
                 const prop: AdminProperty = (response.data as any) || (response.data as any);
-                
-                // Fetch images
-                let images: string[] = [];
-                try {
-                    const imgRes = await listingImageService.getImagesByListing(prop.id);
-                    images = ((imgRes as any) || []).map((img: any) => getImageUrl(img.image_path));
-                } catch (err) {
-                    images = [];
-                }
-                if (!images.length && prop.images?.length) {
-                    images = prop.images.map((img: any) => getImageUrl(img.image_path || img.image_url));
-                }
 
-                console.log("Images fetched for property:", images);
+                // /listings/{id} already eager-loads images and videos —
+                // no need for separate per-property requests for either.
+                const images: string[] = (prop.images || []).map((img: any) =>
+                    getImageUrl(img.image_path || img.image_url)
+                );
 
-                // Fetch videos (optional)
-                let videos: string[] = [];
-                try {
-                    const vidRes = await listingVideoService.getVideosByListing(prop.id);
-                    videos = (vidRes.data || [])
-                        .map((v: any) => getVideoUrl(v.video_url || v.video_path))
-                        .filter(isNonEmptyString);
-                } catch (err) {
-                    videos = (prop as any)?.videos
-                        ? ((prop as any).videos as any[])
-                            .map((v: any) => getVideoUrl(v.video_url || v.video_path))
-                            .filter(isNonEmptyString)
-                        : [];
-                }
+                const videos: string[] = ((prop as any)?.videos || [])
+                    .map((v: any) => getVideoUrl(v.video_url || v.video_path))
+                    .filter(isNonEmptyString);
 
                 // Determine price unit based on property type
                 const getPriceUnit = (type: string | undefined): string => {

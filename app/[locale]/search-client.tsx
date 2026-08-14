@@ -11,9 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollRevealGroup } from '@/components/ui/scroll-reveal';
 import { MapPin, Filter, Grid3x3 as Grid3X3, Map, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { publicPropertyService } from '@/services/publicPropertyService';
-import { listingImageService } from '@/services/listingImageService';
 import { propertyTypeService } from '@/services/propertyTypeService';
 import { SearchMap } from '@/components/search/search-map';
 import { searchAnalyticsService } from '@/services/searchAnalyticsService';
@@ -177,26 +177,10 @@ export function SearchClient() {
           per_page: 100,
         });
 
+        // The /listings endpoint already eager-loads each property's images,
+        // so no per-property image fetch is needed here.
         const properties = Array.isArray(response?.data) ? response.data : [];
-        // Fetch images for each property
-        const propertiesWithImages = await Promise.all(
-          properties.map(async (property) => {
-            try {
-              const imagesResponse = await listingImageService.getImagesByListing(property.id);
-              return {
-                ...property,
-                images: (imagesResponse as any) || [],
-              };
-
-            } catch (err) {
-              return {
-                ...property,
-                images: [],
-              };
-            }
-          })
-        );
-        setAllProperties(propertiesWithImages);
+        setAllProperties(properties);
 
       } catch (error) {
         console.error('Failed to fetch properties:', error);
@@ -521,14 +505,19 @@ export function SearchClient() {
             ) : viewMode === 'grid' ? (
               <>
                 {/* Properties Grid */}
-                <div className={`grid grid-cols-1 md:grid-cols-2 ${showFilters ? 'lg:grid-cols-2 xl:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-6 mb-8`}>
+                <ScrollRevealGroup
+                  className={`grid grid-cols-1 md:grid-cols-2 ${showFilters ? 'lg:grid-cols-2 xl:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-6 mb-8`}
+                  stagger={0.06}
+                  distance={16}
+                  duration={0.35}
+                >
                   {currentProperties.map((property) => (
                     <PropertyCard
                       key={property.id}
                       property={property}
                     />
                   ))}
-                </div>
+                </ScrollRevealGroup>
 
                 {/* Pagination */}
                 {totalPages > 1 && (

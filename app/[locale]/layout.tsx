@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Urbanist } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
+import NextTopLoader from 'nextjs-toploader';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { TranslationProvider } from '@/components/translation-provider';
@@ -53,6 +54,13 @@ export default async function LocaleLayout({
 
     return (
         <div lang={validLocale} className={`${urbanist.variable} font-urbanist antialiased min-h-screen`}>
+            <NextTopLoader
+                color="linear-gradient(90deg, #390058 0%, #FF4672 55%, #FFB43B 100%)"
+                height={3}
+                showSpinner={false}
+                shadow="0 0 10px #FF4672, 0 0 5px #FF4672"
+                zIndex={2000}
+            />
             <ThemeProvider
                 attribute="class"
                 defaultTheme="light"
