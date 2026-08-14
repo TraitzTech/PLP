@@ -19,7 +19,7 @@ import { notificationService, type Notification, type NotificationType } from '@
 import { formatDistanceToNow } from 'date-fns';
 
 interface NotificationDropdownProps {
-  userType: 'customer' | 'owner' | 'agent' | 'admin';
+  userType: 'customer' | 'owner' | 'agent' | 'admin' | 'pao';
 }
 
 const iconMap: Record<NotificationType, React.ReactNode> = {

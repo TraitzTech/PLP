@@ -65,7 +65,11 @@ export default function UserForm({
       password: "",
       phone: user?.phone || "",
       gender: user?.gender || "male",
-      user_type: user?.user_type || "customer",
+      // This form only manages customer/agent/admin accounts — PAO accounts
+      // are created/edited via the dedicated Manage PAOs screens.
+      user_type: (user?.user_type === "agent" || user?.user_type === "admin"
+        ? user.user_type
+        : "customer"),
       email_verified_at: !!user?.email_verified_at || false,
     },
   });

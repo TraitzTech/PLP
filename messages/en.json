@@ -8,6 +8,7 @@
     "settings": "Settings",
     "customer": "Customer",
     "propertyAgent": "Property Agent",
+    "pao": "Property Acquisition Officer",
     "dashboard": "Dashboard",
     "selectLanguage": "Select Language",
     "about": "About",
@@ -725,6 +726,17 @@
         "notifications": "Notifications",
         "profile": "Profile",
         "settings": "Settings"
+      }
+    },
+    "pao": {
+      "title": "PAO Dashboard",
+      "navigation": {
+        "dashboard": "Dashboard",
+        "properties": "My Properties",
+        "landlords": "Landlords",
+        "tasksVisits": "Tasks & Visits",
+        "earnings": "Earnings",
+        "more": "More"
       }
     },
     "agent": {

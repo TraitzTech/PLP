@@ -17,7 +17,7 @@ export type LoginRequest = {
   email: string;
   password: string;
   remember?: boolean;
-  expected_user_type?: "admin" | "agent" | "customer";
+  expected_user_type?: "admin" | "agent" | "customer" | "pao";
 };
 export type LoginResponse = { user: string; token: string };
 
@@ -33,7 +33,7 @@ export type RegisterResponse = { user: string; token: string; token_type: "Beare
 
 // User Management
 export type UserGender = "male" | "female" | "other";
-export type UserType = "customer" | "agent" | "admin";
+export type UserType = "customer" | "agent" | "admin" | "pao";
 
 export interface User {
   id: number;
@@ -43,6 +43,8 @@ export interface User {
   gender: UserGender;
   user_type: UserType;
   avatar?: string | null;
+  agent_status?: string | null;
+  pao_status?: string | null;
   email_verified_at: string | null;
   created_at: string;
   updated_at: string;
@@ -780,3 +782,215 @@ export type AgentStatusUpdateResponse = {
   message: "Agent status updated successfully";
   data: Agent;
 };
+
+// PAO (Property Acquisition Officer) Management
+export type PaoStatus = "active" | "suspended";
+export type VerificationStatus = "pending" | "verified" | "needs_correction" | "rejected";
+export type PaoTaskType = "call" | "visit" | "verify" | "follow_up" | "other";
+export type PaoTaskStatus = "pending" | "completed";
+export type PaoEarningType = "property_bonus" | "verification_bonus" | "other_bonus";
+export type PaoEarningStatus = "pending" | "paid";
+
+export interface Pao {
+  id: number;
+  user_id: number;
+  staff_code: string;
+  profile_photo: string | null;
+  territory: string | null;
+  bio: string | null;
+  status: PaoStatus;
+  target_properties: number;
+  target_landlords: number;
+  target_verified_properties: number;
+  created_at: string;
+  updated_at: string;
+  user?: User;
+  properties_count?: number;
+  verified_count?: number;
+  landlords_count?: number;
+  total_earnings?: number;
+  paid_earnings?: number;
+  pending_earnings?: number;
+}
+
+export type AdminPaoCreateRequest = {
+  name: string;
+  email: string;
+  phone: string;
+  gender: UserGender;
+  territory?: string;
+  bio?: string;
+  profile_photo?: File | null;
+  target_properties?: number;
+  target_landlords?: number;
+  target_verified_properties?: number;
+};
+
+export type AdminPaoUpdateRequest = Partial<AdminPaoCreateRequest> & {
+  status?: PaoStatus;
+};
+
+export interface Landlord {
+  id: number;
+  pao_id: number;
+  name: string;
+  phone: string;
+  email: string | null;
+  region: string | null;
+  city: string | null;
+  location: string | null;
+  contact_verified: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  listings_count?: number;
+  listings?: Listing[];
+}
+
+export type LandlordRequest = {
+  name: string;
+  phone: string;
+  email?: string | null;
+  region?: string | null;
+  city?: string | null;
+  location?: string | null;
+  contact_verified?: boolean;
+  notes?: string | null;
+};
+
+export interface PaoProperty extends Listing {
+  pao_id: number;
+  landlord_id: number;
+  verification_status: VerificationStatus;
+  verification_notes: string | null;
+  verified_at: string | null;
+  landlord?: Landlord;
+  pao?: Pao;
+}
+
+export type PaoPropertyRequest = {
+  landlord_id: number;
+  property_type_id: number;
+  title?: string;
+  description?: string;
+  region: string;
+  city: string;
+  location: string;
+  price: number;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  for_rent?: boolean;
+  for_purchase?: boolean;
+  address?: string | null;
+};
+
+export interface PaoTask {
+  id: number;
+  pao_id: number;
+  type: PaoTaskType;
+  title: string;
+  notes: string | null;
+  landlord_id: number | null;
+  listing_id: number | null;
+  due_date: string | null;
+  status: PaoTaskStatus;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  landlord?: Landlord | null;
+  listing?: Listing | null;
+}
+
+export type PaoTaskRequest = {
+  type: PaoTaskType;
+  title: string;
+  notes?: string | null;
+  landlord_id?: number | null;
+  listing_id?: number | null;
+  due_date?: string | null;
+};
+
+export interface PaoVisitPhoto {
+  id: number;
+  pao_visit_id: number;
+  photo_path: string;
+  photo_url?: string;
+}
+
+export interface PaoVisit {
+  id: number;
+  pao_id: number;
+  landlord_id: number | null;
+  listing_id: number | null;
+  pao_task_id: number | null;
+  property_label: string | null;
+  visit_date: string;
+  notes: string | null;
+  status: "completed" | "follow_up_needed";
+  created_at: string;
+  updated_at: string;
+  landlord?: Landlord | null;
+  listing?: Listing | null;
+  photos?: PaoVisitPhoto[];
+}
+
+export type PaoVisitRequest = {
+  listing_id?: number | null;
+  landlord_id?: number | null;
+  pao_task_id?: number | null;
+  property_label?: string | null;
+  visit_date: string;
+  notes?: string | null;
+  status?: "completed" | "follow_up_needed";
+  photos?: File[];
+};
+
+export interface PaoEarning {
+  id: number;
+  pao_id: number;
+  type: PaoEarningType;
+  amount: number | string;
+  currency: string;
+  status: PaoEarningStatus;
+  listing_id: number | null;
+  note: string | null;
+  awarded_by: number | null;
+  paid_at: string | null;
+  created_at: string;
+  updated_at: string;
+  listing?: Listing | null;
+  pao?: Pao;
+}
+
+export interface PaoEarningsSummary {
+  total: number;
+  paid: number;
+  pending: number;
+  by_type?: {
+    property_bonus: number;
+    verification_bonus: number;
+    other_bonus: number;
+  };
+  currency: string;
+}
+
+export interface PaoDashboardStats {
+  kpis: {
+    properties_acquired: number;
+    verified: number;
+    landlords: number;
+    earnings_this_month: number;
+    currency: string;
+  };
+  targets: {
+    properties: { current: number; target: number };
+    landlords: { current: number; target: number };
+    verified_properties: { current: number; target: number };
+  };
+  today_tasks: {
+    summary: Record<PaoTaskType, number> & { total: number };
+    tasks: PaoTask[];
+  };
+  earnings_summary: { paid: number; pending: number };
+  pao: { id: number; staff_code: string; territory: string | null; status: PaoStatus };
+}

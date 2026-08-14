@@ -8,6 +8,7 @@
     "settings": "Paramètres",
     "customer": "Client",
     "propertyAgent": "Agent Immobilier",
+    "pao": "Agent d'Acquisition Immobilière",
     "dashboard": "Tableau de Bord",
     "selectLanguage": "Choisir la langue",
     "about": "À Propos",
@@ -725,6 +726,17 @@
         "notifications": "Notifications",
         "profile": "Profil",
         "settings": "Paramètres"
+      }
+    },
+    "pao": {
+      "title": "Tableau de Bord PAO",
+      "navigation": {
+        "dashboard": "Tableau de Bord",
+        "properties": "Mes Propriétés",
+        "landlords": "Propriétaires",
+        "tasksVisits": "Tâches et Visites",
+        "earnings": "Revenus",
+        "more": "Plus"
       }
     },
     "agent": {

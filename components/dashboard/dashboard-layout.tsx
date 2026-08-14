@@ -14,7 +14,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Chrome as Home, Calendar, Heart, MessageSquare, Settings, User, LogOut, Menu, X, Building2, ChartBar as BarChart3, Plus, Users, Shield, Bell, Star, Globe, Check, AlertCircle, Mail } from 'lucide-react';
+import { Chrome as Home, Calendar, Heart, MessageSquare, Settings, User, LogOut, Menu, X, Building2, ChartBar as BarChart3, Plus, Users, Shield, Bell, Star, Globe, Check, AlertCircle, Mail, ClipboardList, Wallet, MoreHorizontal, MapPin } from 'lucide-react';
 import { FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { authService } from '@/services/authService';
@@ -23,7 +23,7 @@ import { useTranslations } from '@/components/translation-provider';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
-    userType: 'customer' | 'owner' | 'agent' | 'admin';
+    userType: 'customer' | 'owner' | 'agent' | 'admin' | 'pao';
 }
 
 const customerNavItems = [
@@ -68,6 +68,15 @@ const agentNavItems = [
     { nameKey: 'dashboard.agent.navigation.settings', href: '/dashboard/agent/settings', icon: Settings },
 ];
 
+const paoNavItems = [
+    { nameKey: 'dashboard.pao.navigation.dashboard', href: '/dashboard/pao', icon: Home },
+    { nameKey: 'dashboard.pao.navigation.properties', href: '/dashboard/pao/properties', icon: Building2 },
+    { nameKey: 'dashboard.pao.navigation.landlords', href: '/dashboard/pao/landlords', icon: Users },
+    { nameKey: 'dashboard.pao.navigation.tasksVisits', href: '/dashboard/pao/tasks', icon: MapPin },
+    { nameKey: 'dashboard.pao.navigation.earnings', href: '/dashboard/pao/earnings', icon: Wallet },
+    { nameKey: 'dashboard.pao.navigation.more', href: '/dashboard/pao/more', icon: MoreHorizontal },
+];
+
 const adminNavItems = [
     { nameKey: 'dashboard.admin.navigation.dashboard', href: '/admin', icon: Home },
     { nameKey: 'dashboard.admin.navigation.users', href: '/admin/users', icon: Users },
@@ -77,6 +86,15 @@ const adminNavItems = [
         submenu: [
             { nameKey: 'dashboard.admin.navigation.allAgents', href: '/admin/agents' },
             { nameKey: 'dashboard.admin.navigation.pendingApprovals', href: '/admin/agents/pending' },
+        ]
+    },
+    {
+        nameKey: 'PAOs',
+        icon: ClipboardList,
+        submenu: [
+            { nameKey: 'All PAOs', href: '/admin/paos' },
+            { nameKey: 'Verification Queue', href: '/admin/paos/verification' },
+            { nameKey: 'PAO Earnings', href: '/admin/paos/earnings' },
         ]
     },
     { 
@@ -123,6 +141,7 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [agentApprovalBlock, setAgentApprovalBlock] = useState<null | { status: string; message: string }>(null);
+    const [paoSuspendedBlock, setPaoSuspendedBlock] = useState<null | { status: string; message: string }>(null);
     const pathname = usePathname();
     const router = useRouter();
     const pathnameRef = useRef(pathname);
@@ -170,17 +189,20 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                         'admin': ['admin'],
                         'agent': ['agent'],
                         'customer': ['customer'],
+                        'pao': ['pao'],
                         'owner': ['customer', 'agent'] // owners can be customers or agents
                     };
-                    
+
                     const allowedTypes = expectedUserTypes[userType] || [];
-                    
+
                     if (!actualUserType || !allowedTypes.includes(actualUserType)) {
                         // Redirect to the user's appropriate dashboard
                         if (actualUserType === 'admin') {
                             router.replace(`/${locale}/admin`);
                         } else if (actualUserType === 'agent') {
                             router.replace(`/${locale}/dashboard/agent`);
+                        } else if (actualUserType === 'pao') {
+                            router.replace(`/${locale}/dashboard/pao`);
                         } else {
                             router.replace(`/${locale}/dashboard`);
                         }
@@ -198,7 +220,18 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                             return;
                         }
                     }
-                    
+
+                    if (userType === 'pao' && actualUserType === 'pao') {
+                        const status = String((user as any)?.pao_status || '').toLowerCase();
+                        if (status && status !== 'active') {
+                            setPaoSuspendedBlock({
+                                status,
+                                message: 'Your PAO account is suspended. Please contact your administrator.',
+                            });
+                            return;
+                        }
+                    }
+
                     setIsAuthorized(true);
                 } else {
                     router.replace(`/${locale}/auth/signin`);
@@ -216,13 +249,15 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
 
     const navItems = userType === 'customer' ? customerNavItems :
         userType === 'owner' ? ownerNavItems :
-            userType === 'agent' ? agentNavItems : adminNavItems;
+            userType === 'agent' ? agentNavItems :
+                userType === 'pao' ? paoNavItems : adminNavItems;
 
     const getUserTitle = () => {
         switch (userType) {
             case 'customer': return t('dashboard.customer.title');
             case 'owner': return t('dashboard.owner.title');
             case 'agent': return t('dashboard.agent.title');
+            case 'pao': return 'PAO Dashboard';
             case 'admin': return t('dashboard.admin.title');
             default: return t('nav.dashboard');
         }
@@ -233,6 +268,7 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
             case 'customer': return '/dashboard/profile';
             case 'owner': return '/dashboard/owner/profile';
             case 'agent': return '/dashboard/agent/profile';
+            case 'pao': return '/dashboard/pao/more/profile';
             case 'admin': return '/admin/settings';
             default: return '/dashboard/profile';
         }
@@ -243,6 +279,7 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
             case 'customer': return '/dashboard/settings';
             case 'owner': return '/dashboard/owner/settings';
             case 'agent': return '/dashboard/agent/settings';
+            case 'pao': return '/dashboard/pao/more/profile';
             case 'admin': return '/admin/settings';
             default: return '/dashboard/settings';
         }
@@ -278,7 +315,8 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
 
     const currentLang = languages.find((l) => l.code === currentLocale) ?? languages[0];
 
-    if (agentApprovalBlock) {
+    if (agentApprovalBlock || paoSuspendedBlock) {
+        const blockMessage = agentApprovalBlock?.message ?? paoSuspendedBlock?.message ?? '';
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
                 <div className="max-w-lg w-full bg-white border border-amber-100 rounded-2xl shadow-sm p-6">
@@ -286,7 +324,7 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                         <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
                         <div>
                             <h1 className="text-lg font-semibold text-gray-900">Dashboard Locked</h1>
-                            <p className="text-sm text-gray-600 mt-1">{agentApprovalBlock.message}</p>
+                            <p className="text-sm text-gray-600 mt-1">{blockMessage}</p>
                         </div>
                     </div>
                     <div className="mt-6 flex flex-col sm:flex-row gap-3">
@@ -435,7 +473,7 @@ export function DashboardLayout({ children, userType }: DashboardLayoutProps) {
                         {navItems.map((item: any) => {
                             const Icon = item.icon;
                             const hasSubmenu = item.submenu && item.submenu.length > 0;
-                            const exactOnlyRoots = ['/dashboard', '/dashboard/owner', '/dashboard/agent', '/admin'];
+                            const exactOnlyRoots = ['/dashboard', '/dashboard/owner', '/dashboard/agent', '/dashboard/pao', '/admin'];
                             const isActive = item.href
                                 ? (exactOnlyRoots.includes(item.href)
                                     ? normalizedPath === item.href

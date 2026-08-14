@@ -6,7 +6,7 @@ import { authService } from '@/services/authService';
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  allowedRoles?: ('admin' | 'agent' | 'customer')[];
+  allowedRoles?: ('admin' | 'agent' | 'customer' | 'pao')[];
   redirectAuthenticated?: boolean; // For auth pages (signin/signup)
 }
 
@@ -53,6 +53,8 @@ export function AuthGuard({
               router.replace(`/${locale}/admin`);
             } else if (user?.user_type === 'agent') {
               router.replace(`/${locale}/dashboard/agent`);
+            } else if (user?.user_type === 'pao') {
+              router.replace(`/${locale}/dashboard/pao`);
             } else {
               router.replace(`/${locale}/dashboard`);
             }
@@ -79,12 +81,14 @@ export function AuthGuard({
             return;
           }
 
-          if (!allowedRoles.includes(user.user_type as 'admin' | 'agent' | 'customer')) {
+          if (!allowedRoles.includes(user.user_type as 'admin' | 'agent' | 'customer' | 'pao')) {
             // User doesn't have permission - redirect to their appropriate dashboard
             if (user.user_type === 'admin') {
               router.replace(`/${locale}/admin`);
             } else if (user.user_type === 'agent') {
               router.replace(`/${locale}/dashboard/agent`);
+            } else if (user.user_type === 'pao') {
+              router.replace(`/${locale}/dashboard/pao`);
             } else {
               router.replace(`/${locale}/dashboard`);
             }
