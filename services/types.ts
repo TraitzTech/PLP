@@ -158,6 +158,10 @@ export interface DashboardStats {
   monthlyRevenue: number;
   pendingApprovals: number;
   activeBookings: number;
+  totalBookings?: number;
+  totalSpent?: number;
+  completedBookings?: number;
+  cancelledBookings?: number;
   averageRating: number;
   platformGrowth: number;
   supportTickets?: number;
@@ -253,6 +257,7 @@ export type PropertyTypeNotFoundResponse = { status: "error"; message: "Property
 export interface Listing {
   id: number;
   agent_id: number;
+  pao_id?: number | null;
   property_type_id: number;
   title: string;
   slug: string;
@@ -269,6 +274,8 @@ export interface Listing {
   is_featured: boolean;
   is_approved: boolean;
   status: string;
+  verification_status?: VerificationStatus | null;
+  availability_status?: AvailabilityStatus | null;
   deleted_at: string | null;
   created_at: string | null;
   updated_at: string | null;
@@ -612,6 +619,7 @@ export interface ListingImage {
   url?: string;
   alt_text: string | null;
   is_featured?: boolean;
+  captured_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -635,6 +643,8 @@ export interface ListingVideo {
   url?: string;
   description?: string | null;
   thumbnail?: string | null;
+  duration_seconds?: number | string | null;
+  capture_method?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -785,7 +795,8 @@ export type AgentStatusUpdateResponse = {
 
 // PAO (Property Acquisition Officer) Management
 export type PaoStatus = "active" | "suspended";
-export type VerificationStatus = "pending" | "verified" | "needs_correction" | "rejected";
+export type VerificationStatus = "pending" | "physically_verified" | "advertiser_verified" | "document_checked" | "verified" | "needs_correction" | "rejected";
+export type AvailabilityStatus = "available" | "availability_pending" | "rented" | "sold" | "unavailable";
 export type PaoTaskType = "call" | "visit" | "verify" | "follow_up" | "other";
 export type PaoTaskStatus = "pending" | "completed";
 export type PaoEarningType = "property_bonus" | "verification_bonus" | "other_bonus";
@@ -862,6 +873,10 @@ export interface PaoProperty extends Listing {
   pao_id: number;
   landlord_id: number;
   verification_status: VerificationStatus;
+  availability_status: AvailabilityStatus;
+  acquisition_latitude?: number | null;
+  acquisition_longitude?: number | null;
+  gps_accuracy_m?: number | null;
   verification_notes: string | null;
   verified_at: string | null;
   landlord?: Landlord;
@@ -882,6 +897,14 @@ export type PaoPropertyRequest = {
   for_rent?: boolean;
   for_purchase?: boolean;
   address?: string | null;
+  latitude?: number;
+  longitude?: number;
+  gps_accuracy_m?: number;
+  photos?: File[];
+  photo_capture_times?: string[];
+  live_video?: File;
+  live_video_duration?: number;
+  live_video_capture_method?: "camera";
 };
 
 export interface PaoTask {

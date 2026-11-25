@@ -10,6 +10,7 @@ export function inspectLoginResponse() {
   console.log("Local Storage Contents:");
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
+    if (key === null) continue;
     const value = localStorage.getItem(key);
     
     if (key === 'token') {

@@ -7,6 +7,7 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { paoService } from "@/services/paoService";
+import { normalizeCameroonPhone } from "@/components/dashboard/pao/pao-landlord-form";
 import {
   PaoLandlordForm,
   buildLandlordPayload,
@@ -31,6 +32,14 @@ export default function NewLandlordPage() {
 
     setSubmitting(true);
     try {
+      const existingLandlords = await paoService.getLandlords();
+      const duplicate = existingLandlords.some(
+        (landlord) => normalizeCameroonPhone(landlord.phone) === normalizeCameroonPhone(result.payload.phone)
+      );
+      if (duplicate) {
+        toast.error("This landlord phone number is already registered.");
+        return;
+      }
       const created = await paoService.createLandlord(result.payload);
       toast.success("Landlord added");
       router.push(`/dashboard/pao/landlords/${created.id}`);

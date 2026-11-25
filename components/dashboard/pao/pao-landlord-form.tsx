@@ -32,6 +32,10 @@ export const emptyLandlordFormValues: PaoLandlordFormValues = {
   notes: "",
 };
 
+export function normalizeCameroonPhone(phone: string): string {
+  return phone.replace(/\D/g, "").replace(/^237/, "");
+}
+
 export function landlordToFormValues(landlord: Landlord): PaoLandlordFormValues {
   return {
     name: landlord.name ?? "",
@@ -50,14 +54,16 @@ export function buildLandlordPayload(
   values: PaoLandlordFormValues
 ): { payload: LandlordRequest } | { error: string } {
   if (!values.name.trim()) return { error: "Landlord name is required." };
-  if (!values.phone.trim()) return { error: "Phone number is required." };
+  const phone = normalizeCameroonPhone(values.phone);
+  if (!phone) return { error: "Phone number is required." };
+  if (!/^6\d{8}$/.test(phone)) return { error: "Enter a Cameroon mobile number with 9 digits starting with 6." };
 
   const orNull = (value: string) => (value.trim() === "" ? null : value.trim());
 
   return {
     payload: {
       name: values.name.trim(),
-      phone: values.phone.trim(),
+      phone,
       email: orNull(values.email),
       region: orNull(values.region),
       city: orNull(values.city),
@@ -121,7 +127,8 @@ export function PaoLandlordForm({
               className="h-11"
               value={values.phone}
               onChange={(e) => set("phone", e.target.value)}
-              placeholder="+237 6XX XXX XXX"
+              placeholder="6XX XXX XXX"
+              maxLength={16}
               required
             />
           </div>

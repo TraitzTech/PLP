@@ -105,9 +105,19 @@ export const paoService = {
   },
 
   async createProperty(payload: PaoPropertyRequest): Promise<PaoProperty> {
+    const formData = createFormData(payload as Record<string, any>);
     const { data } = await apiClient.post<{ status: string; data: PaoProperty }>(
       "/pao/properties",
-      payload
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    return data.data;
+  },
+
+  async updateAvailability(id: string | number, availability_status: string): Promise<PaoProperty> {
+    const { data } = await apiClient.patch<{ status: string; data: PaoProperty }>(
+      `/pao/properties/${id}/availability`,
+      { availability_status }
     );
     return data.data;
   },

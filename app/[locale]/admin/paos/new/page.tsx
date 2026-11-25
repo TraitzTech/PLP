@@ -152,8 +152,12 @@ export default function CreatePaoPage() {
         target_verified_properties: parseTarget(formData.target_verified_properties),
       };
 
-      await adminPaoService.createPao(payload);
-      toast.success("PAO created successfully. Login credentials have been emailed to them.");
+      const result = await adminPaoService.createPao(payload);
+      if (result.emailSent) {
+        toast.success("PAO account created. A password setup link was sent to their email.");
+      } else {
+        toast.error("PAO account created, but the setup email was not sent. Check mail settings and resend it from the PAO list.");
+      }
       router.push(withLocale("/admin/paos"));
     } catch (error: any) {
       console.error("Error creating PAO:", error);

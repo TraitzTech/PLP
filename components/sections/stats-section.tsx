@@ -1,76 +1,19 @@
 'use client'
 
-import React from 'react';
-import { useEffect, useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Building2, Users, MapPin } from 'lucide-react';
 import { useTranslations } from '@/components/translation-provider';
-import { homepageService } from '@/services/homepageService';
-
-const statIcons = [Building2, Users, MapPin];
-const statKeys = ['properties', 'customers', 'cities'];
-
-const formatCompact = (value: number): string => {
-  if (value >= 1000000) return `${Math.round(value / 1000000)}M+`;
-  if (value >= 1000) return `${Math.round(value / 1000)}K+`;
-  return `${value}+`;
-};
 
 export function StatsSection() {
   const t = useTranslations();
-  const [statValues, setStatValues] = useState(['50K+', '25K+', '100+']);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await homepageService.getHomepageData();
-        const numbers = data.portal_numbers;
-        setStatValues([
-          formatCompact(numbers.properties_listed || 50000),
-          formatCompact(numbers.verified_agents || 25000),
-          formatCompact(numbers.cities_covered || 100),
-        ]);
-      } catch {
-        setStatValues(['50K+', '25K+', '100+']);
-      }
-    };
-
-    load();
-  }, []);
 
   return (
     <section className="py-20 bg-gradient-to-r from-plp-purple via-plp-pink to-plp-yellow">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-4 mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-white">
-            {t('stats.title')}
-          </h2>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            {t('stats.subtitle')}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {statKeys.map((key, index) => {
-            const Icon = statIcons[index];
-            return (
-              <Card key={key} className="bg-white/10 backdrop-blur-md border-white/20 text-center">
-                <CardContent className="p-8">
-                  <div className="flex flex-col items-center space-y-4">
-                    <div className="bg-white/20 p-4 rounded-2xl">
-                      <Icon className="w-8 h-8 text-white" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="text-4xl font-bold text-white">{statValues[index]}</div>
-                      <div className="text-lg font-semibold text-white">{t(`stats.${key}.label`)}</div>
-                      <div className="text-sm text-white/80">{t(`stats.${key}.description`)}</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 className="mx-auto max-w-4xl text-3xl sm:text-5xl font-bold text-white">
+          {t('stats.title')}
+        </h2>
+        <p className="mx-auto mt-5 max-w-2xl text-xl text-white/90">
+          {t('stats.subtitle')}
+        </p>
       </div>
     </section>
   );

@@ -103,17 +103,9 @@ export const agentService = {
       });
       
       // Handle the response structure: { status: "success", data: Agent[] }
-      if (response.data && response.data.data) {
-        return response.data.data;
-      }
-      
-      // If data is directly an array
-      if (Array.isArray(response.data)) {
-        return response.data;
-      }
-      
-      // Fallback
-      return [];
+      const agents = response.data?.data;
+      if (Array.isArray(agents)) return agents;
+      return agents?.data ?? [];
     } catch (error) {
       console.error("Failed to fetch agents:", error);
       throw error;
@@ -130,15 +122,7 @@ export const agentService = {
       );
       
       // Handle response structure
-      if (response.data && response.data.data) {
-        return response.data.data;
-      }
-      
-      if (Array.isArray(response.data)) {
-        return response.data;
-      }
-      
-      return [];
+      return Array.isArray(response.data?.data) ? response.data.data : [];
     } catch (error) {
       console.error("Failed to fetch pending agents:", error);
       throw error;
@@ -154,12 +138,7 @@ export const agentService = {
         `${BASE_URL}/${id}`
       );
       
-      // Handle response structure
-      if (response.data && response.data.data) {
-        return response.data.data;
-      }
-      
-      return response.data as Agent;
+      return response.data.data;
     } catch (error) {
       console.error(`Failed to fetch agent ${id}:`, error);
       throw error;
@@ -175,11 +154,7 @@ export const agentService = {
         `${PENDING_URL}/${id}`
       );
       
-      if (response.data && response.data.data) {
-        return response.data.data;
-      }
-      
-      return response.data as Agent;
+      return response.data.data;
     } catch (error) {
       console.error(`Failed to fetch pending agent ${id}:`, error);
       throw error;

@@ -28,11 +28,6 @@ export const authService = {
 
         if (data?.token) {
             setToken(data.token);
-        } else {
-            // Fallback: If backend returns user data, we might need to handle it differently
-            if (data?.user || data?.data?.user) {
-                // Keep backward compatibility with deployments that may use session responses.
-            }
         }
         
         return data;

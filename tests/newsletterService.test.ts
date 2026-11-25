@@ -133,12 +133,16 @@ describe("newsletterService", () => {
       expect(newsletterService.hasSeenPopup()).toBe(false);
     });
 
-    it("markPopupAsSeen sets localStorage value", () => {
+    it("markPopupAsSeen increments the dismissal count", () => {
       newsletterService.markPopupAsSeen();
-      expect(localStorageMock.getItem("plp_newsletter_popup_seen")).toBe("true");
+      expect(localStorageMock.getItem("plp_newsletter_popup_seen_count")).toBe("1");
     });
 
-    it("hasSeenPopup returns true after marking as seen", () => {
+    it("allows up to three dismissals before stopping", () => {
+      newsletterService.markPopupAsSeen();
+      expect(newsletterService.hasSeenPopup()).toBe(false);
+      newsletterService.markPopupAsSeen();
+      expect(newsletterService.hasSeenPopup()).toBe(false);
       newsletterService.markPopupAsSeen();
       expect(newsletterService.hasSeenPopup()).toBe(true);
     });
@@ -186,9 +190,11 @@ describe("newsletterService", () => {
       expect(newsletterService.shouldShowPopup()).toBe(true);
     });
 
-    it("returns false if popup was already seen", () => {
+    it("returns false after popup has been dismissed three times", () => {
       newsletterService.incrementVisitCount();
       newsletterService.incrementVisitCount();
+      newsletterService.markPopupAsSeen();
+      newsletterService.markPopupAsSeen();
       newsletterService.markPopupAsSeen();
       expect(newsletterService.shouldShowPopup()).toBe(false);
     });

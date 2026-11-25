@@ -33,7 +33,7 @@ export function AgentCTASection() {
               <p className="mt-4 text-lg text-gray-600 leading-relaxed">
                 {t(
                   "agentCta.description",
-                  "Join Cameroon's fastest-growing property portal. Reach thousands of potential tenants and buyers every day. Our platform provides the tools you need to manage your listings effectively.",
+                  "Building a verified property network across Cameroon, one genuine property at a time.",
                 )}
               </p>
             </div>
@@ -44,12 +44,12 @@ export function AgentCTASection() {
                   <Users className="h-6 w-6" />
                 </div>
                 <h4 className="font-semibold text-gray-900 text-sm">
-                  {t("agentCta.audienceTitle", "Large Audience")}
+                  {t("agentCta.audienceTitle", "Growing Network")}
                 </h4>
                 <p className="text-xs text-gray-500">
                   {t(
                     "agentCta.audienceDesc",
-                    "Connect with thousands of active seekers.",
+                    "Present genuine properties to people searching for a home.",
                   )}
                 </p>
               </div>
@@ -72,12 +72,12 @@ export function AgentCTASection() {
                   <ShieldCheck className="h-6 w-6" />
                 </div>
                 <h4 className="font-semibold text-gray-900 text-sm">
-                  {t("agentCta.leadsTitle", "Verified Leads")}
+                  {t("agentCta.leadsTitle", "Clear Property Details")}
                 </h4>
                 <p className="text-xs text-gray-500">
                   {t(
                     "agentCta.leadsDesc",
-                    "Get quality leads from verified users.",
+                    "Help seekers make informed decisions with accurate listing information.",
                   )}
                 </p>
               </div>
@@ -107,47 +107,8 @@ export function AgentCTASection() {
                 className="object-cover w-full h-full"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6 text-white">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3].map((i) => (
-                      <div
-                        key={i}
-                        className="h-8 w-8 rounded-full border-2 border-white bg-gray-200 overflow-hidden"
-                      >
-                        <img
-                          src={`https://i.pravatar.cc/150?u=${i}`}
-                          alt="Agent"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <span className="text-sm font-medium">
-                    {t(
-                      "agentCta.joinedText",
-                      "Joined by 1,000+ agents this month",
-                    )}
-                  </span>
-                </div>
-              </div>
             </div>
 
-            {/* Floating card */}
-            <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-xl hidden sm:block border border-gray-100 max-w-[200px] animate-bounce-subtle">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                  <ShieldCheck className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">
-                    {t("agentCta.verifiedLabel", "Verified")}
-                  </p>
-                  <p className="text-sm font-bold text-gray-900">
-                    {t("agentCta.verifiedTitle", "Top Rated Agent")}
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

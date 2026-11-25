@@ -58,6 +58,7 @@ import {
   Trash2,
   Edit,
   MoreHorizontal,
+  Mail,
   Ban,
   CheckCircle2,
   XCircle,
@@ -97,6 +98,7 @@ export default function AdminPaosPage() {
   const [deletePaoId, setDeletePaoId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+  const [resendingInvitationId, setResendingInvitationId] = useState<string | null>(null);
 
   const fetchPaos = async () => {
     try {
@@ -146,6 +148,18 @@ export default function AdminPaosPage() {
       toast.error(getApiErrorMessage(error, "Failed to update PAO status"));
     } finally {
       setUpdatingStatusId(null);
+    }
+  };
+
+  const handleResendInvitation = async (pao: Pao) => {
+    setResendingInvitationId(String(pao.id));
+    try {
+      const message = await adminPaoService.resendInvitation(pao.id);
+      toast.success(message);
+    } catch (error: any) {
+      toast.error(getApiErrorMessage(error, "Could not send the password setup link"));
+    } finally {
+      setResendingInvitationId(null);
     }
   };
 
@@ -395,6 +409,13 @@ export default function AdminPaosPage() {
                               >
                                 <Eye className="mr-2 h-4 w-4" />
                                 View
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleResendInvitation(pao)}
+                                disabled={resendingInvitationId === String(pao.id)}
+                              >
+                                <Mail className="mr-2 h-4 w-4" />
+                                {resendingInvitationId === String(pao.id) ? "Sending…" : "Resend password setup link"}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() =>

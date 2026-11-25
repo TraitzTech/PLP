@@ -171,7 +171,7 @@ export default function BlogPage() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center gap-2 mb-8">
                 <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t.featured}</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('blog.featured')}</h2>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {featuredPosts.slice(0, 2).map((post) => (

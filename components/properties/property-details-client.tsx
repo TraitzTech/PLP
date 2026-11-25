@@ -845,14 +845,21 @@ export function PropertyDetailsClient({ property, similarProperties, reviews: in
                 </Badge>
               ))}
               {property.is_approved && (
-                <Badge className="bg-green-100 text-green-800">✓ Approved</Badge>
+                <Badge className="bg-green-100 text-green-800">✓ Quality Approved</Badge>
+              )}
+              {property.verification_status && (
+                <Badge className="bg-emerald-50 text-emerald-800">
+                  {({ pending: "Verification Pending", physically_verified: "Physically Verified", advertiser_verified: "Advertiser Verified", document_checked: "Document Checked", verified: "Quality Approved" } as Record<string, string>)[property.verification_status] || "Verification Pending"}
+                </Badge>
               )}
               {property.is_featured && (
                 <Badge className="bg-blue-100 text-blue-800">⭐ Featured</Badge>
               )}
-              {property.number_available > 0 && (
-                <Badge className="bg-emerald-100 text-emerald-800">Available</Badge>
-              )}
+              {property.availability_status ? (
+                <Badge className={property.availability_status === "available" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-900"}>
+                  {({ available: "Available", availability_pending: "Availability Pending", rented: "Rented", sold: "Sold", unavailable: "Unavailable" } as Record<string, string>)[property.availability_status] || "Availability Pending"}
+                </Badge>
+              ) : property.number_available > 0 ? <Badge className="bg-emerald-100 text-emerald-800">Available</Badge> : null}
               {property.is_negotiable && (
                 <Badge className="bg-amber-100 text-amber-800">Negotiable</Badge>
               )}

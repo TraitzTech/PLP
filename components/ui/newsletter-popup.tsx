@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-  X,
   Mail,
   Bell,
   Home,
@@ -15,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { newsletterService } from "@/services/newsletterService";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 interface NewsletterPopupProps {
   delay?: number;
@@ -46,6 +45,10 @@ export function NewsletterPopup({ delay = 3000 }: NewsletterPopupProps) {
   const handleClose = () => {
     setIsVisible(false);
     newsletterService.markPopupAsSeen();
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open && isVisible) handleClose();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,39 +93,11 @@ export function NewsletterPopup({ delay = 3000 }: NewsletterPopupProps) {
   };
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-            onClick={handleClose}
-          />
-
-          {/* Popup wrapper - flex centering */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="w-full max-w-lg max-h-[calc(100vh-2rem)] overflow-y-auto pointer-events-auto rounded-2xl shadow-2xl"
-            >
-              <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden">
+    <Dialog open={isVisible} onOpenChange={handleOpenChange}>
+      <DialogContent className="w-[calc(100%-2rem)] max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border-0 p-0 shadow-2xl">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden">
                 {/* Header with gradient */}
                 <div className="relative bg-gradient-to-br from-plp-purple via-purple-600 to-indigo-700 p-8 text-white">
-                  {/* Close button */}
-                  <button
-                    onClick={handleClose}
-                    className="absolute top-4 right-4 z-10 p-2 rounded-full hover:bg-white/20 transition-colors"
-                    aria-label="Close popup"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-
                   {/* Decorative elements */}
                   <div className="pointer-events-none absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                   <div className="pointer-events-none absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
@@ -135,15 +110,15 @@ export function NewsletterPopup({ delay = 3000 }: NewsletterPopupProps) {
                       <Sparkles className="w-6 h-6 text-yellow-300" />
                     </div>
 
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+                    <DialogTitle className="text-2xl sm:text-3xl font-bold mb-2 text-left text-white">
                       Never Miss a Perfect Property!
-                    </h2>
-                    <p className="text-white/90 text-sm sm:text-base">
+                    </DialogTitle>
+                    <DialogDescription className="text-white/90 text-sm sm:text-base text-left">
                       Join our newsletter and be the first to discover new
                       listings, exclusive deals, and property market insights.
-                    </p>
+                    </DialogDescription>
                     <p className="mt-4 text-xs text-white/80">
-                      Tip: Click the X or tap outside this card to dismiss.
+                      Press Escape or click outside to close.
                     </p>
                   </div>
                 </div>
@@ -214,11 +189,7 @@ export function NewsletterPopup({ delay = 3000 }: NewsletterPopupProps) {
                       </p>
                     </form>
                   ) : (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="text-center py-4"
-                    >
+                    <div className="text-center py-4">
                       <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full mb-4">
                         <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
                       </div>
@@ -229,14 +200,11 @@ export function NewsletterPopup({ delay = 3000 }: NewsletterPopupProps) {
                         Thank you for subscribing! Check your email for a
                         welcome message.
                       </p>
-                    </motion.div>
+                    </div>
                   )}
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        </>
-      )}
-    </AnimatePresence>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

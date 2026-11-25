@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Users, Target, Award, Heart, Globe, Shield, ChevronRight } from 'lucide-react';
 import {Navbar} from "@/components/navigation/navbar";
@@ -22,12 +22,6 @@ export default function AboutPage() {
         'about_mission_description',
         'about_vision_title',
         'about_vision_description',
-        'about_journey_title',
-        'about_journey_items',
-        'about_team_title',
-        'about_team_description',
-        'about_team_members',
-        'about_stats_items',
         'about_cta_title',
         'about_cta_description',
         'about_cta_button_text',
@@ -39,71 +33,10 @@ export default function AboutPage() {
     loadAboutSettings();
   }, []);
 
-  const statsItems = useMemo(() => {
-    const fromSettings = Array.isArray(aboutSettings.about_stats_items)
-      ? aboutSettings.about_stats_items
-      : [];
-
-    if (fromSettings.length > 0) {
-      return fromSettings.map((item) => ({
-        number: String(item?.number || ''),
-        label: String(item?.label || ''),
-      }));
-    }
-
-    return [0, 1, 2, 3].map((index) => ({
-      number: t(`about.stats.${index}.number`),
-      label: t(`about.stats.${index}.label`),
-    }));
-  }, [aboutSettings.about_stats_items, t]);
-
-  const teamMembers = useMemo(() => {
-    const fromSettings = Array.isArray(aboutSettings.about_team_members)
-      ? aboutSettings.about_team_members
-      : [];
-
-    if (fromSettings.length > 0) {
-      return fromSettings.map((member, index) => ({
-        id: `${member?.name || 'member'}-${index}`,
-        name: String(member?.name || `Team Member ${index + 1}`),
-        role: String(member?.role || ''),
-        description: String(member?.description || ''),
-        image: String(member?.image || ''),
-        link: String(member?.link || ''),
-      }));
-    }
-
-    return [0, 1, 2, 3].map((index) => ({
-      id: `fallback-${index}`,
-      name: t(`about.team.${index}.name`),
-      role: t(`about.team.${index}.role`),
-      description: t(`about.team.${index}.bio`),
-      image: '',
-      link: '',
-    }));
-  }, [aboutSettings.about_team_members, t]);
-
-  const journeyItems = useMemo(() => {
-    const fromSettings = Array.isArray(aboutSettings.about_journey_items)
-      ? aboutSettings.about_journey_items
-      : [];
-
-    if (fromSettings.length > 0) {
-      return fromSettings.map((item, index) => ({
-        id: `${item?.year || 'year'}-${index}`,
-        year: String(item?.year || ''),
-        title: String(item?.title || ''),
-        description: String(item?.description || ''),
-      }));
-    }
-
-    return [0, 1, 2, 3, 4].map((index) => ({
-      id: `timeline-${index}`,
-      year: t(`about.timeline.${index}.year`),
-      title: t(`about.timeline.${index}.title`),
-      description: t(`about.timeline.${index}.description`),
-    }));
-  }, [aboutSettings.about_journey_items, t]);
+  // Avoid publishing sample metrics, names, and milestones as company facts.
+  const statsItems: { number: string; label: string }[] = [];
+  const teamMembers: { id: string; name: string; role: string; description: string; image: string; link: string }[] = [];
+  const journeyItems: { id: string; year: string; title: string; description: string }[] = [];
 
   const ctaLink = String(aboutSettings.about_cta_button_link || '/search');
 
@@ -174,6 +107,7 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {statsItems.length > 0 && (<>
       {/* Stats */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -194,7 +128,9 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      </>)}
 
+      {teamMembers.length > 0 && (<>
       {/* Team */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -247,7 +183,9 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      </>)}
 
+      {journeyItems.length > 0 && (<>
       {/* Timeline */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -273,6 +211,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      </>)}
 
       <PlatformGuideSection />
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { AlertCircle, Phone, MapPin, ShieldCheck, RefreshCw, CircleDashed } from "lucide-react";
-import type { PaoTaskType, VerificationStatus } from "@/services/types";
+import type { AvailabilityStatus, PaoTaskType, VerificationStatus } from "@/services/types";
 
 /**
  * Currency formatting used across every PAO screen. Values coming from the API
@@ -41,8 +41,20 @@ const VERIFICATION_META: Record<
   { label: string; className: string }
 > = {
   verified: {
-    label: "Verified ✓",
+    label: "Quality Approved",
     className: "bg-green-100 text-green-800 hover:bg-green-100 border-transparent",
+  },
+  physically_verified: {
+    label: "Physically Verified",
+    className: "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-transparent",
+  },
+  advertiser_verified: {
+    label: "Advertiser Verified",
+    className: "bg-blue-100 text-blue-800 hover:bg-blue-100 border-transparent",
+  },
+  document_checked: {
+    label: "Document Checked",
+    className: "bg-violet-100 text-violet-800 hover:bg-violet-100 border-transparent",
   },
   pending: {
     label: "Pending verification ⏳",
@@ -57,6 +69,20 @@ const VERIFICATION_META: Record<
     className: "bg-gray-100 text-gray-700 hover:bg-gray-100 border-transparent",
   },
 };
+
+const AVAILABILITY_META: Record<AvailabilityStatus, { label: string; className: string }> = {
+  available: { label: "Available", className: "bg-green-100 text-green-800" },
+  availability_pending: { label: "Availability Pending", className: "bg-amber-100 text-amber-800" },
+  rented: { label: "Rented", className: "bg-blue-100 text-blue-800" },
+  sold: { label: "Sold", className: "bg-violet-100 text-violet-800" },
+  unavailable: { label: "Unavailable", className: "bg-gray-100 text-gray-700" },
+};
+
+export function AvailabilityBadge({ status }: { status?: AvailabilityStatus | null }) {
+  if (!status) return null;
+  const meta = AVAILABILITY_META[status] ?? AVAILABILITY_META.availability_pending;
+  return <Badge variant="secondary" className={cn("font-medium whitespace-nowrap border-transparent", meta.className)}>{meta.label}</Badge>;
+}
 
 export function VerificationBadge({
   status,

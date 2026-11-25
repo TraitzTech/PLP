@@ -79,7 +79,6 @@ export function PropertyCategories() {
       icon: React.ComponentType<{ className?: string }>;
       image: string;
       color: string;
-      count?: string;
     })[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,7 +96,6 @@ export function PropertyCategories() {
         const types = await propertyTypeService.getAllPropertyTypes();
 
         // Map property types with their config and limit to 8
-        const countSuffix = t("categories.countSuffix", "properties");
         const categoriesWithConfig = types
           .slice(0, 6) // Limit to 6 property types
           .map((type) => ({
@@ -110,7 +108,6 @@ export function PropertyCategories() {
             color:
               propertyTypeConfig[type.name.toLowerCase()]?.color ||
               "plp-purple",
-            count: `${Math.floor(Math.random() * 10000) + 1000}+ ${countSuffix}`, // Placeholder count
           }));
 
         setCategories(categoriesWithConfig);
@@ -190,9 +187,6 @@ export function PropertyCategories() {
                           {t("categories.comingSoon", "Coming Soon")}
                         </div>
                       )}
-                      <div className="absolute bottom-4 left-4 text-white">
-                        <p className="text-sm opacity-90">{category.count}</p>
-                      </div>
                     </div>
 
                     <CardContent className="p-6">

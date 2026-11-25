@@ -45,14 +45,19 @@ export const adminPaoService = {
     return data.data;
   },
 
-  async createPao(payload: AdminPaoCreateRequest): Promise<Pao> {
+  async createPao(payload: AdminPaoCreateRequest): Promise<{ pao: Pao; emailSent: boolean; message: string }> {
     const formData = createFormData(payload);
-    const { data } = await apiClient.post<{ status: string; message: string; data: Pao }>(
+    const { data } = await apiClient.post<{ status: string; message: string; email_sent: boolean; data: Pao }>(
       BASE_URL,
       formData,
       { headers: { "Content-Type": "multipart/form-data" } }
     );
-    return data.data;
+    return { pao: data.data, emailSent: data.email_sent, message: data.message };
+  },
+
+  async resendInvitation(id: string | number): Promise<string> {
+    const { data } = await apiClient.post<{ status: string; message: string }>(`${BASE_URL}/${id}/resend-invitation`);
+    return data.message;
   },
 
   async updatePao(id: string | number, payload: AdminPaoUpdateRequest): Promise<Pao> {
@@ -102,6 +107,14 @@ export const adminPaoService = {
     const { data } = await apiClient.patch<{ status: string; data: PaoProperty }>(
       `/admin/pao-verifications/${id}/status`,
       { verification_status, notes }
+    );
+    return data.data;
+  },
+
+  async updateAvailabilityStatus(id: string | number, availability_status: string): Promise<PaoProperty> {
+    const { data } = await apiClient.patch<{ status: string; data: PaoProperty }>(
+      `/admin/pao-verifications/${id}/status`,
+      { availability_status }
     );
     return data.data;
   },

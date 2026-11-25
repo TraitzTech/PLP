@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BadgeCheck, Building2, MapPin, Users } from "lucide-react";
+import { BadgeCheck, MapPin } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "@/components/translation-provider";
@@ -33,13 +33,6 @@ function formatCurrency(value?: number): string {
     currency: "XAF",
     minimumFractionDigits: 0,
   }).format(value || 0);
-}
-
-function formatCompact(value?: number): string {
-  const safe = Number(value || 0);
-  if (safe >= 1000000) return `${Math.round(safe / 1000000)}M+`;
-  if (safe >= 1000) return `${Math.round(safe / 1000)}K+`;
-  return `${safe}+`;
 }
 
 function localePrefix(pathname: string): string {
@@ -123,13 +116,6 @@ export function HomeDynamicSections() {
     t("homeDynamic.whyUsePoints.3", "Safe and Transparent Property Discovery"),
   ];
   const citiesCovered = data?.cities_covered || ["Douala", "Bamenda"];
-  const numbers = data?.portal_numbers || {
-    properties_listed: 50000,
-    verified_agents: 25000,
-    cities_covered: 100,
-    monthly_visitors: 0,
-  };
-
   return (
     <>
       <section className="bg-white py-16">
@@ -312,42 +298,10 @@ export function HomeDynamicSections() {
             ))}
           </div>
 
-          <div className="rounded-3xl bg-gradient-to-r from-slate-900 to-slate-800 p-6 sm:p-8">
-            <h4 className="text-2xl font-bold text-white">
-              {t(
-                "homeDynamic.statsTitle",
-                "Property Listing Portal in Numbers",
-              )}
+          <div className="rounded-3xl bg-gradient-to-r from-slate-900 to-slate-800 p-8 sm:p-10 text-center">
+            <h4 className="text-2xl font-bold text-white sm:text-3xl">
+              {t("stats.title", "Building a verified property network across Cameroon, one genuine property at a time")}
             </h4>
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="rounded-xl border border-white/20 bg-white/10 p-4">
-                <Building2 className="h-5 w-5 text-amber-300" />
-                <p className="mt-2 text-2xl font-bold text-white">
-                  {formatCompact(numbers.properties_listed)}
-                </p>
-                <p className="text-sm text-slate-200">
-                  {t("homeDynamic.statsProperties", "Properties Listed")}
-                </p>
-              </div>
-              <div className="rounded-xl border border-white/20 bg-white/10 p-4">
-                <Users className="h-5 w-5 text-emerald-300" />
-                <p className="mt-2 text-2xl font-bold text-white">
-                  {formatCompact(numbers.verified_agents)}
-                </p>
-                <p className="text-sm text-slate-200">
-                  {t("homeDynamic.statsCustomers", "Happy Customers")}
-                </p>
-              </div>
-              <div className="rounded-xl border border-white/20 bg-white/10 p-4">
-                <MapPin className="h-5 w-5 text-blue-300" />
-                <p className="mt-2 text-2xl font-bold text-white">
-                  {formatCompact(numbers.cities_covered)}
-                </p>
-                <p className="text-sm text-slate-200">
-                  {t("homeDynamic.statsCities", "Cities")}
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </section>

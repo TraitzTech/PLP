@@ -108,7 +108,7 @@ export default function CreatePropertyPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFacilityToggle = (facilityId: string) => {
+  const handleFacilityToggle = (facilityId: number) => {
     setFormData((prev) => ({
       ...prev,
       facilities_id: prev.facilities_id.includes(facilityId)
@@ -475,8 +475,8 @@ export default function CreatePropertyPage() {
               <div key={facility.id} className="flex items-start space-x-2 p-3 rounded-lg border hover:bg-gray-50 transition-colors">
                 <Checkbox
                   id={`facility-${facility.id}`}
-                  checked={formData.facilities_id.includes(facility.id.toString())}
-                  onCheckedChange={() => handleFacilityToggle(facility.id.toString())}
+                  checked={formData.facilities_id.includes(facility.id)}
+                  onCheckedChange={() => handleFacilityToggle(facility.id)}
                   className="mt-1"
                 />
                 <Label

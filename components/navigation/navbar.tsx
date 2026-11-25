@@ -10,7 +10,7 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import {
   Menu,
   X,
-  User,
+  User as UserIcon,
   Heart,
   MessageSquare,
   Settings,
@@ -305,7 +305,7 @@ export function Navbar() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="relative">
-                      <User className="w-4 h-4" />
+                      <UserIcon className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
@@ -327,7 +327,7 @@ export function Navbar() {
                         href={accountRoutes.profile}
                         className="flex items-center"
                       >
-                        <User className="w-4 h-4 mr-2" />
+                        <UserIcon className="w-4 h-4 mr-2" />
                         {t("nav.profile", "Profile")}
                       </Link>
                     </DropdownMenuItem>
@@ -389,7 +389,7 @@ export function Navbar() {
                         href="/auth/signin?type=customer"
                         className="flex items-center"
                       >
-                        <User className="w-4 h-4 mr-2" />
+                        <UserIcon className="w-4 h-4 mr-2" />
                         {t("nav.customer", "Customer")}
                       </Link>
                     </DropdownMenuItem>
@@ -407,7 +407,7 @@ export function Navbar() {
                         href="/auth/signin?type=admin"
                         className="flex items-center"
                       >
-                        <User className="w-4 h-4 mr-2" />
+                        <UserIcon className="w-4 h-4 mr-2" />
                         {t("nav.admin", "Admin")}
                       </Link>
                     </DropdownMenuItem>
@@ -518,7 +518,7 @@ export function Navbar() {
                       onClick={() => setIsOpen(false)}
                     >
                       <Link href={accountRoutes.dashboard}>
-                        <User className="w-4 h-4 mr-2" />
+                        <UserIcon className="w-4 h-4 mr-2" />
                         {t("nav.dashboard", "Dashboard")}
                       </Link>
                     </Button>
@@ -528,7 +528,7 @@ export function Navbar() {
                         className="flex items-center px-3 py-2 text-gray-700 hover:text-plp-purple"
                         onClick={() => setIsOpen(false)}
                       >
-                        <User className="w-4 h-4 mr-2" />
+                        <UserIcon className="w-4 h-4 mr-2" />
                         {t("nav.profile", "Profile")}
                       </Link>
                       {currentUser?.user_type === "customer" && (
@@ -574,7 +574,7 @@ export function Navbar() {
                         onClick={() => setIsOpen(false)}
                       >
                         <Link href="/auth/signin?type=customer">
-                          <User className="w-4 h-4 mr-2" />
+                          <UserIcon className="w-4 h-4 mr-2" />
                           {t("nav.customer", "Customer")}
                         </Link>
                       </Button>
@@ -596,7 +596,7 @@ export function Navbar() {
                         onClick={() => setIsOpen(false)}
                       >
                         <Link href="/auth/signin?type=admin">
-                          <User className="w-4 h-4 mr-2" />
+                          <UserIcon className="w-4 h-4 mr-2" />
                           {t("nav.admin", "Admin")}
                         </Link>
                       </Button>

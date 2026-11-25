@@ -22,6 +22,7 @@ import {
 import {
   PaoErrorState,
   VerificationBadge,
+  AvailabilityBadge,
   formatDate,
   formatXAF,
 } from "@/components/dashboard/pao/pao-ui";
@@ -51,6 +52,7 @@ export default function PaoPropertyDetailPage() {
   const [saving, setSaving] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [savingAvailability, setSavingAvailability] = useState(false);
 
   const loadAll = useCallback(async () => {
     if (!propertyId) return;
@@ -143,6 +145,20 @@ export default function PaoPropertyDetailPage() {
 
   const images = property?.images ?? [];
 
+  const handleAvailabilityChange = async (availabilityStatus: string) => {
+    if (!propertyId || savingAvailability) return;
+    setSavingAvailability(true);
+    try {
+      const updated = await paoService.updateAvailability(propertyId, availabilityStatus);
+      setProperty(updated);
+      toast.success("Availability status updated");
+    } catch (error: any) {
+      toast.error(error?.message || "Could not update availability");
+    } finally {
+      setSavingAvailability(false);
+    }
+  };
+
   return (
     <DashboardLayout userType="pao">
       <div className="space-y-6 max-w-3xl">
@@ -158,6 +174,7 @@ export default function PaoPropertyDetailPage() {
             {!loading && property ? (
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <VerificationBadge status={property.verification_status} />
+                <AvailabilityBadge status={property.availability_status} />
                 <span className="text-sm font-semibold text-plp-purple">
                   {formatXAF(property.price)}
                 </span>
@@ -193,10 +210,7 @@ export default function PaoPropertyDetailPage() {
                     <p className="font-semibold text-red-900">This listing needs correction</p>
                     <p className="text-sm text-red-800 mt-1 whitespace-pre-line">
                       {property.verification_notes ||
-                        "An admin asked for changes. Update the details below and save to resubmit."}
-                    </p>
-                    <p className="text-xs text-red-700 mt-2">
-                      Saving your changes automatically resubmits it for review.
+                        "Quality Assurance requested a correction. Contact an administrator to update the submission."}
                     </p>
                   </div>
                 </CardContent>
@@ -252,6 +266,20 @@ export default function PaoPropertyDetailPage() {
               </CardContent>
             </Card>
 
+            <Card>
+              <CardHeader><CardTitle>Availability</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                <label htmlFor="pao-availability" className="text-sm font-medium">Listing availability status</label>
+                <select id="pao-availability" value={property.availability_status || "availability_pending"} onChange={(event) => handleAvailabilityChange(event.target.value)} disabled={savingAvailability} className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm">
+                  <option value="available">Available</option>
+                  <option value="availability_pending">Availability Pending</option>
+                  <option value="rented">Rented</option>
+                  <option value="sold">Sold</option>
+                  <option value="unavailable">Unavailable</option>
+                </select>
+              </CardContent>
+            </Card>
+
             {/* Photos */}
             <Card>
               <CardHeader>
@@ -293,49 +321,23 @@ export default function PaoPropertyDetailPage() {
                   </p>
                 )}
 
-                <div className="space-y-3 pt-2 border-t">
-                  <input
-                    ref={fileInputRef}
-                    id="propertyPhotos"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileChange}
-                    className="block w-full text-sm text-gray-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-plp-purple/10 file:text-plp-purple hover:file:bg-plp-purple/20"
-                  />
-                  {selectedFiles.length > 0 ? (
-                    <p className="text-sm text-gray-600">
-                      {selectedFiles.length} file{selectedFiles.length === 1 ? "" : "s"} selected
-                    </p>
-                  ) : null}
-                  <Button
-                    type="button"
-                    className="h-11 w-full sm:w-auto bg-plp-purple hover:bg-plp-purple/90 text-white"
-                    onClick={handleUpload}
-                    disabled={uploading || selectedFiles.length === 0}
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    {uploading ? "Uploading..." : "Upload photos"}
-                  </Button>
-                </div>
+                <p className="border-t pt-3 text-xs text-gray-500">Evidence is locked after submission. Contact an administrator or Quality Assurance reviewer if a correction is needed.</p>
               </CardContent>
             </Card>
 
-            {/* Edit form */}
-            <PaoPropertyForm
-              values={values}
-              onChange={setValues}
-              onSubmit={handleSubmit}
-              landlords={landlords}
-              propertyTypes={propertyTypes}
-              submitting={saving}
-              submitLabel={
-                property.verification_status === "needs_correction"
-                  ? "Save & resubmit"
-                  : "Save changes"
-              }
-              submittingLabel="Saving..."
-            />
+            {property.videos?.length ? (
+              <Card>
+                <CardHeader><CardTitle>Live property video</CardTitle></CardHeader>
+                <CardContent className="space-y-2">
+                  {property.videos.map((video) => (
+                    <div key={video.id} className="rounded-lg border p-3 text-sm">
+                      <p>{video.duration_seconds ? `${video.duration_seconds}s` : "Video"} · {video.capture_method === "camera" ? "Captured live on site" : "Submitted video"}</p>
+                    </div>
+                  ))}
+                  <p className="text-xs text-gray-500">Submitted property evidence is read-only.</p>
+                </CardContent>
+              </Card>
+            ) : null}
           </>
         ) : null}
       </div>

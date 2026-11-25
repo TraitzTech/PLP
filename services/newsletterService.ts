@@ -54,7 +54,8 @@ export const newsletterService = {
    */
   getPopupSeenCount(): number {
     if (typeof window === "undefined") return 999;
-    return parseInt(window.localStorage.getItem("plp_newsletter_popup_seen_count") || "0", 10);
+    const count = Number.parseInt(window.localStorage.getItem("plp_newsletter_popup_seen_count") || "0", 10);
+    return Number.isFinite(count) ? count : 0;
   },
 
   /**
@@ -119,7 +120,6 @@ export const newsletterService = {
     const hasSeenPopup = this.hasSeenPopup();
     const isSubscribed = this.isSubscribedLocally();
     
-    // Show popup on 1st+ visit, up to 3 times, if not subscribed
-    return visitCount >= 1 && !hasSeenPopup && !isSubscribed;
+    return visitCount >= 2 && !hasSeenPopup && !isSubscribed;
   },
 };

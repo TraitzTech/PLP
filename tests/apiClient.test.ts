@@ -14,8 +14,8 @@ describe("apiClient", () => {
     it("attaches Authorization header when token is set", async () => {
         setToken("abc123");
 
-        mock.onGet("/listings").reply((config: { headers: any; }) => {
-            expect((config.headers as any)?.Authorization).toBe("Bearer abc123");
+        mock.onGet("/listings").reply((config) => {
+            expect(config.headers?.Authorization).toBe("Bearer abc123");
             return [200, { ok: true }];
         });
 

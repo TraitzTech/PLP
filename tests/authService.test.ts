@@ -1,15 +1,23 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import apiClient from "@/lib/apiClient";
+import apiClient, { sanctumClient } from "@/lib/apiClient";
 import { authService } from "@/services/authService";
 import { getToken, clearToken } from "@/lib/authToken";
 
 let mock: MockAdapter;
+let sanctumMock: MockAdapter;
 
 describe("authService", () => {
   beforeEach(() => {
     mock = new MockAdapter(apiClient);
+    sanctumMock = new MockAdapter(sanctumClient);
+    sanctumMock.onGet("/sanctum/csrf-cookie").reply(204);
     clearToken();
+  });
+
+  afterEach(() => {
+    mock.restore();
+    sanctumMock.restore();
   });
 
   it("login stores token and returns data", async () => {

@@ -71,21 +71,17 @@
     "comingSoon": "Coming Soon",
     "comingSoonNote": "Coming soon for launch rollout",
     "placeholderDescription": "Discover amazing properties in this category",
-    "countSuffix": "properties",
     "hotels": {
       "name": "Hotels",
-      "description": "Luxury hotels and resorts for your perfect getaway",
-      "count": "2,500+ properties"
+      "description": "Luxury hotels and resorts for your perfect getaway"
     },
     "houses": {
       "name": "Houses",
-      "description": "Beautiful homes for rent or purchase",
-      "count": "18,000+ properties"
+      "description": "Beautiful homes for rent or purchase"
     },
     "land": {
       "name": "Land",
-      "description": "Prime land for investment and development",
-      "count": "5,200+ plots"
+      "description": "Prime land for investment and development"
     }
   },
   "featured": {
@@ -97,16 +93,16 @@
   },
   "agentCta": {
     "title": "Are you a Property Owner or Agent?",
-    "description": "Join Cameroon's fastest-growing property portal. Reach thousands of potential tenants and buyers every day. Our platform provides the tools you need to manage your listings effectively.",
-    "audienceTitle": "Large Audience",
-    "audienceDesc": "Connect with thousands of active seekers.",
+    "description": "Building a verified property network across Cameroon, one genuine property at a time.",
+    "audienceTitle": "Growing Network",
+    "audienceDesc": "Present genuine properties to people searching for a home.",
     "managementTitle": "Easy Management",
     "managementDesc": "List and track properties with ease.",
-    "leadsTitle": "Verified Leads",
-    "leadsDesc": "Get quality leads from verified users.",
+    "leadsTitle": "Clear Property Details",
+    "leadsDesc": "Help seekers make informed decisions with accurate listing information.",
     "cta": "Start Listing Today",
     "imageAlt": "Agents working together",
-    "joinedText": "Joined by 1,000+ agents this month",
+    "joinedText": "Building a verified property network across Cameroon, one genuine property at a time",
     "verifiedLabel": "Verified",
     "verifiedTitle": "Top Rated Agent"
   },
@@ -183,8 +179,8 @@
     "searchesLabel": "searches"
   },
   "stats": {
-    "title": "Trusted by Thousands",
-    "subtitle": "Join our growing community of property owners and travelers who trust us for their accommodation needs.",
+    "title": "Building a verified property network across Cameroon, one genuine property at a time",
+    "subtitle": "We are growing carefully by checking property details and working with local owners and advertisers.",
     "properties": {
       "label": "Properties Listed",
       "description": "Verified properties across all categories"
@@ -1426,15 +1422,15 @@
     "title": "Are you a {owner} or {agent}?",
     "owner": "Property Owner",
     "agent": "Agent",
-    "description": "Join Cameroon's fastest-growing property portal. Reach thousands of potential tenants and buyers every day. Our platform provides the tools you need to manage your listings effectively.",
+    "description": "Building a verified property network across Cameroon, one genuine property at a time.",
     "button": "Start Listing Today",
-    "joinedBy": "Joined by 1,000+ agents this month",
+    "joinedBy": "Building a verified property network across Cameroon, one genuine property at a time",
     "verified": "Verified",
     "topRated": "Top Rated Agent",
     "features": {
       "audience": {
         "title": "Large Audience",
-        "description": "Connect with thousands of active seekers."
+        "description": "Share property details with people looking for a place to call home."
       },
       "management": {
         "title": "Easy Management",

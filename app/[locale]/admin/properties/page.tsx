@@ -327,7 +327,7 @@ export default function AdminPropertiesPage() {
                             <td className="px-6 py-4 text-sm">{property.location}</td>
                             <td className="px-6 py-4 text-sm font-semibold">{property.price} XAF</td>
                             <td className="px-6 py-4 text-sm">
-                              {getStatusBadge(property.status === "1" || property.status === "available" ? "Available" : "Unavailable")}
+                              {getStatusBadge(property.status === "available" ? "Available" : "Unavailable")}
                             </td>
                             <td className="px-6 py-4 text-sm">
                               {property.is_approved ? (

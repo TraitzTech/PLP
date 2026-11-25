@@ -1299,9 +1299,9 @@ export default function CreatePropertyPage() {
               )}
             </p>
             <LocationPicker
-              latitude={formData.latitude}
-              longitude={formData.longitude}
-              address={formData.address}
+              latitude={formData.latitude ?? null}
+              longitude={formData.longitude ?? null}
+              address={formData.address ?? undefined}
               onLocationSelect={(lat, lng, addr) => {
                 handleInputChange("latitude", lat);
                 handleInputChange("longitude", lng);

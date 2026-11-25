@@ -15,6 +15,7 @@ import {
   PaoEmptyState,
   PaoErrorState,
   VerificationBadge,
+  AvailabilityBadge,
 } from "@/components/dashboard/pao/pao-ui";
 import { cn } from "@/lib/utils";
 
@@ -176,6 +177,7 @@ export default function PaoPropertiesPage() {
                             {formatXAF(property.price)}
                           </span>
                           <VerificationBadge status={property.verification_status} />
+                          <AvailabilityBadge status={property.availability_status} />
                         </div>
                       </div>
                     </div>

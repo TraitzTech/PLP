@@ -120,6 +120,8 @@ interface PaoPropertyFormProps {
   onCancel?: () => void;
   /** Lock the landlord select (e.g. when editing an existing property). */
   landlordDisabled?: boolean;
+  evidenceContent?: React.ReactNode;
+  canSubmit?: boolean;
 }
 
 export function PaoPropertyForm({
@@ -133,6 +135,8 @@ export function PaoPropertyForm({
   submittingLabel,
   onCancel,
   landlordDisabled = false,
+  evidenceContent,
+  canSubmit = true,
 }: PaoPropertyFormProps) {
   const set = <K extends keyof PaoPropertyFormValues>(key: K, value: PaoPropertyFormValues[K]) =>
     onChange({ ...values, [key]: value });
@@ -147,6 +151,7 @@ export function PaoPropertyForm({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
+          {evidenceContent}
           {/* Landlord */}
           <div className="space-y-2">
             <Label htmlFor="landlord">Landlord *</Label>
@@ -334,7 +339,7 @@ export function PaoPropertyForm({
         <Button
           type="submit"
           className="h-11 bg-plp-purple hover:bg-plp-purple/90 text-white"
-          disabled={submitting || landlords.length === 0}
+          disabled={submitting || landlords.length === 0 || !canSubmit}
         >
           <Save className="w-4 h-4 mr-2" />
           {submitting ? submittingLabel : submitLabel}

@@ -100,6 +100,21 @@ export function PropertyCard({ property }: PropertyCardProps) {
   
   // Ensure is_available is a boolean, defaulting to true if undefined
   const isAvailable = property.is_available !== false; // Treats undefined, null, and 0 as true by default
+  const listingStatus = property as Listing;
+  const verificationLabel: Record<string, string> = {
+    pending: "Verification Pending",
+    physically_verified: "Physically Verified",
+    advertiser_verified: "Advertiser Verified",
+    document_checked: "Document Checked",
+    verified: "Quality Approved",
+  };
+  const availabilityLabel: Record<string, string> = {
+    available: "Available",
+    availability_pending: "Availability Pending",
+    rented: "Rented",
+    sold: "Sold",
+    unavailable: "Unavailable",
+  };
   
 
   return (
@@ -138,6 +153,11 @@ export function PropertyCard({ property }: PropertyCardProps) {
               {badge}
             </Badge>
           ))}
+          {listingStatus.verification_status && (
+            <Badge variant="secondary" className="bg-white/95 text-emerald-800 text-xs">
+              {verificationLabel[listingStatus.verification_status] || "Verification Pending"}
+            </Badge>
+          )}
         </div>
         
         <Button
@@ -152,9 +172,9 @@ export function PropertyCard({ property }: PropertyCardProps) {
           <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
         </Button>
 
-        {!isAvailable && (
-          <div className="absolute bottom-0 left-0 right-0 bg-red-500/90 text-white text-center py-1 text-xs font-medium">
-            Not Available
+        {(listingStatus.availability_status || !isAvailable) && (
+          <div className={`absolute bottom-0 left-0 right-0 text-center py-1 text-xs font-medium ${isAvailable ? "bg-amber-500/90 text-white" : "bg-red-500/90 text-white"}`}>
+            {listingStatus.availability_status ? availabilityLabel[listingStatus.availability_status] : "Unavailable"}
           </div>
         )}
       </div>

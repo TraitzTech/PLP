@@ -18,6 +18,8 @@ import {
   type PaoPropertyFormValues,
 } from "@/components/dashboard/pao/pao-property-form";
 import { PaoErrorState } from "@/components/dashboard/pao/pao-ui";
+import { PaoCaptureEvidence, type PaoGpsCapture } from "@/components/dashboard/pao/pao-capture-evidence";
+import type { PaoProperty } from "@/services/types";
 
 /** The property-types endpoint has returned both a bare array and a wrapped object historically. */
 function normalizePropertyTypes(response: unknown): PropertyType[] {
@@ -41,17 +43,25 @@ export default function NewPropertyClient() {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [video, setVideo] = useState<File | null>(null);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [gps, setGps] = useState<PaoGpsCapture | null>(null);
+  const [submissionsToday, setSubmissionsToday] = useState(0);
 
   const loadOptions = React.useCallback(async () => {
     setLoading(true);
     setFailed(false);
     try {
-      const [landlordList, typeResponse] = await Promise.all([
+      const [landlordList, typeResponse, paoProperties] = await Promise.all([
         paoService.getLandlords(),
         propertyTypeService.getAllPropertyTypes(),
+        paoService.getProperties().catch(() => [] as PaoProperty[]),
       ]);
       setLandlords(Array.isArray(landlordList) ? landlordList : []);
       setPropertyTypes(normalizePropertyTypes(typeResponse));
+      const today = new Date().toDateString();
+      setSubmissionsToday(paoProperties.filter((property) => property.created_at && new Date(property.created_at).toDateString() === today).length);
     } catch (error: any) {
       console.error("Error loading property form options:", error);
       toast.error(error?.message || "Failed to load the form");
@@ -84,10 +94,33 @@ export default function NewPropertyClient() {
       return;
     }
 
+    if (photos.length < 3 || photos.length > 5) {
+      toast.error("Capture three to five recent property photos.");
+      return;
+    }
+    if (!video || videoDuration < 10 || videoDuration > 45) {
+      toast.error("Record a live camera video between 10 and 45 seconds.");
+      return;
+    }
+    if (!gps || gps.accuracy > 100) {
+      toast.error("Capture an accurate GPS position (100 metres or better) at the property.");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const created = await paoService.createProperty(result.payload);
-      toast.success("Property added. Now add some photos!");
+      const created = await paoService.createProperty({
+        ...result.payload,
+        photos,
+        photo_capture_times: photos.map((photo) => new Date(photo.lastModified).toISOString()),
+        live_video: video,
+        live_video_duration: videoDuration,
+        live_video_capture_method: "camera",
+        latitude: gps.latitude,
+        longitude: gps.longitude,
+        gps_accuracy_m: gps.accuracy,
+      });
+      toast.success("Property submitted and pending Quality Assurance.");
       router.push(`/dashboard/pao/properties/${created.id}`);
     } catch (error: any) {
       console.error("Error creating property:", error);
@@ -107,9 +140,7 @@ export default function NewPropertyClient() {
           </Button>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Add Property</h1>
-            <p className="text-gray-600 text-sm mt-1">
-              Keep it quick — you can add photos on the next screen.
-            </p>
+            <p className="text-gray-600 text-sm mt-1">Capture complete property details and on-site evidence. New submissions await Quality Assurance.</p>
           </div>
         </div>
 
@@ -126,8 +157,9 @@ export default function NewPropertyClient() {
               ))}
             </CardContent>
           </Card>
-        ) : (
-          <PaoPropertyForm
+        ) : submissionsToday >= 3 ? (
+            <Card className="border-amber-200 bg-amber-50"><CardContent className="p-5 text-sm text-amber-900">You have reached the limit of three property submissions for today. You can submit again tomorrow.</CardContent></Card>
+          ) : <PaoPropertyForm
             values={values}
             onChange={setValues}
             onSubmit={handleSubmit}
@@ -137,8 +169,9 @@ export default function NewPropertyClient() {
             submitLabel="Add Property"
             submittingLabel="Adding..."
             onCancel={() => router.back()}
-          />
-        )}
+            canSubmit={!submitting && photos.length >= 3 && photos.length <= 5 && Boolean(video) && videoDuration >= 10 && videoDuration <= 45 && Boolean(gps) && (gps?.accuracy ?? 101) <= 100 && !("error" in buildPropertyPayload(values))}
+            evidenceContent={<PaoCaptureEvidence photos={photos} onPhotosChange={setPhotos} video={video} onVideoChange={setVideo} duration={videoDuration} onDurationChange={setVideoDuration} gps={gps} onGpsChange={setGps} />}
+          />}
       </div>
     </DashboardLayout>
   );

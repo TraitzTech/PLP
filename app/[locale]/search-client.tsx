@@ -309,10 +309,11 @@ export function SearchClient() {
     filtered = filtered.filter(property => property.is_approved === true);
 
     // Filter by availability (show properties that are available or have availability unset)
-    filtered = filtered.filter(property => 
-      property.is_available !== false && 
-      (property.number_available === undefined || property.number_available === null || property.number_available >= 1)
-    );
+    filtered = filtered.filter(property => {
+      if ((property as any).pao_id) return true;
+      return property.is_available !== false &&
+        (property.number_available === undefined || property.number_available === null || property.number_available >= 1);
+    });
 
     // Sort
     switch (sortBy) {

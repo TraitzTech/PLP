@@ -51,6 +51,8 @@ interface Campaign {
   has_action_button: boolean
   action_button_text?: string
   action_button_url?: string
+  action_button_style?: string
+  include_logo?: boolean
   created_at: string
   sent_at?: string
 }

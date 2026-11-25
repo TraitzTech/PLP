@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
@@ -57,6 +57,7 @@ export function SignInClient() {
   const searchParams = useSearchParams();
   const userType = searchParams?.get("type") || "customer";
   const redirectUrl = searchParams?.get("redirect");
+  const locale = pathname?.split("/").filter(Boolean)[0] || "en";
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -66,7 +67,12 @@ export function SignInClient() {
     rememberMe: false,
   });
 
-  const locale = pathname?.split("/").filter(Boolean)[0] || "en";
+  useEffect(() => {
+    if (searchParams?.get("verified") === "1") {
+      toast.success(locale === "fr" ? "Adresse e-mail vérifiée. Vous pouvez vous connecter." : "Email verified. You can now sign in.");
+    }
+  }, [locale, searchParams]);
+
   const withLocale = (path: string) => `/${locale}${path}`;
 
   const getDashboardPathByRole = (role?: string | null) => {

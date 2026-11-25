@@ -44,6 +44,7 @@ import { TableLoader } from "@/components/ui/shimmer-loaders";
 import {
   resolveListingImageObjectSrc,
   resolveListingImageSrc,
+  resolveListingVideoObjectSrc,
 } from "@/lib/listingMedia";
 import type { PaoProperty, VerificationStatus } from "@/services/types";
 import {
@@ -57,8 +58,11 @@ type TabValue = "all" | VerificationStatus;
 
 const TABS: { value: TabValue; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "pending", label: "Pending" },
-  { value: "verified", label: "Verified" },
+  { value: "pending", label: "Verification Pending" },
+  { value: "physically_verified", label: "Physically Verified" },
+  { value: "advertiser_verified", label: "Advertiser Verified" },
+  { value: "document_checked", label: "Document Checked" },
+  { value: "verified", label: "Quality Approved" },
   { value: "needs_correction", label: "Needs Correction" },
   { value: "rejected", label: "Rejected" },
 ];
@@ -116,6 +120,9 @@ export default function PaoVerificationQueuePage() {
     const base: Record<TabValue, number> = {
       all: properties.length,
       pending: 0,
+      physically_verified: 0,
+      advertiser_verified: 0,
+      document_checked: 0,
       verified: 0,
       needs_correction: 0,
       rejected: 0,
@@ -200,10 +207,16 @@ export default function PaoVerificationQueuePage() {
 
       toast.success(
         status === "verified"
-          ? "Property verified and published"
+          ? "Quality approved and published"
           : status === "needs_correction"
           ? "Sent back to the PAO for correction"
-          : "Property rejected"
+          : status === "rejected"
+          ? "Property rejected"
+          : status === "physically_verified"
+          ? "Physical verification recorded"
+          : status === "advertiser_verified"
+          ? "Advertiser verification recorded"
+          : "Document check recorded"
       );
       closeDialog();
       await fetchQueue();
@@ -471,6 +484,11 @@ export default function PaoVerificationQueuePage() {
                   </Alert>
                 )}
 
+                {selectedProperty.videos?.map((video) => {
+                  const src = resolveListingVideoObjectSrc(video);
+                  return src ? <video key={video.id} controls playsInline className="w-full max-h-80 rounded-lg border bg-black" src={src} /> : null;
+                })}
+
                 {/* Property details */}
                 <div>
                   <h3 className="font-semibold mb-3">Property Details</h3>
@@ -525,6 +543,18 @@ export default function PaoVerificationQueuePage() {
                     <div>
                       <p className="text-muted-foreground">Address</p>
                       <p className="font-medium">{selectedProperty.address || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Availability</p>
+                      <p className="font-medium">{selectedProperty.availability_status?.replaceAll("_", " ") || "Availability pending"}</p>
+                    </div>
+                    <div className="col-span-2 md:col-span-3">
+                      <p className="text-muted-foreground">PAO location evidence</p>
+                      {selectedProperty.acquisition_latitude != null && selectedProperty.acquisition_longitude != null ? (
+                        <a className="font-medium text-plp-purple underline" target="_blank" rel="noreferrer" href={`https://maps.google.com/?q=${selectedProperty.acquisition_latitude},${selectedProperty.acquisition_longitude}`}>
+                          {selectedProperty.acquisition_latitude}, {selectedProperty.acquisition_longitude} · ±{Math.round(Number(selectedProperty.gps_accuracy_m || 0))} m · Open map
+                        </a>
+                      ) : <p className="font-medium text-red-600">GPS not captured</p>}
                     </div>
                     {selectedProperty.description && (
                       <div className="col-span-2 md:col-span-3">
@@ -587,11 +617,41 @@ export default function PaoVerificationQueuePage() {
                 <div className="rounded-lg border p-4 space-y-4">
                   <div>
                     <h3 className="font-semibold">Review Decision</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Verifying publishes this property to the public site and awards the PAO's
-                      verification bonus.
-                    </p>
+                    <p className="text-sm text-muted-foreground">Record verification checks as they are completed. Quality Approval is the action that publishes the property and awards PAO bonuses.</p>
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="availability-status">Availability Status</Label>
+                    <select
+                      id="availability-status"
+                      value={selectedProperty.availability_status || "availability_pending"}
+                      onChange={async (event) => {
+                        try {
+                          const updated = await adminPaoService.updateAvailabilityStatus(selectedProperty.id, event.target.value);
+                          setSelectedProperty(updated);
+                          setProperties((current) => current.map((property) => property.id === updated.id ? updated : property));
+                          toast.success("Availability status updated");
+                        } catch (error: any) {
+                          toast.error(getApiErrorMessage(error, "Could not update availability"));
+                        }
+                      }}
+                      className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="availability_pending">Availability Pending</option>
+                      <option value="available">Available</option>
+                      <option value="rented">Rented</option>
+                      <option value="sold">Sold</option>
+                      <option value="unavailable">Unavailable</option>
+                    </select>
+                  </div>
+
+                  {!pendingAction && (
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" onClick={() => submitDecision("physically_verified")} disabled={isSubmitting}>Mark physically verified</Button>
+                      <Button variant="outline" onClick={() => submitDecision("advertiser_verified")} disabled={isSubmitting}>Mark advertiser verified</Button>
+                      <Button variant="outline" onClick={() => submitDecision("document_checked")} disabled={isSubmitting}>Mark documents checked</Button>
+                    </div>
+                  )}
 
                   {pendingAction && (
                     <div className="space-y-2">

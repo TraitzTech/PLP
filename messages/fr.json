@@ -71,21 +71,17 @@
     "comingSoon": "Bientôt",
     "comingSoonNote": "Bientôt disponible pour le lancement",
     "placeholderDescription": "Découvrez des propriétés incroyables dans cette catégorie",
-    "countSuffix": "propriétés",
     "hotels": {
       "name": "Hôtels",
-      "description": "Hôtels de luxe et centres de villégiature pour votre escapade parfaite",
-      "count": "2 500+ propriétés"
+      "description": "Hôtels de luxe et centres de villégiature pour votre escapade parfaite"
     },
     "houses": {
       "name": "Maisons",
-      "description": "Belles maisons à louer ou à acheter",
-      "count": "18 000+ propriétés"
+      "description": "Belles maisons à louer ou à acheter"
     },
     "land": {
       "name": "Terrain",
-      "description": "Terrain de premier choix pour l'investissement et le développement",
-      "count": "5 200+ parcelles"
+      "description": "Terrain de premier choix pour l'investissement et le développement"
     }
   },
   "featured": {
@@ -97,16 +93,16 @@
   },
   "agentCta": {
     "title": "Êtes-vous propriétaire ou agent immobilier ?",
-    "description": "Rejoignez le portail immobilier à la croissance la plus rapide du Cameroun. Atteignez chaque jour des milliers de locataires et d'acheteurs potentiels. Notre plateforme vous offre les outils pour gérer efficacement vos annonces.",
-    "audienceTitle": "Large Audience",
-    "audienceDesc": "Connectez-vous à des milliers de chercheurs actifs.",
+    "description": "Nous bâtissons un réseau immobilier vérifié au Cameroun, un bien authentique à la fois.",
+    "audienceTitle": "Réseau en croissance",
+    "audienceDesc": "Présentez vos biens aux personnes qui cherchent un logement.",
     "managementTitle": "Gestion Facile",
     "managementDesc": "Publiez et suivez vos propriétés facilement.",
-    "leadsTitle": "Leads Vérifiés",
-    "leadsDesc": "Obtenez des leads de qualité issus d'utilisateurs vérifiés.",
+    "leadsTitle": "Informations claires",
+    "leadsDesc": "Aidez les personnes en recherche avec des informations exactes sur les biens.",
     "cta": "Commencer à Publier",
     "imageAlt": "Agents travaillant ensemble",
-    "joinedText": "Rejoint par plus de 1 000 agents ce mois-ci",
+    "joinedText": "Nous bâtissons un réseau immobilier vérifié au Cameroun, un bien authentique à la fois",
     "verifiedLabel": "Vérifié",
     "verifiedTitle": "Agent Très Bien Noté"
   },
@@ -183,8 +179,8 @@
     "searchesLabel": "recherches"
   },
   "stats": {
-    "title": "Approuvé par des Milliers",
-    "subtitle": "Rejoignez notre communauté grandissante de propriétaires et de voyageurs qui nous font confiance pour leurs besoins d'hébergement.",
+    "title": "Nous bâtissons un réseau immobilier vérifié au Cameroun, un bien authentique à la fois",
+    "subtitle": "Nous avançons avec soin en vérifiant les informations des biens et en travaillant avec les propriétaires et annonceurs locaux.",
     "properties": {
       "label": "Propriétés Listées",
       "description": "Propriétés vérifiées dans toutes les catégories"
