@@ -150,12 +150,20 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
+    let frame = 0;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        setIsScrolled(window.scrollY > 10);
+        frame = 0;
+      });
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   const handleLogout = async () => {

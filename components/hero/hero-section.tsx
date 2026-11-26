@@ -60,9 +60,7 @@ export function HeroSection() {
 
       {/* Scroll indicator */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
-        <div className="animate-bounce">
-          <ArrowRight className="w-6 h-6 text-white rotate-90" />
-        </div>
+        <ArrowRight className="w-6 h-6 text-white rotate-90" />
       </div>
     </section>
   );

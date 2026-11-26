@@ -52,7 +52,6 @@ export function SupportWidget() {
               <Sparkles className="w-3 h-3" />
             </span>
             <MessageCircle className="w-6 h-6 drop-shadow" />
-            <span className="absolute inset-0 rounded-full animate-ping bg-plp-pink/20" aria-hidden />
           </button>
         </DialogTrigger>
         <DialogContent className="max-w-lg p-0 overflow-hidden max-h-[90vh] overflow-y-auto [&>button]:text-white [&>button]:opacity-100 [&>button]:z-10">

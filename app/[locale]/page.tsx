@@ -10,34 +10,19 @@ import { HomeDynamicSections } from "@/components/sections/home-dynamic-sections
 import { PlatformGuideSection } from "@/components/sections/platform-guide-section";
 import { NewsletterSection } from "@/components/sections/newsletter-section";
 import { Footer } from "@/components/navigation/footer";
-import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export default function Home() {
   return (
     <main className="min-h-screen">
       <Navbar />
       <HeroSection />
-      <ScrollReveal>
-        <AgentCTASection />
-      </ScrollReveal>
-      <ScrollReveal>
-        <SeekerSearchSection />
-      </ScrollReveal>
-      <ScrollReveal>
-        <HomeDynamicSections />
-      </ScrollReveal>
-      <ScrollReveal>
-        <PlatformGuideSection />
-      </ScrollReveal>
-      <ScrollReveal>
-        <PropertyCategories />
-      </ScrollReveal>
-      <ScrollReveal>
-        <FeaturedProperties />
-      </ScrollReveal>
-      <ScrollReveal>
-        <NewsletterSection />
-      </ScrollReveal>
+      <AgentCTASection />
+      <SeekerSearchSection />
+      <HomeDynamicSections />
+      <PlatformGuideSection />
+      <PropertyCategories />
+      <FeaturedProperties />
+      <NewsletterSection />
       <Footer />
     </main>
   );
