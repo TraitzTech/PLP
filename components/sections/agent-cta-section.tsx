@@ -19,7 +19,7 @@ export function AgentCTASection() {
   return (
     <section className="relative overflow-hidden bg-white py-16 sm:py-24">
       {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 blur-3xl opacity-10 pointer-events-none">
+      <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 opacity-10 pointer-events-none">
         <div className="aspect-square w-[600px] rounded-full bg-gradient-to-br from-plp-purple to-plp-pink" />
       </div>
 
@@ -102,9 +102,11 @@ export function AgentCTASection() {
           <div className="relative">
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl">
               <img
-                src="https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg"
+                src="https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=960&h=720&fit=crop&q=75"
                 alt={t("agentCta.imageAlt", "Agents working together")}
                 className="object-cover w-full h-full"
+                loading="lazy"
+                decoding="async"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             </div>

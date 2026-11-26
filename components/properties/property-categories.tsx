@@ -29,27 +29,27 @@ const propertyTypeConfig: Record<
 > = {
   hotel: {
     icon: Building2,
-    image: "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg",
+    image: "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg?auto=compress&cs=tinysrgb&w=720&h=520&fit=crop&q=75",
     color: "plp-purple",
   },
   house: {
     icon: Home,
-    image: "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg",
+    image: "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=720&h=520&fit=crop&q=75",
     color: "plp-pink",
   },
   land: {
     icon: MapPin,
-    image: "https://images.pexels.com/photos/1095814/pexels-photo-1095814.jpeg",
+    image: "https://images.pexels.com/photos/1095814/pexels-photo-1095814.jpeg?auto=compress&cs=tinysrgb&w=720&h=520&fit=crop&q=75",
     color: "plp-yellow",
   },
   apartment: {
     icon: Building2,
-    image: "https://images.pexels.com/photos/1957478/pexels-photo-1957478.jpeg",
+    image: "https://images.pexels.com/photos/1957478/pexels-photo-1957478.jpeg?auto=compress&cs=tinysrgb&w=720&h=520&fit=crop&q=75",
     color: "plp-blue",
   },
   villa: {
     icon: Home,
-    image: "https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg",
+    image: "https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=720&h=520&fit=crop&q=75",
     color: "plp-green",
   },
 };
@@ -104,7 +104,7 @@ export function PropertyCategories() {
               propertyTypeConfig[type.name.toLowerCase()]?.icon || Building2,
             image:
               propertyTypeConfig[type.name.toLowerCase()]?.image ||
-              "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg",
+              "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg?auto=compress&cs=tinysrgb&w=720&h=520&fit=crop&q=75",
             color:
               propertyTypeConfig[type.name.toLowerCase()]?.color ||
               "plp-purple",

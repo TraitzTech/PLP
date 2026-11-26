@@ -189,7 +189,7 @@ export function PlatformGuideSection({
             return (
               <div
                 key={`${step.title}-${index}`}
-                className="group relative h-full rounded-2xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-sm"
+                className="group relative h-full rounded-2xl border border-white/10 bg-white/10 p-5 shadow-lg"
               >
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-xs font-semibold tracking-wide text-indigo-200">

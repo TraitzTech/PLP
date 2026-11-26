@@ -15,11 +15,12 @@ export function HeroSection() {
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-plp-gradient opacity-90 z-10"></div>
         <Image
-          src="https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg"
+          src="https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=1920&q=75"
           alt={t("hero.title", "Luxury property background")}
           fill
           className="object-cover"
           priority
+          sizes="100vw"
         />
       </div>
 

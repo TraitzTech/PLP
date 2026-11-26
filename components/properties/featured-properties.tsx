@@ -52,7 +52,7 @@ export function FeaturedProperties() {
         // Fetch featured properties from public endpoint (no authentication required)
         const response = await publicPropertyService.getAllProperties({
           is_featured: true,
-          per_page: 8,
+          per_page: 4,
         });
 
         // Extract properties from response
@@ -65,7 +65,7 @@ export function FeaturedProperties() {
 
         // The /listings endpoint already eager-loads each property's images,
         // so no per-property image fetch is needed here.
-        setProperties(fetchedProperties.slice(0, 8));
+        setProperties(fetchedProperties.slice(0, 4));
       } catch (err) {
         console.error("Error fetching featured properties:", err);
         setError(t("featured.error", "Failed to load featured properties"));
@@ -104,7 +104,7 @@ export function FeaturedProperties() {
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[...Array(8)].map((_, i) => (
+            {[...Array(4)].map((_, i) => (
               <PropertyCardSkeleton key={i} />
             ))}
           </div>
