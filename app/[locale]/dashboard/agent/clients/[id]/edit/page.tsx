@@ -24,7 +24,8 @@ async function getClientById(id: string): Promise<AgentClient> {
     };
 }
 
-export default async function EditClientPage({ params }: { params: { id: string } }) {
-    const data = await getClientById(params.id);
+export default async function EditClientPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const data = await getClientById(id);
     return <AgentClientEditClient initialData={data} />;
 }

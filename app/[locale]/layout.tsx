@@ -5,7 +5,7 @@ import NextTopLoader from 'nextjs-toploader';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { TranslationProvider } from '@/components/translation-provider';
-import { getMessages, Locale } from "@/lib/i18n";
+import { getMessages } from "@/lib/i18n";
 
 const urbanist = Urbanist({
     subsets: ['latin'],
@@ -46,7 +46,7 @@ export default async function LocaleLayout({
                                              params
                                          }: {
     children: React.ReactNode;
-    params: Promise<{ locale: Locale }>;
+    params: Promise<{ locale: string }>;
 }) {
     const { locale } = await params;
     const validLocale = locale === 'fr' ? 'fr' : 'en';

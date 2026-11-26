@@ -10,7 +10,6 @@ import { HomeDynamicSections } from "@/components/sections/home-dynamic-sections
 import { PlatformGuideSection } from "@/components/sections/platform-guide-section";
 import { NewsletterSection } from "@/components/sections/newsletter-section";
 import { Footer } from "@/components/navigation/footer";
-import { NewsletterPopup } from "@/components/ui/newsletter-popup";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export default function Home() {
@@ -40,7 +39,6 @@ export default function Home() {
         <NewsletterSection />
       </ScrollReveal>
       <Footer />
-      <NewsletterPopup delay={5000} />
     </main>
   );
 }

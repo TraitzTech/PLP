@@ -21,7 +21,8 @@ async function getBookingById(id: string) {
     };
 }
 
-export default async function WriteReviewPage({ params }: { params: { id: string } }) {
-    const booking = await getBookingById(params.id);
+export default async function WriteReviewPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const booking = await getBookingById(id);
     return <ReviewWriteClient booking={booking} />;
 }
